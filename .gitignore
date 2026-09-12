@@ -15,4 +15,3 @@ data/artifacts/features.parquet
 data/artifacts/oos_predictions.parquet
 data/artifacts/trades.parquet
 data/artifacts/daily_returns.parquet
-data/artifacts/models/

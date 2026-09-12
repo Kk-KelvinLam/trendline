@@ -93,3 +93,16 @@ OHLCV parquet and model dumps are gitignored (re-fetch / retrain locally).
 ## Railway
 
 Production image serves the Streamlit board only (precomputed `data/artifacts/*.json`). Dockerfile + `railway.toml` are in the repo. Start command binds `0.0.0.0:$PORT`.
+
+
+## Nightly update (GitHub Actions)
+
+Scheduled on `main` (cron only runs from the default branch), but the job checks out and pushes `feat/v1-dashboard` so Railway keeps auto-deploying.
+
+| When | What |
+| --- | --- |
+| 23:00 UTC Mon–Fri | `fetch.py` + refresh `cards.json` from saved LightGBM models |
+| 10:00 UTC Sunday | Full walk-forward retrain |
+| Actions → Nightly cards → Run workflow | Manual, optional full retrain |
+
+No market-data API key. Yahoo first, Stooq fallback. If both fail the job fails and the live site keeps yesterday's cards.

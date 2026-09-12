@@ -18,7 +18,9 @@ from trendline.models.lightgbm_quantile import QuantileLGBM
 from trendline.universe import rank_by_dollar_volume
 
 
-def _recent_error(oos: pd.DataFrame, ticker: str, n: int = 20) -> dict:
+def _recent_error(oos: pd.DataFrame | None, ticker: str, n: int = 20) -> dict:
+    if oos is None or getattr(oos, "empty", True):
+        return {"n": 0, "mae_close_ret": None, "mae_close_px": None}
     g = oos.loc[oos["ticker"] == ticker].sort_values("date").tail(n)
     if g.empty:
         return {"n": 0, "mae_close_ret": None, "mae_close_px": None}
