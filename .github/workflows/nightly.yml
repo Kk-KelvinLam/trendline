@@ -4,12 +4,12 @@ on:
   schedule:
     # After the US cash close, once Yahoo/Stooq usually have the bar.
     - cron: "0 23 * * 1-5"
-    # Weekly full walk-forward (Sunday 10:00 UTC).
+    # Weekly full three-family walk-forward (Sunday 10:00 UTC).
     - cron: "0 10 * * 0"
   workflow_dispatch:
     inputs:
       retrain:
-        description: "Full walk-forward retrain"
+        description: "Full three-family walk-forward retrain"
         type: boolean
         default: false
 
@@ -58,7 +58,18 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/artifacts/cards.json data/artifacts/metrics.json data/artifacts/per_ticker.json data/artifacts/models
+          git add \
+            data/artifacts/cards.json \
+            data/artifacts/cards_shared.json \
+            data/artifacts/cards_sector.json \
+            data/artifacts/cards_stock.json \
+            data/artifacts/metrics.json \
+            data/artifacts/scoreboard.json \
+            data/artifacts/per_ticker.json \
+            data/artifacts/per_ticker_shared.json \
+            data/artifacts/per_ticker_sector.json \
+            data/artifacts/per_ticker_stock.json \
+            data/artifacts/models
           if git diff --cached --quiet; then
             echo "no card/model changes"
             exit 0
