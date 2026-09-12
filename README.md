@@ -89,3 +89,7 @@ tests/
 ```
 
 OHLCV parquet and model dumps are gitignored (re-fetch / retrain locally).
+
+## Railway
+
+Production image serves the Streamlit board only (precomputed `data/artifacts/*.json`). Dockerfile + `railway.toml` are in the repo. Start command binds `0.0.0.0:$PORT`.
