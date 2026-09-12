@@ -70,8 +70,13 @@ jobs:
             data/artifacts/per_ticker_sector.json \
             data/artifacts/per_ticker_stock.json \
             data/artifacts/models \
-            data/universe/sp500.csv \
-            data/parquet/ohlcv.parquet
+            data/universe/sp500.csv
+          # One ohlcv.parquet in the working tree; commit it only after a monthly full pull
+          # so git history does not grow ~11MB per weekday.
+          if [ -f data/artifacts/.commit_ohlcv ]; then
+            git add data/parquet/ohlcv.parquet
+            rm -f data/artifacts/.commit_ohlcv
+          fi
           if git diff --cached --quiet; then
             echo "no card/model changes"
             exit 0

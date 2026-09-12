@@ -63,9 +63,15 @@ def main() -> int:
             print("universe refresh failed; keeping the committed list")
 
     fetch_args = ["--start", args.start]
-    if args.update_universe or (args.retrain and _is_first_sunday()):
+    full_ohlcv = bool(args.update_universe or (args.retrain and _is_first_sunday()))
+    commit_flag = ROOT / "data" / "artifacts" / ".commit_ohlcv"
+    commit_flag.parent.mkdir(parents=True, exist_ok=True)
+    if full_ohlcv:
         print("first-Sunday / universe refresh: full OHLCV pull")
         fetch_args.append("--full")
+        commit_flag.write_text("1", encoding="utf-8")
+    elif commit_flag.exists():
+        commit_flag.unlink()
     rc = _run("fetch.py", fetch_args)
     if rc != 0:
         return rc
