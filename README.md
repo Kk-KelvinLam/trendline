@@ -19,7 +19,7 @@ Model output, not investment advice. Past backtests do not predict future result
 | Quantiles | q10 / q50 / q90 on *returns vs prior close*, then converted to price levels. No LSTM. |
 | Features | Known at prior close only: 1/5/20d returns, overnight gap, ATR, Parkinson vol, dollar-volume z-score, distance to 20/50/200 MAs, plus SPY / VIX / sector ETF. |
 | Baseline | Close = prior close; High / Low = prior close ± 1×ATR. |
-| Cards | Three JSON sets: `cards_shared.json` / `cards_sector.json` / `cards_stock.json` (`cards.json` = shared copy). 做多 / 做空 / 觀望 from **that family's** close q50 vs `DIR_RET_MIN`. Each card keeps `data_source`. |
+| Cards | Three JSON sets. **Fade to prior close:** touch predicted High/Low q50 during the next session, TP = prior close, SL = q10/q90 or 1×ATR. Gate on High/Low beating ATR, not Close direction. No chase if the open gaps through. |
 | Scoreboard | `scoreboard.json`: per family × High/Low/Close × fold — MAE$, MAPE, coverage (+ overall). |
 | Backtest | Expanding walk-forward with a **5-session purge** between train and test. |
 

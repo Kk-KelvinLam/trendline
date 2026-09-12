@@ -62,7 +62,7 @@ def _fmt_num(x, digits=4) -> str:
 
 def main() -> None:
     st.title("Trendline")
-    st.caption("美股收市後 · 下一常規交易時段預測（S&P 500 全數訓練 / 顯示前 100 成交額）")
+    st.caption("美股收市後 · 盤中觸價淡區間（止盈前收）。S&P 500 全數訓練 / 顯示前 100 成交額")
     st.warning(DISCLAIMER)
 
     page = st.radio("頁面", list(FAMILY_PAGES.keys()), horizontal=True)
@@ -271,7 +271,7 @@ def _render_card(card: dict) -> None:
     st.markdown(f"### {card['ticker']}  :{color}[{action}]{conf}")
     st.caption(
         f"#{card.get('dvol_rank', '—')} 成交額　·　{card.get('sector') or '—'}　·　"
-        f"{'模型優於基準' if card.get('beats_baseline') else '模型未優於該股基準'}"
+        f"{'High/Low 優於基準' if card.get('beats_range', card.get('beats_baseline')) else 'High/Low 未優於該股基準'}"
     )
     st.caption(
         f"數據來源：{card.get('data_source') or '未知'}　·　"
@@ -293,7 +293,7 @@ def _render_card(card: dict) -> None:
         st.info(f"入場：無　·　原因：{card.get('reason')}")
     else:
         st.success(
-            f"入場：{card.get('entry')}　·　止盈 {_fmt_px(card.get('tp'))}　·　止損 {_fmt_px(card.get('sl'))}"
+            f"入場：{card.get('entry')} {_fmt_px(card.get('entry_px'))}　·　止盈前收 {_fmt_px(card.get('tp'))}　·　止損 {_fmt_px(card.get('sl'))}"
         )
     err = card.get("recent_error") or {}
     st.caption(

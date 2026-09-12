@@ -9,12 +9,8 @@ from datetime import datetime, timezone
 import numpy as np
 import pandas as pd
 
-from trendline.config import (
-    ATR_SL_MULT,
-    DIR_RET_MIN,
-    RANGE_ATR_MIN,
-    SHOW_TOP_N,
-)
+from trendline.config import FADE_MIN_ATR, SHOW_TOP_N
+from trendline.range_touch import choose_setup
 from trendline.models.baseline import BaselineModel
 from trendline.models.families import SectorBundle, SharedBundle, StockBundle, pred_col
 from trendline.models.lightgbm_quantile import QuantileLGBM
@@ -137,14 +133,14 @@ def build_cards(
     base = BaselineModel().predict(day)
     day = pd.concat([day.reset_index(drop=True), preds.reset_index(drop=True), base.reset_index(drop=True)], axis=1)
 
-    beat = dict(zip(per_ticker["ticker"], per_ticker["beats_baseline"], strict=False))
+    beat_col = "beats_range" if "beats_range" in per_ticker.columns else "beats_baseline"
+    beat = dict(zip(per_ticker["ticker"], per_ticker[beat_col], strict=False))
     rank_map = dict(zip(ranked["ticker"], ranked["dvol_rank"], strict=False))
     dvol_map = dict(zip(ranked["ticker"], ranked["dollar_volume"], strict=False))
 
     cards = []
     for row in day.itertuples(index=False):
         ticker = row.ticker
-        allowed = bool(beat.get(ticker, False) or overall_beats)
         close = float(row.close)
         atr = float(row.atr) if np.isfinite(row.atr) else float("nan")
         q50c = float(row.pred_close_q50)
@@ -152,31 +148,17 @@ def build_cards(
         q50l = float(row.pred_low_q50)
         q10l = float(row.pred_low_q10)
         q90h = float(row.pred_high_q90)
-        rng = (q90h - q10l) * close
-        tight = (not np.isfinite(rng)) or (not np.isfinite(atr)) or (rng < RANGE_ATR_MIN * atr)
-        weak = abs(q50c) < DIR_RET_MIN
-
+        range_ok = bool(beat.get(ticker, False) or overall_beats)
+        setup = choose_setup(close, atr, q50h, q50l, q10l, q90h, range_ok)
         action = "觀望"
-        side = 0
-        reason = "weak_or_tight"
-        if not allowed:
-            reason = "model_does_not_beat_baseline"
-        elif tight:
-            reason = "range_too_tight"
-        elif weak:
-            reason = "probability_too_close"
-        elif q50c > 0:
-            action, side, reason = "做多", 1, "model_beats_baseline"
-        elif q50c < 0:
-            action, side, reason = "做空", -1, "model_beats_baseline"
-
+        side = setup.side
+        reason = setup.reason
         tp = sl = None
-        if side == 1:
-            tp = close * (1.0 + q50h)
-            sl = max(close * (1.0 + q10l), close - ATR_SL_MULT * atr)
-        elif side == -1:
-            tp = close * (1.0 + q50l)
-            sl = min(close * (1.0 + q90h), close + ATR_SL_MULT * atr)
+        entry_px = None
+        if setup.side == 1:
+            action, tp, sl, entry_px = "做多", setup.tp, setup.sl, setup.entry
+        elif setup.side == -1:
+            action, tp, sl, entry_px = "做空", setup.tp, setup.sl, setup.entry
 
         cards.append(
             {
@@ -191,7 +173,8 @@ def build_cards(
                 "reason": reason,
                 "asof": str(asof.date()),
                 "prior_close": close,
-                "entry": "下一開市",
+                "entry": "盤中觸價" if side else "無",
+                "entry_px": None if entry_px is None else float(entry_px),
                 "tp": None if tp is None else float(tp),
                 "sl": None if sl is None else float(sl),
                 "pred": {
@@ -226,8 +209,10 @@ def build_cards(
                     "close_q50": float(close * (1 + row.base_close_q50)),
                 },
                 "atr": float(atr) if np.isfinite(atr) else None,
-                "high_confidence": bool(allowed and (not tight) and abs(q50c) >= 2 * DIR_RET_MIN),
+                "high_confidence": bool(setup.side != 0 and setup.room >= 2 * FADE_MIN_ATR * atr),
                 "beats_baseline": bool(beat.get(ticker, False)),
+                "beats_range": bool(beat.get(ticker, False)),
+                "strategy": "fade_to_prior_close",
                 "recent_error": _recent_error(oos, ticker, family=family),
                 "data_source": _ticker_source(ohlcv, ticker, asof),
                 "universe_source": "S&P 500 · Wikipedia 2026-09-12",
@@ -272,7 +257,7 @@ def build_all_family_cards(
             ohlcv=ohlcv,
             oos=oos,
             per_ticker=rep["per_ticker"],
-            overall_beats=rep["overall_beats_baseline"],
+            overall_beats=bool(rep.get("overall_beats_range", rep.get("overall_beats_baseline"))),
             model=predictor,
             family=family,
         )

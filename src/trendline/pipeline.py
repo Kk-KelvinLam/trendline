@@ -103,7 +103,7 @@ def run(ohlcv: pd.DataFrame | None = None) -> dict:
 
     # Primary metrics / trading sim remain on shared for backward compat
     forecast = family_reports["shared"]
-    trades, daily = simulate_trades(oos, forecast["per_ticker"], forecast["overall_beats_baseline"], family="shared")
+    trades, daily = simulate_trades(oos, forecast["per_ticker"], forecast["overall_beats_range"], family="shared")
     if not trades.empty:
         trades.to_parquet(ARTIFACT_DIR / "trades.parquet", index=False)
     if not daily.empty:
@@ -184,21 +184,22 @@ def refresh_cards_from_saved_models(ohlcv: pd.DataFrame | None = None) -> dict[s
             per_path = ARTIFACT_DIR / "per_ticker.json"
         per = pd.read_json(per_path)
         metrics = json.loads(METRICS_PATH.read_text(encoding="utf-8"))
-        if fam == "shared":
-            beats = bool(metrics.get("overall_beats_baseline"))
-        else:
-            # Prefer scoreboard / per-ticker family flag when present
-            beats = bool(per["beats_baseline"].mean() > 0.5) if "beats_baseline" in per.columns else bool(
-                metrics.get("overall_beats_baseline")
-            )
-            headline = (metrics.get("scoreboard_headline") or {}).get(fam)
-            if headline and "close" in headline:
-                base_close = ((metrics.get("scoreboard_headline") or {}).get("baseline") or {}).get("close", {})
-                fam_mae = headline.get("close", {}).get("mae_px")
-                base_mae = base_close.get("mae_px")
-                if fam_mae is not None and base_mae is not None:
-                    beats = fam_mae < base_mae
-        family_reports[fam] = {"per_ticker": per, "overall_beats_baseline": beats}
+        headline = (metrics.get("scoreboard_headline") or {}).get(fam) or {}
+        base = (metrics.get("scoreboard_headline") or {}).get("baseline") or {}
+        try:
+            beats_range = float(headline["high"]["mae_px"]) < float(base["high"]["mae_px"]) and float(
+                headline["low"]["mae_px"]
+            ) < float(base["low"]["mae_px"])
+        except (KeyError, TypeError, ValueError):
+            if "beats_range" in per.columns:
+                beats_range = bool(per["beats_range"].mean() > 0.5)
+            else:
+                beats_range = bool(metrics.get("overall_beats_range", False))
+        family_reports[fam] = {
+            "per_ticker": per,
+            "overall_beats_baseline": bool(metrics.get("overall_beats_baseline")),
+            "overall_beats_range": bool(beats_range),
+        }
 
     shared = SharedBundle().load(MODEL_SHARED_DIR)
     sector = SectorBundle().load(MODEL_SECTOR_DIR)
