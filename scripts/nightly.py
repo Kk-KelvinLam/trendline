@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import subprocess
 import sys
+from datetime import date
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -43,11 +44,23 @@ def _refresh_cards() -> int:
     return 0
 
 
+def _is_first_sunday(d: date | None = None) -> bool:
+    d = d or date.today()
+    return d.weekday() == 6 and d.day <= 7
+
+
 def main() -> int:
     p = argparse.ArgumentParser()
     p.add_argument("--retrain", action="store_true", help="Full three-family walk-forward + refit")
     p.add_argument("--start", default="2023-01-01")
+    p.add_argument("--update-universe", action="store_true", help="Refresh sp500.csv from Wikipedia")
     args = p.parse_args()
+
+    if args.update_universe or (args.retrain and _is_first_sunday()):
+        print("refreshing S&P 500 membership from Wikipedia")
+        rc = _run("update_universe.py")
+        if rc != 0:
+            print("universe refresh failed; keeping the committed list")
 
     rc = _run("fetch.py", ["--start", args.start])
     if rc != 0:
