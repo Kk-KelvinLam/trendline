@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from datetime import timedelta
 from pathlib import Path
 
 import pandas as pd
@@ -54,3 +55,28 @@ def summarize(df: pd.DataFrame) -> dict:
         "max_date": str(df["date"].max().date()),
         "days_median": int(df.groupby("ticker")["date"].nunique().median()),
     }
+
+
+DELTA_LOOKBACK_DAYS = 15
+
+
+def delta_start(existing: pd.DataFrame, fallback: str, lookback_days: int = DELTA_LOOKBACK_DAYS) -> str:
+    """Start date for an incremental fetch. Overlaps recent bars so Yahoo revisions land."""
+    if existing is None or existing.empty or "date" not in existing.columns:
+        return fallback
+    last = pd.to_datetime(existing["date"]).max()
+    if pd.isna(last):
+        return fallback
+    start = (last - timedelta(days=lookback_days)).normalize()
+    fb = pd.Timestamp(fallback)
+    if start < fb:
+        start = fb
+    return start.date().isoformat()
+
+
+def merge_ohlcv(existing: pd.DataFrame, incoming: pd.DataFrame) -> pd.DataFrame:
+    """One file, newest bar wins on (ticker, date)."""
+    frames = [df for df in (existing, incoming) if df is not None and not df.empty]
+    if not frames:
+        return _normalize(pd.DataFrame(columns=OHLCV_COLS))
+    return _normalize(pd.concat(frames, ignore_index=True))

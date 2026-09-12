@@ -13,7 +13,7 @@ Model output, not investment advice. Past backtests do not predict future result
 
 | 項目 | 說明 |
 | --- | --- |
-| Universe | Static S&P 500 membership (`data/universe/sp500.csv`, Wikipedia snapshot **2026-09-12**). Default fetch = **all members + macros** (SPY, VIX, sector ETFs). `--full` is an alias. |
+| Universe | `data/universe/sp500.csv` from Wikipedia. Refreshed on the **first Sunday of each month** during the Sunday retrain. Default fetch = **all members + macros** (SPY, VIX, sector ETFs). |
 | Train / show | Train on the full downloaded membership; dashboard cards shortlist **top 100** by prior-day dollar volume. |
 | Model families | Three LightGBM quantile families on the **same** purged walk-forward folds: **shared** (panel), **sector** (one model per large GICS sector; small sectors → `Other`), **per-stock** (smaller trees; tickers with &lt; 400 train rows fall back to shared). |
 | Quantiles | q10 / q50 / q90 on *returns vs prior close*, then converted to price levels. No LSTM. |
@@ -83,8 +83,8 @@ Model dumps under `data/artifacts/models/` are **tracked** (needed for weekday n
 
 | When | What |
 | --- | --- |
-| 23:00 UTC Mon–Fri | Full fetch + infer **three** card files from saved models (no WF) |
-| 10:00 UTC Sunday | Full **three-family** walk-forward retrain (slow; expected) |
+| 23:00 UTC Mon–Fri | **Delta** OHLCV (one `ohlcv.parquet`) + infer three card files from saved models |
+| 10:00 UTC Sunday | Three-family walk-forward retrain. **First Sunday of the month:** refresh S&P list + **full** OHLCV pull; other Sundays keep delta. |
 | Actions → Nightly cards → Run workflow | Manual, optional full retrain |
 
 No market-data API key. Yahoo first, Stooq fallback.

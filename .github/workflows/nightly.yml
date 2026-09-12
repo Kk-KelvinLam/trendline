@@ -70,7 +70,8 @@ jobs:
             data/artifacts/per_ticker_sector.json \
             data/artifacts/per_ticker_stock.json \
             data/artifacts/models \
-            data/universe/sp500.csv
+            data/universe/sp500.csv \
+            data/parquet/ohlcv.parquet
           if git diff --cached --quiet; then
             echo "no card/model changes"
             exit 0

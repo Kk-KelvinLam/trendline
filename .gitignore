@@ -11,6 +11,7 @@ build/
 .ipynb_checkpoints/
 data/parquet/*.parquet
 !data/parquet/.gitkeep
+!data/parquet/ohlcv.parquet
 data/artifacts/features.parquet
 data/artifacts/oos_predictions.parquet
 data/artifacts/trades.parquet

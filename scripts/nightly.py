@@ -62,7 +62,11 @@ def main() -> int:
         if rc != 0:
             print("universe refresh failed; keeping the committed list")
 
-    rc = _run("fetch.py", ["--start", args.start])
+    fetch_args = ["--start", args.start]
+    if args.update_universe or (args.retrain and _is_first_sunday()):
+        print("first-Sunday / universe refresh: full OHLCV pull")
+        fetch_args.append("--full")
+    rc = _run("fetch.py", fetch_args)
     if rc != 0:
         return rc
     if args.retrain:
