@@ -8,7 +8,7 @@ import pandas as pd
 
 from trendline.config import OHLCV_PATH, PARQUET_DIR
 
-OHLCV_COLS = ["date", "ticker", "open", "high", "low", "close", "adj_close", "volume"]
+OHLCV_COLS = ["date", "ticker", "open", "high", "low", "close", "adj_close", "volume", "source"]
 
 
 def _normalize(df: pd.DataFrame) -> pd.DataFrame:
@@ -17,6 +17,9 @@ def _normalize(df: pd.DataFrame) -> pd.DataFrame:
     out["ticker"] = out["ticker"].astype(str)
     for c in ("open", "high", "low", "close", "adj_close", "volume"):
         out[c] = pd.to_numeric(out[c], errors="coerce")
+    if "source" not in out.columns:
+        out["source"] = "unknown"
+    out["source"] = out["source"].fillna("unknown").astype(str)
     out = out.dropna(subset=["date", "ticker", "open", "high", "low", "close"])
     out = out[out["high"] >= out["low"]]
     out = out[out["close"] > 0]

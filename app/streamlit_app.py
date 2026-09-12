@@ -176,6 +176,10 @@ def _render_card(card: dict) -> None:
         f"#{card.get('dvol_rank', '—')} 成交額　·　{card.get('sector') or '—'}　·　"
         f"{'模型優於基準' if card.get('beats_baseline') else '模型未優於該股基準'}"
     )
+    st.caption(
+        f"數據來源：{card.get('data_source') or '未知'}　·　"
+        f"{card.get('universe_source') or 'S&P 500'}"
+    )
     p = card.get("pred", {})
     st.write(
         f"前收 **{_fmt_px(card.get('prior_close'))}**　·　"

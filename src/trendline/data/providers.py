@@ -79,6 +79,7 @@ class YahooFinanceProvider:
         if not frames:
             return _empty()
         out = pd.concat(frames, ignore_index=True)
+        out["source"] = "yfinance"
         return out
 
     @staticmethod
@@ -144,6 +145,7 @@ def _normalize_yf_frame(part: pd.DataFrame, ticker: str) -> pd.DataFrame:
             "close": part["close"],
             "adj_close": part["adj_close"],
             "volume": part["volume"],
+            "source": "yfinance",
         }
     )
     return out.dropna(subset=["open", "high", "low", "close"])
@@ -194,6 +196,7 @@ class StooqProvider:
                 "close": raw["close"],
                 "adj_close": raw["close"],
                 "volume": raw.get("volume", 0),
+                "source": "stooq",
             }
         )
         return out.dropna(subset=["open", "high", "low", "close"])

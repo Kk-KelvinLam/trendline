@@ -17,6 +17,29 @@ from trendline.models.baseline import BaselineModel
 from trendline.models.lightgbm_quantile import QuantileLGBM
 from trendline.universe import rank_by_dollar_volume
 
+SOURCE_LABEL = {
+    "yfinance": "Yahoo Finance",
+    "yahoo": "Yahoo Finance",
+    "stooq": "Stooq",
+    "unknown": "未知",
+}
+
+
+def _source_label(raw: str | None) -> str:
+    key = (raw or "unknown").strip().lower()
+    return SOURCE_LABEL.get(key, raw or "未知")
+
+
+def _ticker_source(ohlcv: pd.DataFrame, ticker: str, asof: pd.Timestamp) -> str:
+    if ohlcv is None or ohlcv.empty or "source" not in ohlcv.columns:
+        return "未知"
+    g = ohlcv[(ohlcv["ticker"] == ticker) & (pd.to_datetime(ohlcv["date"]) == asof)]
+    if g.empty:
+        g = ohlcv[ohlcv["ticker"] == ticker]
+    if g.empty:
+        return "未知"
+    return _source_label(str(g.iloc[-1]["source"]))
+
 
 def _recent_error(oos: pd.DataFrame | None, ticker: str, n: int = 20) -> dict:
     if oos is None or getattr(oos, "empty", True):
@@ -158,6 +181,8 @@ def build_cards(
                 "high_confidence": bool(allowed and (not tight) and abs(q50c) >= 2 * DIR_RET_MIN),
                 "beats_baseline": bool(beat.get(ticker, False)),
                 "recent_error": _recent_error(oos, ticker),
+                "data_source": _ticker_source(ohlcv, ticker, asof),
+                "universe_source": "S&P 500 · Wikipedia 2026-09-12",
             }
         )
 
@@ -172,6 +197,7 @@ def build_cards(
         "n_flat": sum(1 for c in cards if c["action"] == "觀望"),
         "disclaimer_zh": "本頁為量化模型輸出，並非投資建議。過往回測不代表未來表現。",
         "disclaimer_en": "Model output, not investment advice. Past backtests do not predict future results.",
+        "universe_source": "S&P 500 · Wikipedia 2026-09-12",
         "cards": cards,
     }
     return payload
