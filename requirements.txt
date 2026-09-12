@@ -1,0 +1,10 @@
+pandas>=2.1
+numpy>=1.26
+pyarrow>=14
+lightgbm>=4.0
+yfinance>=0.2
+requests>=2.31
+streamlit>=1.32
+scikit-learn>=1.4
+pytest>=8
+lxml>=5.0
