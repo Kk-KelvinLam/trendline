@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import Protocol
+
 from datetime import datetime, timezone
 
 import numpy as np
@@ -14,6 +16,7 @@ from trendline.config import (
     SHOW_TOP_N,
 )
 from trendline.models.baseline import BaselineModel
+from trendline.models.families import SectorBundle, SharedBundle, StockBundle, pred_col
 from trendline.models.lightgbm_quantile import QuantileLGBM
 from trendline.universe import rank_by_dollar_volume
 
@@ -23,6 +26,10 @@ SOURCE_LABEL = {
     "stooq": "Stooq",
     "unknown": "未知",
 }
+
+
+class Predictor(Protocol):
+    def predict(self, frame: pd.DataFrame) -> pd.DataFrame: ...
 
 
 def _source_label(raw: str | None) -> str:
@@ -41,13 +48,18 @@ def _ticker_source(ohlcv: pd.DataFrame, ticker: str, asof: pd.Timestamp) -> str:
     return _source_label(str(g.iloc[-1]["source"]))
 
 
-def _recent_error(oos: pd.DataFrame | None, ticker: str, n: int = 20) -> dict:
+def _recent_error(oos: pd.DataFrame | None, ticker: str, family: str = "shared", n: int = 20) -> dict:
     if oos is None or getattr(oos, "empty", True):
         return {"n": 0, "mae_close_ret": None, "mae_close_px": None}
     g = oos.loc[oos["ticker"] == ticker].sort_values("date").tail(n)
     if g.empty:
         return {"n": 0, "mae_close_ret": None, "mae_close_px": None}
-    err = (g["y_close"] - g["pred_close_q50"]).abs()
+    col = pred_col("close", 0.50, family)
+    if col not in g.columns:
+        col = pred_col("close", 0.50)
+    if col not in g.columns:
+        return {"n": 0, "mae_close_ret": None, "mae_close_px": None}
+    err = (g["y_close"] - g[col]).abs()
     px_err = (g["close"] * err).abs()
     return {
         "n": int(len(g)),
@@ -56,20 +68,50 @@ def _recent_error(oos: pd.DataFrame | None, ticker: str, n: int = 20) -> dict:
     }
 
 
+class FamilyPredictor:
+    """Wraps shared/sector/stock bundles so cards always see unsuffixed pred_* cols."""
+
+    def __init__(
+        self,
+        family: str,
+        shared: SharedBundle,
+        sector: SectorBundle | None = None,
+        stock: StockBundle | None = None,
+    ) -> None:
+        self.family = family
+        self.shared = shared
+        self.sector = sector
+        self.stock = stock
+
+    def predict(self, frame: pd.DataFrame) -> pd.DataFrame:
+        shared_preds = self.shared.predict(frame)
+        if self.family == "shared":
+            return shared_preds
+        if self.family == "sector":
+            if self.sector is None:
+                return shared_preds
+            return self.sector.predict(frame, fallback=shared_preds)
+        if self.family == "stock":
+            if self.stock is None:
+                return shared_preds
+            return self.stock.predict(frame, fallback=shared_preds)
+        raise ValueError(f"unknown family {self.family}")
+
+
 def build_cards(
     featured: pd.DataFrame,
     ohlcv: pd.DataFrame,
     oos: pd.DataFrame,
     per_ticker: pd.DataFrame,
     overall_beats: bool,
-    model: QuantileLGBM | None = None,
+    model: Predictor | QuantileLGBM | None = None,
     asof: pd.Timestamp | None = None,
+    family: str = "shared",
 ) -> dict:
-    """Score the latest completed session and emit dashboard cards."""
+    """Score the latest completed session and emit dashboard cards for one family."""
     feat = featured.copy()
     feat["date"] = pd.to_datetime(feat["date"])
     if asof is None:
-        # Latest date that still has a full feature vector (target may be NaN — that's the live row).
         ready = feat.dropna(subset=["ret_20d", "atr", "dist_ma50"])
         asof = ready["date"].max()
     asof = pd.Timestamp(asof)
@@ -84,7 +126,13 @@ def build_cards(
         raise RuntimeError("no S&P names in the top dollar-volume set for this session")
 
     if model is None:
-        model = QuantileLGBM().load()
+        shared = SharedBundle().load()
+        sector = SectorBundle().load() if family != "shared" else None
+        stock = StockBundle().load() if family == "stock" else None
+        if family == "sector" and sector is None:
+            sector = SectorBundle().load()
+        model = FamilyPredictor(family, shared, sector, stock)
+
     preds = model.predict(day)
     base = BaselineModel().predict(day)
     day = pd.concat([day.reset_index(drop=True), preds.reset_index(drop=True), base.reset_index(drop=True)], axis=1)
@@ -122,7 +170,6 @@ def build_cards(
         elif q50c < 0:
             action, side, reason = "做空", -1, "model_beats_baseline"
 
-        # Entry is the next regular open (unknown until the bell). Levels use prior close / ATR.
         tp = sl = None
         if side == 1:
             tp = close * (1.0 + q50h)
@@ -136,6 +183,7 @@ def build_cards(
                 "ticker": ticker,
                 "name": getattr(row, "sector", None),
                 "sector": getattr(row, "sector", None),
+                "model_family": family,
                 "dvol_rank": int(rank_map.get(ticker, 0) or 0),
                 "dollar_volume": float(dvol_map.get(ticker, 0) or 0),
                 "action": action,
@@ -180,17 +228,20 @@ def build_cards(
                 "atr": float(atr) if np.isfinite(atr) else None,
                 "high_confidence": bool(allowed and (not tight) and abs(q50c) >= 2 * DIR_RET_MIN),
                 "beats_baseline": bool(beat.get(ticker, False)),
-                "recent_error": _recent_error(oos, ticker),
+                "recent_error": _recent_error(oos, ticker, family=family),
                 "data_source": _ticker_source(ohlcv, ticker, asof),
                 "universe_source": "S&P 500 · Wikipedia 2026-09-12",
             }
         )
 
     cards.sort(key=lambda c: (0 if c["action"] != "觀望" else 1, c["dvol_rank"]))
+    family_label = {"shared": "共用模型", "sector": "行業模型", "stock": "個股模型"}.get(family, family)
     payload = {
         "generated_at_utc": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "asof": str(asof.date()),
         "next_session": "下一常規交易時段",
+        "model_family": family,
+        "model_family_zh": family_label,
         "n_cards": len(cards),
         "n_long": sum(1 for c in cards if c["action"] == "做多"),
         "n_short": sum(1 for c in cards if c["action"] == "做空"),
@@ -201,3 +252,28 @@ def build_cards(
         "cards": cards,
     }
     return payload
+
+
+def build_all_family_cards(
+    featured: pd.DataFrame,
+    ohlcv: pd.DataFrame,
+    oos: pd.DataFrame,
+    family_reports: dict[str, dict],
+    shared: SharedBundle,
+    sector: SectorBundle,
+    stock: StockBundle,
+) -> dict[str, dict]:
+    out: dict[str, dict] = {}
+    for family in ("shared", "sector", "stock"):
+        rep = family_reports[family]
+        predictor = FamilyPredictor(family, shared, sector, stock)
+        out[family] = build_cards(
+            featured=featured,
+            ohlcv=ohlcv,
+            oos=oos,
+            per_ticker=rep["per_ticker"],
+            overall_beats=rep["overall_beats_baseline"],
+            model=predictor,
+            family=family,
+        )
+    return out

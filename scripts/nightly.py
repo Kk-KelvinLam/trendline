@@ -4,7 +4,6 @@
 from __future__ import annotations
 
 import argparse
-import json
 import subprocess
 import sys
 from pathlib import Path
@@ -20,39 +19,33 @@ def _run(script: str, extra: list[str] | None = None) -> int:
 
 
 def _refresh_cards() -> int:
-    import pandas as pd
-
-    from trendline.cards import build_cards
-    from trendline.config import ARTIFACT_DIR, CARDS_PATH, METRICS_PATH, MODEL_DIR, OOS_PATH
-    from trendline.data.store import load_ohlcv
-    from trendline.features import build_features
-    from trendline.models.lightgbm_quantile import QuantileLGBM
-
-    ohlcv = load_ohlcv()
-    featured = build_features(ohlcv)
-    oos = pd.read_parquet(OOS_PATH) if OOS_PATH.exists() else pd.DataFrame()
-    per_path = ARTIFACT_DIR / "per_ticker.json"
-    if not per_path.exists() or not METRICS_PATH.exists() or not any(MODEL_DIR.glob("*.txt")):
-        print("missing backtest artifacts; running full walk-forward")
-        return _run("backtest.py")
-    per = pd.read_json(per_path)
-    metrics = json.loads(METRICS_PATH.read_text(encoding="utf-8"))
-    cards = build_cards(
-        featured=featured,
-        ohlcv=ohlcv,
-        oos=oos,
-        per_ticker=per,
-        overall_beats=bool(metrics.get("overall_beats_baseline")),
-        model=QuantileLGBM().load(MODEL_DIR),
+    from trendline.config import (
+        ARTIFACT_DIR,
+        METRICS_PATH,
+        MODEL_SECTOR_DIR,
+        MODEL_SHARED_DIR,
+        MODEL_STOCK_DIR,
     )
-    CARDS_PATH.write_text(json.dumps(cards, ensure_ascii=False, indent=2), encoding="utf-8")
-    print(f"wrote {CARDS_PATH}  n={cards['n_cards']} asof={cards['asof']}")
+    from trendline.pipeline import refresh_cards_from_saved_models
+
+    per_ok = (ARTIFACT_DIR / "per_ticker.json").exists()
+    models_ok = (
+        any(MODEL_SHARED_DIR.glob("*.txt"))
+        and MODEL_SECTOR_DIR.exists()
+        and MODEL_STOCK_DIR.exists()
+    )
+    if not per_ok or not METRICS_PATH.exists() or not models_ok:
+        print("missing backtest artifacts; running full three-family walk-forward")
+        return _run("backtest.py")
+    cards = refresh_cards_from_saved_models()
+    for fam, payload in cards.items():
+        print(f"wrote cards_{fam}.json  n={payload['n_cards']} asof={payload['asof']}")
     return 0
 
 
 def main() -> int:
     p = argparse.ArgumentParser()
-    p.add_argument("--retrain", action="store_true", help="Full walk-forward + refit")
+    p.add_argument("--retrain", action="store_true", help="Full three-family walk-forward + refit")
     p.add_argument("--start", default="2023-01-01")
     args = p.parse_args()
 

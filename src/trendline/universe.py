@@ -2,14 +2,15 @@
 
 from __future__ import annotations
 
+from collections import Counter
 from functools import lru_cache
 
 import pandas as pd
 
 from trendline.config import (
-    DEFAULT_TRAIN_TICKERS,
     MACRO_TICKERS,
     SECTOR_ETF,
+    SECTOR_MIN_NAMES,
     UNIVERSE_PATH,
 )
 
@@ -45,10 +46,28 @@ def is_sp500(ticker: str) -> bool:
     return ticker in set(load_sp500()["ticker"])
 
 
+@lru_cache(maxsize=1)
+def large_sectors() -> frozenset[str]:
+    """GICS sectors with >= SECTOR_MIN_NAMES members in the Wikipedia snapshot."""
+    counts = Counter(load_sp500()["sector"].tolist())
+    return frozenset(s for s, n in counts.items() if n >= SECTOR_MIN_NAMES)
+
+
+def model_sector_for(ticker: str) -> str:
+    """Sector key used for sector-family models (large GICS or 'Other')."""
+    sec = sector_map().get(ticker)
+    if sec and sec in large_sectors():
+        return sec
+    return "Other"
+
+
+def model_sector_map() -> dict[str, str]:
+    return {t: model_sector_for(t) for t in load_sp500()["ticker"]}
+
+
 def default_fetch_tickers(include_macros: bool = True) -> list[str]:
-    """Liquid S&P subset used for the default download (plus macros)."""
-    members = set(load_sp500()["ticker"])
-    names = [t for t in DEFAULT_TRAIN_TICKERS if t in members]
+    """All S&P members (+ macros). Same universe ``--full`` used to unlock."""
+    names = list(all_member_tickers())
     if include_macros:
         for m in MACRO_TICKERS:
             if m not in names:

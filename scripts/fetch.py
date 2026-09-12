@@ -13,28 +13,25 @@ sys.path.insert(0, str(ROOT / "src"))
 from trendline.config import OHLCV_PATH  # noqa: E402
 from trendline.data.providers import CombinedProvider  # noqa: E402
 from trendline.data.store import save_ohlcv, summarize  # noqa: E402
-from trendline.universe import all_member_tickers, default_fetch_tickers  # noqa: E402
+from trendline.universe import default_fetch_tickers  # noqa: E402
 
 
 def main() -> int:
     p = argparse.ArgumentParser(description="Fetch daily OHLCV into data/parquet/ohlcv.parquet")
     p.add_argument("--start", default="2023-01-01")
     p.add_argument("--end", default=None)
-    p.add_argument("--full", action="store_true", help="All S&P 500 names (slow; rate-limited)")
+    p.add_argument(
+        "--full",
+        action="store_true",
+        help="Alias: full S&P 500 + macros (now the default)",
+    )
     p.add_argument("--tickers", default="", help="Comma-separated override")
     args = p.parse_args()
 
     if args.tickers:
         tickers = [t.strip() for t in args.tickers.split(",") if t.strip()]
-    elif args.full:
-        tickers = all_member_tickers()
-        # macros still needed for features
-        from trendline.config import MACRO_TICKERS
-
-        for m in MACRO_TICKERS:
-            if m not in tickers:
-                tickers.append(m)
     else:
+        # Default is full membership + macros; --full kept as an alias.
         tickers = default_fetch_tickers()
 
     print(f"fetching {len(tickers)} symbols from {args.start} …")

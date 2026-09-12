@@ -28,7 +28,15 @@ class QuantileLGBM:
 
     name = "lgbm_quantile"
 
-    def __init__(self) -> None:
+    def __init__(
+        self,
+        params: dict | None = None,
+        n_estimators: int | None = None,
+        early_stopping: int | None = None,
+    ) -> None:
+        self.params = {**LGB_PARAMS, **(params or {})}
+        self.n_estimators = int(n_estimators if n_estimators is not None else LGB_N_ESTIMATORS)
+        self.early_stopping = int(early_stopping if early_stopping is not None else LGB_EARLY_STOPPING)
         self.models: dict[tuple[str, float], lgb.Booster] = {}
 
     def fit(
@@ -43,7 +51,7 @@ class QuantileLGBM:
             y_tr = train[_target_col(target)]
             y_va = valid[_target_col(target)] if X_va is not None else None
             for q in QUANTILES:
-                params = {**LGB_PARAMS, "alpha": q}
+                params = {**self.params, "alpha": q}
                 dtrain = lgb.Dataset(X_tr, label=y_tr, free_raw_data=False)
                 valid_sets = [dtrain]
                 valid_names = ["train"]
@@ -52,11 +60,11 @@ class QuantileLGBM:
                     dvalid = lgb.Dataset(X_va, label=y_va, reference=dtrain, free_raw_data=False)
                     valid_sets.append(dvalid)
                     valid_names.append("valid")
-                    callbacks.append(lgb.early_stopping(LGB_EARLY_STOPPING, verbose=False))
+                    callbacks.append(lgb.early_stopping(self.early_stopping, verbose=False))
                 booster = lgb.train(
                     params,
                     dtrain,
-                    num_boost_round=LGB_N_ESTIMATORS,
+                    num_boost_round=self.n_estimators,
                     valid_sets=valid_sets,
                     valid_names=valid_names,
                     callbacks=callbacks,

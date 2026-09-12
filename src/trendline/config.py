@@ -11,13 +11,21 @@ PARQUET_DIR = DATA_DIR / "parquet"
 OHLCV_PATH = PARQUET_DIR / "ohlcv.parquet"
 ARTIFACT_DIR = DATA_DIR / "artifacts"
 MODEL_DIR = ARTIFACT_DIR / "models"
+MODEL_SHARED_DIR = MODEL_DIR / "shared"
+MODEL_SECTOR_DIR = MODEL_DIR / "sector"
+MODEL_STOCK_DIR = MODEL_DIR / "stock"
 CARDS_PATH = ARTIFACT_DIR / "cards.json"
+CARDS_SHARED_PATH = ARTIFACT_DIR / "cards_shared.json"
+CARDS_SECTOR_PATH = ARTIFACT_DIR / "cards_sector.json"
+CARDS_STOCK_PATH = ARTIFACT_DIR / "cards_stock.json"
 METRICS_PATH = ARTIFACT_DIR / "metrics.json"
+SCOREBOARD_PATH = ARTIFACT_DIR / "scoreboard.json"
 OOS_PATH = ARTIFACT_DIR / "oos_predictions.parquet"
 FEATURE_PATH = ARTIFACT_DIR / "features.parquet"
 
 QUANTILES = (0.10, 0.50, 0.90)
 TARGETS = ("high", "low", "close")
+MODEL_FAMILIES = ("shared", "sector", "stock")
 
 # Baseline: High/Low = prior close ± k * ATR
 BASELINE_ATR_K = 1.0
@@ -25,7 +33,7 @@ ATR_PERIOD = 14
 PARKINSON_WINDOW = 20
 DVOL_Z_WINDOW = 20
 
-# LightGBM — small enough for a laptop walk-forward
+# LightGBM — panel / sector (slightly lean for full-universe walk-forward)
 LGB_PARAMS = {
     "objective": "quantile",
     "metric": "quantile",
@@ -39,8 +47,29 @@ LGB_PARAMS = {
     "n_jobs": -1,
     "force_col_wise": True,
 }
-LGB_N_ESTIMATORS = 180
-LGB_EARLY_STOPPING = 30
+LGB_N_ESTIMATORS = 120
+LGB_EARLY_STOPPING = 25
+
+# Per-stock: smaller trees; skip thin history
+STOCK_LGB_PARAMS = {
+    "objective": "quantile",
+    "metric": "quantile",
+    "learning_rate": 0.05,
+    "num_leaves": 8,
+    "min_data_in_leaf": 25,
+    "feature_fraction": 0.9,
+    "bagging_fraction": 0.9,
+    "bagging_freq": 1,
+    "verbosity": -1,
+    "n_jobs": 1,
+    "force_col_wise": True,
+}
+STOCK_N_ESTIMATORS = 80
+STOCK_MIN_TRAIN_ROWS = 400
+STOCK_EARLY_STOPPING = 20
+
+# Sector split: GICS with enough Wikipedia-snapshot members get own model
+SECTOR_MIN_NAMES = 20
 
 # Walk-forward (trading days)
 WF_MIN_TRAIN_DAYS = 252
@@ -85,8 +114,7 @@ MACRO_TICKERS = (
     "XLC",
 )
 
-# High-liquidity S&P names used as the default fetch/train subset.
-# Full membership list lives in data/universe/sp500.csv.
+# Kept for reference / tests; default fetch is now the full S&P list.
 DEFAULT_TRAIN_TICKERS = (
     "AAPL", "MSFT", "NVDA", "AMZN", "GOOGL", "GOOG", "META", "TSLA", "BRK-B",
     "AVGO", "JPM", "UNH", "XOM", "LLY", "V", "MA", "COST", "HD", "PG", "JNJ",

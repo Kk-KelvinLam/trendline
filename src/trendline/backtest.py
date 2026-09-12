@@ -12,6 +12,8 @@ from trendline.config import (
     DIR_RET_MIN,
     FEATURE_COLS,
     MAX_POSITIONS,
+    MODEL_FAMILIES,
+    QUANTILES,
     RANGE_ATR_MIN,
     TARGETS,
     WF_MIN_TRAIN_DAYS,
@@ -20,7 +22,7 @@ from trendline.config import (
 )
 from trendline.metrics import directional_accuracy, forecast_block, trade_stats
 from trendline.models.baseline import BaselineModel
-from trendline.models.lightgbm_quantile import QuantileLGBM
+from trendline.models.families import SectorBundle, SharedBundle, StockBundle, pred_col, rename_preds
 from trendline.universe import is_sp500
 
 
@@ -69,9 +71,8 @@ def _ready(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def run_walk_forward(featured: pd.DataFrame) -> tuple[pd.DataFrame, list[dict]]:
-    """Train LightGBM on expanding windows; return OOS prediction frame + fold log."""
+    """Train shared / sector / stock on the same calendar folds; return OOS + fold log."""
     df = _ready(featured)
-    # Train on S&P members only (macros stay as features via merge, not as rows).
     df = df[df["ticker"].map(is_sp500)].copy()
     if df.empty:
         raise RuntimeError("no S&P rows with complete features/targets")
@@ -92,14 +93,51 @@ def run_walk_forward(featured: pd.DataFrame) -> tuple[pd.DataFrame, list[dict]]:
         test = df[(df["date"] >= fold.test_start) & (df["date"] <= fold.test_end)]
         if len(train) < 500 or test.empty:
             continue
-        # Small tail of train as early-stopping valid (still before purge gap).
+
         cut = train["date"].quantile(0.88)
         tr = train[train["date"] <= cut]
         va = train[train["date"] > cut]
-        model = QuantileLGBM().fit(tr, va if len(va) > 50 else None)
-        pred = model.predict(test)
+        va_use = va if len(va) > 50 else None
+
+        print(
+            f"fold {fold.fold_id}: train={len(train)} test={len(test)} "
+            f"tickers_train={train['ticker'].nunique()}",
+            flush=True,
+        )
+
+        shared = SharedBundle().fit(tr, va_use)
+        pred_shared = shared.predict(test)
+
+        # Sector/stock use the full fold train window and split internally so
+        # STOCK_MIN_TRAIN_ROWS is measured on complete history, not the ES cut.
+        sector = SectorBundle().fit(train)
+        pred_sector = sector.predict(test, fallback=pred_shared)
+
+        stock = StockBundle().fit(train)
+        pred_stock = stock.predict(test, fallback=pred_shared)
+        print(
+            f"  sector_models={len(sector.models)} stock_models={len(stock.models)}",
+            flush=True,
+        )
+
         base = baseline.predict(test)
-        block = pd.concat([test.reset_index(drop=True), pred.reset_index(drop=True), base.reset_index(drop=True)], axis=1)
+        block = pd.concat(
+            [
+                test.reset_index(drop=True),
+                rename_preds(pred_shared, "shared").reset_index(drop=True),
+                rename_preds(pred_sector, "sector").reset_index(drop=True),
+                rename_preds(pred_stock, "stock").reset_index(drop=True),
+                base.reset_index(drop=True),
+            ],
+            axis=1,
+        )
+        # Unsuffixed aliases = shared (backward compat for trade sim / cards helpers)
+        for target in TARGETS:
+            for q in QUANTILES:
+                src = pred_col(target, q, "shared")
+                dst = pred_col(target, q)
+                if src in block.columns:
+                    block[dst] = block[src]
         block["fold_id"] = fold.fold_id
         parts.append(block)
         fold_logs.append(
@@ -111,6 +149,8 @@ def run_walk_forward(featured: pd.DataFrame) -> tuple[pd.DataFrame, list[dict]]:
                 "test_end": str(fold.test_end.date()),
                 "n_train": int(len(train)),
                 "n_test": int(len(test)),
+                "n_sector_models": int(len(sector.models)),
+                "n_stock_models": int(len(stock.models)),
             }
         )
 
@@ -124,16 +164,33 @@ def _px(close: np.ndarray, ret: np.ndarray) -> np.ndarray:
     return close * (1.0 + ret)
 
 
-def evaluate_forecasts(oos: pd.DataFrame) -> dict:
-    """MAE/RMSE/MAPE, coverage, pinball, directional accuracy — model vs baseline."""
+def _family_pred_col(target: str, q: float, family: str) -> str:
+    col = pred_col(target, q, family)
+    # fall back to unsuffixed (shared alias)
+    return col
+
+
+def evaluate_family(oos: pd.DataFrame, family: str) -> dict:
+    """MAE/RMSE/MAPE, coverage — one model family vs the same ATR baseline."""
     close = oos["close"].to_numpy(dtype=float)
-    report: dict = {"n_rows": int(len(oos)), "n_tickers": int(oos["ticker"].nunique())}
+    report: dict = {
+        "family": family,
+        "n_rows": int(len(oos)),
+        "n_tickers": int(oos["ticker"].nunique()),
+    }
 
     for target in TARGETS:
+        q50_c = _family_pred_col(target, 0.50, family)
+        q10_c = _family_pred_col(target, 0.10, family)
+        q90_c = _family_pred_col(target, 0.90, family)
+        if q50_c not in oos.columns:
+            q50_c = pred_col(target, 0.50)
+            q10_c = pred_col(target, 0.10)
+            q90_c = pred_col(target, 0.90)
         yt = oos[f"y_{target}"].to_numpy(dtype=float)
-        q50 = oos[f"pred_{target}_q50"].to_numpy(dtype=float)
-        q10 = oos[f"pred_{target}_q10"].to_numpy(dtype=float)
-        q90 = oos[f"pred_{target}_q90"].to_numpy(dtype=float)
+        q50 = oos[q50_c].to_numpy(dtype=float)
+        q10 = oos[q10_c].to_numpy(dtype=float)
+        q90 = oos[q90_c].to_numpy(dtype=float)
         b50 = oos[f"base_{target}_q50"].to_numpy(dtype=float)
         b10 = oos[f"base_{target}_q10"].to_numpy(dtype=float)
         b90 = oos[f"base_{target}_q90"].to_numpy(dtype=float)
@@ -143,15 +200,17 @@ def evaluate_forecasts(oos: pd.DataFrame) -> dict:
         report[f"model_{target}"] = forecast_block(yt, q50, q10, q90, actual_px, pred_px)
         report[f"baseline_{target}"] = forecast_block(yt, b50, b10, b90, actual_px, base_px)
 
+    q50_close = _family_pred_col("close", 0.50, family)
+    if q50_close not in oos.columns:
+        q50_close = pred_col("close", 0.50)
     report["dir_acc_vs_prior_close"] = directional_accuracy(
-        oos["y_close"].to_numpy(), oos["pred_close_q50"].to_numpy()
+        oos["y_close"].to_numpy(), oos[q50_close].to_numpy()
     )
     report["dir_acc_vs_prior_close_baseline"] = directional_accuracy(
         oos["y_close"].to_numpy(), oos["base_close_q50"].to_numpy()
     )
-    # Direction vs next open: sign(close - open) vs sign(pred_close_px - next_open)
     if "next_open" in oos.columns:
-        pred_c_px = _px(close, oos["pred_close_q50"].to_numpy())
+        pred_c_px = _px(close, oos[q50_close].to_numpy())
         act_from_open = oos["next_close"].to_numpy(dtype=float) - oos["next_open"].to_numpy(dtype=float)
         pred_from_open = pred_c_px - oos["next_open"].to_numpy(dtype=float)
         report["dir_acc_vs_next_open"] = directional_accuracy(act_from_open, pred_from_open)
@@ -159,18 +218,23 @@ def evaluate_forecasts(oos: pd.DataFrame) -> dict:
         base_from_open = base_c_px - oos["next_open"].to_numpy(dtype=float)
         report["dir_acc_vs_next_open_baseline"] = directional_accuracy(act_from_open, base_from_open)
 
-    # Per-ticker close MAE (return space) for the card gate.
+    q50_high = _family_pred_col("high", 0.50, family)
+    if q50_high not in oos.columns:
+        q50_high = pred_col("high", 0.50)
+    q50_low = _family_pred_col("low", 0.50, family)
+    if q50_low not in oos.columns:
+        q50_low = pred_col("low", 0.50)
     rows = []
     for ticker, g in oos.groupby("ticker"):
         rows.append(
             {
                 "ticker": ticker,
                 "n": int(len(g)),
-                "model_mae_close": float(np.mean(np.abs(g["y_close"] - g["pred_close_q50"]))),
+                "model_mae_close": float(np.mean(np.abs(g["y_close"] - g[q50_close]))),
                 "base_mae_close": float(np.mean(np.abs(g["y_close"] - g["base_close_q50"]))),
-                "model_mae_high": float(np.mean(np.abs(g["y_high"] - g["pred_high_q50"]))),
+                "model_mae_high": float(np.mean(np.abs(g["y_high"] - g[q50_high]))),
                 "base_mae_high": float(np.mean(np.abs(g["y_high"] - g["base_high_q50"]))),
-                "model_mae_low": float(np.mean(np.abs(g["y_low"] - g["pred_low_q50"]))),
+                "model_mae_low": float(np.mean(np.abs(g["y_low"] - g[q50_low]))),
                 "base_mae_low": float(np.mean(np.abs(g["y_low"] - g["base_low_q50"]))),
             }
         )
@@ -183,14 +247,107 @@ def evaluate_forecasts(oos: pd.DataFrame) -> dict:
     return report
 
 
-def simulate_trades(oos: pd.DataFrame, per_ticker: pd.DataFrame, overall_beats: bool) -> tuple[pd.DataFrame, pd.DataFrame]:
+def evaluate_forecasts(oos: pd.DataFrame, family: str = "shared") -> dict:
+    """Backward-compatible entry: evaluate one family (default shared)."""
+    return evaluate_family(oos, family)
+
+
+def _fold_target_block(g: pd.DataFrame, family: str, target: str) -> dict:
+    close = g["close"].to_numpy(dtype=float)
+    yt = g[f"y_{target}"].to_numpy(dtype=float)
+    q50_c = _family_pred_col(target, 0.50, family)
+    q10_c = _family_pred_col(target, 0.10, family)
+    q90_c = _family_pred_col(target, 0.90, family)
+    if q50_c not in g.columns:
+        q50_c, q10_c, q90_c = pred_col(target, 0.50), pred_col(target, 0.10), pred_col(target, 0.90)
+    q50 = g[q50_c].to_numpy(dtype=float)
+    q10 = g[q10_c].to_numpy(dtype=float)
+    q90 = g[q90_c].to_numpy(dtype=float)
+    actual_px = _px(close, yt)
+    pred_px = _px(close, q50)
+    block = forecast_block(yt, q50, q10, q90, actual_px, pred_px)
+    return {
+        "mae_px": block.get("mae_px"),
+        "mape_px": block.get("mape_px"),
+        "mae_ret": block.get("mae_ret"),
+        "coverage": block.get("coverage_q10_q90"),
+        "n": block.get("n"),
+    }
+
+
+def build_scoreboard(oos: pd.DataFrame, fold_logs: list[dict]) -> dict:
+    """Horse race: per family × target × fold MAE$/MAPE/coverage + overall."""
+    families: dict = {}
+    for family in MODEL_FAMILIES:
+        overall = evaluate_family(oos, family)
+        fold_rows = []
+        for fold_id, g in oos.groupby("fold_id"):
+            row = {"fold_id": int(fold_id)}
+            for target in TARGETS:
+                row[target] = _fold_target_block(g, family, target)
+            fold_rows.append(row)
+        fold_rows.sort(key=lambda r: r["fold_id"])
+        families[family] = {
+            "overall": {t: overall[f"model_{t}"] for t in TARGETS},
+            "overall_beats_baseline": overall["overall_beats_baseline"],
+            "dir_acc_vs_prior_close": overall.get("dir_acc_vs_prior_close"),
+            "n_rows": overall["n_rows"],
+            "n_tickers": overall["n_tickers"],
+            "folds": fold_rows,
+        }
+
+    # Baseline once (same for all families)
+    base_overall = {}
+    for target in TARGETS:
+        close = oos["close"].to_numpy(dtype=float)
+        yt = oos[f"y_{target}"].to_numpy(dtype=float)
+        b50 = oos[f"base_{target}_q50"].to_numpy(dtype=float)
+        b10 = oos[f"base_{target}_q10"].to_numpy(dtype=float)
+        b90 = oos[f"base_{target}_q90"].to_numpy(dtype=float)
+        base_overall[target] = forecast_block(yt, b50, b10, b90, _px(close, yt), _px(close, b50))
+    base_folds = []
+    for fold_id, g in oos.groupby("fold_id"):
+        row = {"fold_id": int(fold_id)}
+        for target in TARGETS:
+            close = g["close"].to_numpy(dtype=float)
+            yt = g[f"y_{target}"].to_numpy(dtype=float)
+            b50 = g[f"base_{target}_q50"].to_numpy(dtype=float)
+            b10 = g[f"base_{target}_q10"].to_numpy(dtype=float)
+            b90 = g[f"base_{target}_q90"].to_numpy(dtype=float)
+            block = forecast_block(yt, b50, b10, b90, _px(close, yt), _px(close, b50))
+            row[target] = {
+                "mae_px": block.get("mae_px"),
+                "mape_px": block.get("mape_px"),
+                "mae_ret": block.get("mae_ret"),
+                "coverage": block.get("coverage_q10_q90"),
+                "n": block.get("n"),
+            }
+        base_folds.append(row)
+    base_folds.sort(key=lambda r: r["fold_id"])
+
+    return {
+        "families": families,
+        "baseline": {"overall": base_overall, "folds": base_folds},
+        "fold_logs": fold_logs,
+    }
+
+
+def simulate_trades(
+    oos: pd.DataFrame,
+    per_ticker: pd.DataFrame,
+    overall_beats: bool,
+    family: str = "shared",
+) -> tuple[pd.DataFrame, pd.DataFrame]:
     """Enter next open; TP at q50 extreme; SL at q10/q90 or 1×ATR. Conservative OHLC fill.
 
-    A long/short is allowed only when the model beats the baseline on that ticker
-    *or* overall. Otherwise the name is 觀望 (flat).
+    Uses the given family's predictions (default shared).
     """
     beat = dict(zip(per_ticker["ticker"], per_ticker["beats_baseline"], strict=False))
     recs: list[dict] = []
+
+    def _col(target: str, q: float) -> str:
+        c = pred_col(target, q, family)
+        return c if c in oos.columns else pred_col(target, q)
 
     work = oos.dropna(subset=["next_open", "next_high", "next_low", "next_close", "atr"]).copy()
     for date, day in work.groupby("date"):
@@ -198,11 +355,11 @@ def simulate_trades(oos: pd.DataFrame, per_ticker: pd.DataFrame, overall_beats: 
         for row in day.itertuples(index=False):
             ticker = row.ticker
             allowed = bool(beat.get(ticker, False) or overall_beats)
-            q50c = float(row.pred_close_q50)
-            q50h = float(row.pred_high_q50)
-            q50l = float(row.pred_low_q50)
-            q10l = float(row.pred_low_q10)
-            q90h = float(row.pred_high_q90)
+            q50c = float(getattr(row, _col("close", 0.50)))
+            q50h = float(getattr(row, _col("high", 0.50)))
+            q50l = float(getattr(row, _col("low", 0.50)))
+            q10l = float(getattr(row, _col("low", 0.10)))
+            q90h = float(getattr(row, _col("high", 0.90)))
             atr = float(row.atr)
             close = float(row.close)
             rng = (q90h - q10l) * close
@@ -228,14 +385,18 @@ def simulate_trades(oos: pd.DataFrame, per_ticker: pd.DataFrame, overall_beats: 
                 tp = close * (1.0 + q50h)
                 sl_q = close * (1.0 + q10l)
                 sl_atr = entry - ATR_SL_MULT * atr
-                sl = max(sl_q, sl_atr)  # tighter (higher) stop
-                ret, exit_px, reason = _fill_long(entry, float(row.next_high), float(row.next_low), float(row.next_close), tp, sl)
+                sl = max(sl_q, sl_atr)
+                ret, exit_px, reason = _fill_long(
+                    entry, float(row.next_high), float(row.next_low), float(row.next_close), tp, sl
+                )
             else:
                 tp = close * (1.0 + q50l)
                 sl_q = close * (1.0 + q90h)
                 sl_atr = entry + ATR_SL_MULT * atr
-                sl = min(sl_q, sl_atr)  # tighter (lower) stop
-                ret, exit_px, reason = _fill_short(entry, float(row.next_high), float(row.next_low), float(row.next_close), tp, sl)
+                sl = min(sl_q, sl_atr)
+                ret, exit_px, reason = _fill_short(
+                    entry, float(row.next_high), float(row.next_low), float(row.next_close), tp, sl
+                )
             recs.append(
                 {
                     "date": pd.Timestamp(date),
@@ -249,6 +410,7 @@ def simulate_trades(oos: pd.DataFrame, per_ticker: pd.DataFrame, overall_beats: 
                     "ret": ret,
                     "reason": reason,
                     "fold_id": getattr(row, "fold_id", None),
+                    "family": family,
                 }
             )
             taken += 1
@@ -277,7 +439,7 @@ def _fill_short(entry: float, high: float, low: float, close: float, tp: float, 
     hit_sl = high >= sl
     hit_tp = low <= tp
     if hit_sl:
-        return entry / sl - 1.0 if False else (entry - sl) / entry, sl, "sl"
+        return (entry - sl) / entry, sl, "sl"
     if hit_tp:
         return (entry - tp) / entry, tp, "tp"
     return (entry - close) / entry, close, "close"
@@ -299,5 +461,6 @@ def summarize_backtest(forecast: dict, trades: pd.DataFrame, daily: pd.DataFrame
         "trading": ts,
         "tickers_beating_baseline": int(forecast["per_ticker"]["beats_baseline"].sum()),
         "tickers_evaluated": int(len(forecast["per_ticker"])),
+        "primary_family": forecast.get("family", "shared"),
     }
     return out
