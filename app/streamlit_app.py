@@ -63,12 +63,108 @@ def _fmt_num(x, digits=4) -> str:
     return f"{x:.{digits}f}"
 
 
+
+def _inject_back_to_top(*, jump: bool) -> None:
+    """Fixed ↑ in the Streamlit page. Hide only when we know we are at the top."""
+    import streamlit.components.v1 as components
+
+    st.markdown(
+        """
+<style>
+#tl-top { position: relative; top: -8px; height: 1px; }
+#tl-arrow {
+  position: fixed !important;
+  right: 20px;
+  bottom: 20px;
+  z-index: 999999;
+  width: 44px;
+  height: 44px;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: #1f2937;
+  color: #fff !important;
+  text-decoration: none !important;
+  font-size: 22px;
+  line-height: 1;
+  box-shadow: 0 4px 12px rgba(0,0,0,.25);
+}
+#tl-arrow.tl-hide { display: none !important; }
+</style>
+<div id="tl-top"></div>
+<a id="tl-arrow" href="#tl-top" aria-label="回到頁頂">↑</a>
+""",
+        unsafe_allow_html=True,
+    )
+    flag = "1" if jump else "0"
+    components.html(
+        f"""
+<script>
+(function() {{
+  const win = window.parent;
+  const doc = win.document;
+  try {{ win.history.scrollRestoration = "manual"; }} catch (e) {{}}
+  var orphan = doc.getElementById("tl-back-top");
+  if (orphan) orphan.remove();
+  function arrow() {{
+    return doc.getElementById("tl-arrow") || document.getElementById("tl-arrow");
+  }}
+  function scrollers() {{
+    const found = [
+      doc.scrollingElement, doc.documentElement, doc.body,
+      doc.querySelector(".stApp"),
+      doc.querySelector('[data-testid="stAppViewContainer"]'),
+      doc.querySelector('[data-testid="stAppScrollToBottomContainer"]'),
+      doc.querySelector("section.main"),
+    ];
+    return found.filter(Boolean);
+  }}
+  function hardTop() {{
+    scrollers().forEach(function(el) {{ el.scrollTop = 0; }});
+    try {{ win.scrollTo(0, 0); }} catch (e) {{}}
+    var top = doc.getElementById("tl-top");
+    if (top && top.scrollIntoView) top.scrollIntoView();
+  }}
+  function maxY() {{
+    var m = win.scrollY || 0;
+    scrollers().forEach(function(el) {{ m = Math.max(m, el.scrollTop || 0); }});
+    return m;
+  }}
+  function sync() {{
+    var a = arrow();
+    if (!a) return;
+    var tall = scrollers().some(function(el) {{ return el.scrollHeight > el.clientHeight + 80; }});
+    if (tall && maxY() <= 80) a.classList.add("tl-hide");
+    else a.classList.remove("tl-hide");
+  }}
+  if (!win.__tlArrowTimer) {{
+    win.__tlArrowTimer = win.setInterval(sync, 250);
+  }}
+  if (!win.__tlPinnedTop) {{
+    win.__tlPinnedTop = true;
+    hardTop();
+    [80, 250, 600].forEach(function(ms) {{ win.setTimeout(hardTop, ms); }});
+  }}
+  if ("{flag}" === "1") hardTop();
+  sync();
+}})();
+</script>
+""",
+        height=0,
+    )
+
+
 def main() -> None:
+    _inject_back_to_top(jump=False)
     st.title("Trendline")
     st.caption("美股收市後 · 盤中觸價淡區間（止盈前收）。S&P 500 全數訓練 / 顯示前 100 成交額")
     st.warning(DISCLAIMER)
 
     page = st.radio("頁面", list(FAMILY_PAGES.keys()), horizontal=True)
+    jumped = st.session_state.get("_page") != page
+    st.session_state["_page"] = page
+    _inject_back_to_top(jump=jumped)
     key, cards_path = FAMILY_PAGES[page]
 
     metrics = _load_json(METRICS_PATH)
