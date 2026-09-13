@@ -4,8 +4,8 @@ on:
   schedule:
     # After the US cash close, once Yahoo/Stooq usually have the bar.
     - cron: "0 23 * * 1-5"
-    # Weekly full three-family walk-forward (Sunday 10:00 UTC).
-    - cron: "0 10 * * 0"
+    # Weekly full three-family walk-forward (Sunday 19:15 HKT / 11:15 UTC).
+    - cron: "15 11 * * 0"
   workflow_dispatch:
     inputs:
       retrain:
@@ -45,7 +45,7 @@ jobs:
           if [ "${{ github.event.inputs.retrain }}" = "true" ]; then
             RETRAIN=true
           fi
-          if [ "${{ github.event.schedule }}" = "0 10 * * 0" ]; then
+          if [ "${{ github.event.schedule }}" = "15 11 * * 0" ]; then
             RETRAIN=true
           fi
           if [ "$RETRAIN" = "true" ]; then
