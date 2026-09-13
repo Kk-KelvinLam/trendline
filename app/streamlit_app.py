@@ -63,12 +63,64 @@ def _fmt_num(x, digits=4) -> str:
     return f"{x:.{digits}f}"
 
 
+
+def _inject_back_to_top(*, jump: bool) -> None:
+    """Floating 回頂. Also kill browser scroll restore so a reload can start at the top."""
+    import streamlit.components.v1 as components
+
+    flag = "1" if jump else "0"
+    components.html(
+        f"""
+<script>
+(function() {{
+  const doc = window.parent.document;
+  const win = window.parent;
+  try {{ win.history.scrollRestoration = "manual"; }} catch (e) {{}}
+  function mainEl() {{
+    return doc.querySelector('[data-testid="stAppViewContainer"]')
+        || doc.querySelector("section.main")
+        || doc.documentElement;
+  }}
+  function toTop(smooth) {{
+    const el = mainEl();
+    const opt = smooth ? {{ top: 0, behavior: "smooth" }} : {{ top: 0 }};
+    if (el && el.scrollTo) el.scrollTo(opt);
+    if (win.scrollTo) win.scrollTo(opt);
+    doc.documentElement.scrollTop = 0;
+    doc.body.scrollTop = 0;
+  }}
+  if (!doc.getElementById("tl-back-top")) {{
+    const btn = doc.createElement("button");
+    btn.id = "tl-back-top";
+    btn.type = "button";
+    btn.textContent = "回頂";
+    btn.setAttribute("aria-label", "回到頁頂");
+    btn.style.cssText = [
+      "position:fixed", "right:20px", "bottom:20px", "z-index:99999",
+      "padding:10px 14px", "border:0", "border-radius:999px",
+      "background:#1f2937", "color:#fff", "font-size:14px",
+      "box-shadow:0 4px 12px rgba(0,0,0,.25)", "cursor:pointer"
+    ].join(";");
+    btn.onclick = function() {{ toTop(true); }};
+    doc.body.appendChild(btn);
+  }}
+  if ("{flag}" === "1") toTop(false);
+}})();
+</script>
+""",
+        height=0,
+    )
+
+
 def main() -> None:
     st.title("Trendline")
     st.caption("美股收市後 · 盤中觸價淡區間（止盈前收）。S&P 500 全數訓練 / 顯示前 100 成交額")
     st.warning(DISCLAIMER)
 
     page = st.radio("頁面", list(FAMILY_PAGES.keys()), horizontal=True)
+    jumped = st.session_state.get("_page") != page
+    st.session_state["_page"] = page
+    _inject_back_to_top(jump=jumped)
     key, cards_path = FAMILY_PAGES[page]
 
     metrics = _load_json(METRICS_PATH)
