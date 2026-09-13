@@ -48,3 +48,11 @@ def test_fill_fee_math():
     shares = 40
     pnl = shares * (exit_px - 102.0) * -1 - 4
     assert abs(pnl - (80 - 4)) < 1e-6
+
+
+def test_three_books_same_start():
+    from trendline.ledger import ledger_view, new_ledger
+    v = ledger_view(new_ledger())
+    eqs = [v["headlines"][f]["equity_hkd"] for f in ("shared", "sector", "stock")]
+    assert eqs == [500_000.0, 500_000.0, 500_000.0]
+    assert set(v["planned"]) == {"shared", "sector", "stock"}

@@ -277,34 +277,37 @@ def _fmt_hkd(x) -> str:
 
 
 def _render_ledger() -> None:
-    st.subheader("流水 · 模擬戶口")
-    st.warning("呢個戶口係紙上模擬，未接券商，唔會真係落盤。")
+    st.subheader("流水 · 三戶口賽馬")
+    st.warning("紙上模擬，未接券商。三個模型各 HK$500,000，同一日同一規則。")
     view = ledger_view()
     ledger = view["ledger"]
     acct = ledger.get("account") or {}
-    a, b, c, d = st.columns(4)
-    a.metric("權益", _fmt_hkd(acct.get("equity_hkd")))
-    start = float(acct.get("starting_equity_hkd") or 0)
-    eq = float(acct.get("equity_hkd") or 0)
-    b.metric("損益", _fmt_hkd(eq - start), delta=_fmt_pct((eq / start - 1) if start else None))
-    c.metric("已實現時段", len(ledger.get("realized_asofs") or []))
-    d.metric("成交筆數", len(ledger.get("fills") or []))
+    headlines = view.get("headlines") or {}
+    labels = (("shared", "共用"), ("sector", "行業"), ("stock", "個股"))
+    cols = st.columns(3)
+    for col, (fam, label) in zip(cols, labels):
+        h = headlines.get(fam) or {}
+        with col:
+            st.metric(f"{label}權益", _fmt_hkd(h.get("equity_hkd")), delta=_fmt_hkd(h.get("pnl_hkd")))
     st.caption(
-        f"本金 { _fmt_hkd(start) }　·　操作模型：共用　·　最多 {acct.get('max_positions')} 隻　·　"
+        f"各本金 {_fmt_hkd(acct.get('starting_equity_hkd'))}　·　最多 {acct.get('max_positions')} 隻　·　"
         f"每隻 {float(acct.get('notional_frac') or 0)*100:.0f}% 權益　·　"
-        f"每邊單 ${acct.get('fee_usd_per_order')} USD（來回 ${float(acct.get('fee_usd_per_order') or 0)*2:.0f}）　·　"
-        f"匯率 {float(acct.get('fx_hkd_per_usd') or 0):.3f} HKD/USD"
+        f"每邊單 ${acct.get('fee_usd_per_order')} USD（來回 $4）　·　"
+        f"匯率 {float(acct.get('fx_hkd_per_usd') or 0):.3f} HKD/USD　·　"
+        f"已實現時段 {len(ledger.get('realized_asofs') or [])}"
     )
     st.caption(f"更新（UTC）：{ledger.get('updated_at_utc') or '尚未有實盤時段。下一個有新 bar 嘅 Nightly 會記第一筆。'}")
 
-    st.markdown("#### 三族實績（出卡後對下一根 K）")
-    headlines = view.get("headlines") or {}
+    st.markdown("#### 三族戶口")
     rows = []
-    for fam, label in (("shared", "共用"), ("sector", "行業"), ("stock", "個股")):
+    for fam, label in labels:
         h = headlines.get(fam) or {}
         rows.append(
             {
                 "模型": label,
+                "權益HKD": h.get("equity_hkd"),
+                "損益HKD": h.get("pnl_hkd"),
+                "回報": h.get("ret"),
                 "信號": h.get("n_signals"),
                 "成交": h.get("n_fills"),
                 "錯過": h.get("n_miss"),
@@ -316,13 +319,18 @@ def _render_ledger() -> None:
         )
     st.dataframe(pd.DataFrame(rows), hide_index=True, use_container_width=True)
 
-    st.markdown("#### 下一轉計劃（共用 · 未成交）")
-    planned = view.get("planned") or []
-    if not planned:
-        st.info("未有可觸價信號。")
-    else:
-        st.caption(f"卡 asof {view.get('cards_asof')} · 按成交額取前 {len(planned)} 隻")
-        st.dataframe(pd.DataFrame(planned), hide_index=True, use_container_width=True)
+    st.markdown("#### 下一轉計劃（未成交）")
+    planned = view.get("planned") or {}
+    asofs = view.get("cards_asof") or {}
+    tabs = st.tabs(["共用", "行業", "個股"])
+    for tab, fam in zip(tabs, ("shared", "sector", "stock")):
+        with tab:
+            rows_p = planned.get(fam) or []
+            if not rows_p:
+                st.info("未有可觸價信號。")
+            else:
+                st.caption(f"asof {asofs.get(fam)} · {len(rows_p)} 隻")
+                st.dataframe(pd.DataFrame(rows_p), hide_index=True, use_container_width=True)
 
     st.markdown("#### 成交流水")
     fills = ledger.get("fills") or []
@@ -334,7 +342,14 @@ def _render_ledger() -> None:
     days = ledger.get("days") or []
     if days:
         st.markdown("#### 每日權益")
-        st.dataframe(pd.DataFrame(days)[["session", "paper_fills", "paper_pnl_hkd", "equity_hkd"]], hide_index=True, use_container_width=True)
+        flat = []
+        for d in days:
+            row = {"session": d.get("session"), "asof": d.get("asof")}
+            eq = d.get("equity_hkd") or {}
+            if isinstance(eq, dict):
+                row.update({f"equity_{k}": v for k, v in eq.items()})
+            flat.append(row)
+        st.dataframe(pd.DataFrame(flat), hide_index=True, use_container_width=True)
 
 
 def _render_card(card: dict) -> None:

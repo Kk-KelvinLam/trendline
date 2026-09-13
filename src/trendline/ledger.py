@@ -1,6 +1,6 @@
 """Paper ledger: realize last night's cards against the next session's bar.
 
-Not a broker. One HKD book trades the shared fade; all three families are scored.
+Not a broker. Three HKD books (shared / sector / stock), each starts at the same capital.
 """
 
 from __future__ import annotations
@@ -47,6 +47,10 @@ def _empty_family() -> dict:
         "abs_high": 0.0,
         "abs_low": 0.0,
         "abs_close": 0.0,
+        "starting_equity_hkd": PAPER_STARTING_HKD,
+        "equity_hkd": PAPER_STARTING_HKD,
+        "cash_hkd": PAPER_STARTING_HKD,
+        "pnl_hkd": 0.0,
     }
 
 
@@ -55,14 +59,12 @@ def new_ledger() -> dict:
         "account": {
             "name": "Kk paper",
             "started": "2026-09-13",
-            "disclaimer": "模擬戶口，非真實下單。Paper book, not live broker orders.",
+            "disclaimer": "模擬戶口，非真實下單。三個模型各 HK$500,000，同一規則同一日起跑。",
             "starting_equity_hkd": PAPER_STARTING_HKD,
-            "equity_hkd": PAPER_STARTING_HKD,
-            "cash_hkd": PAPER_STARTING_HKD,
             "fx_hkd_per_usd": PAPER_FX_HKD_PER_USD,
             "fee_usd_per_order": PAPER_FEE_USD_PER_ORDER,
             "orders_per_roundtrip": PAPER_ORDERS_PER_ROUNDTRIP,
-            "traded_family": PAPER_FAMILY,
+            "traded_families": list(FAMILY_PATHS),
             "max_positions": PAPER_MAX_POSITIONS,
             "notional_frac": PAPER_NOTIONAL_FRAC,
         },
@@ -74,11 +76,34 @@ def new_ledger() -> dict:
     }
 
 
+def _ensure_books(ledger: dict) -> dict:
+    """Upgrade a single-book ledger to three equal-start books (no fills yet / reset books)."""
+    if not ledger.get("families"):
+        ledger["families"] = {fam: _empty_family() for fam in FAMILY_PATHS}
+    for fam in FAMILY_PATHS:
+        book = ledger["families"].setdefault(fam, _empty_family())
+        for k, v in _empty_family().items():
+            book.setdefault(k, v)
+        # Same starting line: if this book never traded, pin equity to the shared start.
+        if not ledger.get("fills"):
+            book["starting_equity_hkd"] = PAPER_STARTING_HKD
+            book["equity_hkd"] = PAPER_STARTING_HKD
+            book["cash_hkd"] = PAPER_STARTING_HKD
+            book["pnl_hkd"] = 0.0
+    acct = ledger.setdefault("account", {})
+    acct["traded_families"] = list(FAMILY_PATHS)
+    acct["starting_equity_hkd"] = PAPER_STARTING_HKD
+    acct.pop("traded_family", None)
+    acct.pop("equity_hkd", None)
+    acct.pop("cash_hkd", None)
+    return ledger
+
+
 def load_ledger(path: Path | None = None) -> dict:
     path = Path(path or LEDGER_PATH)
     if not path.exists():
         return new_ledger()
-    return json.loads(path.read_text(encoding="utf-8"))
+    return _ensure_books(json.loads(path.read_text(encoding="utf-8")))
 
 
 def save_ledger(ledger: dict, path: Path | None = None) -> Path:
@@ -127,6 +152,8 @@ def _family_headline(fam: dict) -> dict:
     n = int(fam.get("n_forecast") or 0)
     fills = int(fam.get("n_fills") or 0)
     wins = int(fam.get("n_wins") or 0)
+    start = float(fam.get("starting_equity_hkd") or PAPER_STARTING_HKD)
+    eq = float(fam.get("equity_hkd") or start)
     return {
         "n_signals": fam.get("n_signals", 0),
         "n_fills": fills,
@@ -136,6 +163,9 @@ def _family_headline(fam: dict) -> dict:
         "mae_low": (fam["abs_low"] / n) if n else None,
         "mae_close": (fam["abs_close"] / n) if n else None,
         "n_forecast": n,
+        "equity_hkd": eq,
+        "pnl_hkd": eq - start,
+        "ret": (eq / start - 1.0) if start else None,
     }
 
 
@@ -230,21 +260,24 @@ def realize_once(ledger: dict | None = None, ohlcv: pd.DataFrame | None = None) 
 
     fx = _refresh_fx(float(ledger["account"].get("fx_hkd_per_usd") or PAPER_FX_HKD_PER_USD))
     ledger["account"]["fx_hkd_per_usd"] = fx
-    equity = float(ledger["account"]["equity_hkd"])
     fee_rt = PAPER_FEE_USD_PER_ORDER * PAPER_ORDERS_PER_ROUNDTRIP
+    ledger = _ensure_books(ledger)
 
-    day = {"asof": asof_s, "session": session, "families": {}, "paper_pnl_hkd": 0.0, "paper_fills": 0}
-    paper_pnl = 0.0
-    paper_fills = 0
+    day = {"asof": asof_s, "session": session, "families": {}, "equity_hkd": {}}
 
     for fam, path in FAMILY_PATHS.items():
         payload = _read_cards(path)
         if not payload:
             continue
         fam_state = ledger["families"].setdefault(fam, _empty_family())
+        equity = float(fam_state.get("equity_hkd") or PAPER_STARTING_HKD)
+        paper_idxs = {i for i, c in enumerate(payload.get("cards") or []) if c.get("side")}
+        paper_idxs = set(sorted(paper_idxs)[:PAPER_MAX_POSITIONS])
         n_sig = n_fill = n_miss = n_win = 0
         abs_h = abs_l = abs_c = 0.0
         n_fc = 0
+        book_pnl = 0.0
+        book_fills = 0
         for i, card in enumerate(payload.get("cards") or []):
             bar = _next_bar(ohlcv, card["ticker"], asof)
             if bar is None:
@@ -256,18 +289,14 @@ def realize_once(ledger: dict | None = None, ohlcv: pd.DataFrame | None = None) 
             abs_c += scored["err_close"]
             if scored["side"]:
                 n_sig += 1
-                if scored.get("fill") == "miss" or scored.get("fill") is None:
-                    if scored.get("fill") == "miss":
-                        n_miss += 1
-                else:
+                if scored.get("fill") == "miss":
+                    n_miss += 1
+                elif scored.get("fill"):
                     n_fill += 1
                     if scored.get("ret", 0) > 0:
                         n_win += 1
 
-            # Paper book: shared, first N actionable only
-            if fam == PAPER_FAMILY and scored["side"] and scored.get("fill") not in (None,) and i < PAPER_MAX_POSITIONS:
-                if scored.get("fill") == "miss":
-                    continue
+            if i in paper_idxs and scored.get("fill") not in (None, "miss"):
                 entry = float(scored["entry"])
                 notional_usd = (equity / fx) * PAPER_NOTIONAL_FRAC
                 shares = int(math.floor(notional_usd / entry))
@@ -275,11 +304,10 @@ def realize_once(ledger: dict | None = None, ohlcv: pd.DataFrame | None = None) 
                     continue
                 side = scored["side"]
                 exit_px = float(scored["exit"])
-                gross_usd = shares * (exit_px - entry) * side
-                pnl_usd = gross_usd - fee_rt
+                pnl_usd = shares * (exit_px - entry) * side - fee_rt
                 pnl_hkd = pnl_usd * fx
-                paper_pnl += pnl_hkd
-                paper_fills += 1
+                book_pnl += pnl_hkd
+                book_fills += 1
                 ledger["fills"].append(
                     {
                         "asof": asof_s,
@@ -307,22 +335,24 @@ def realize_once(ledger: dict | None = None, ohlcv: pd.DataFrame | None = None) 
         fam_state["abs_high"] += abs_h
         fam_state["abs_low"] += abs_l
         fam_state["abs_close"] += abs_c
+        fam_state["equity_hkd"] = equity + book_pnl
+        fam_state["cash_hkd"] = fam_state["equity_hkd"]
+        fam_state["pnl_hkd"] = float(fam_state["equity_hkd"]) - float(fam_state.get("starting_equity_hkd") or PAPER_STARTING_HKD)
         day["families"][fam] = {
             "n_signals": n_sig,
             "n_fills": n_fill,
             "n_miss": n_miss,
             "n_wins": n_win,
             "n_forecast": n_fc,
+            "paper_fills": book_fills,
+            "paper_pnl_hkd": book_pnl,
+            "equity_hkd": fam_state["equity_hkd"],
             "mae_high": (abs_h / n_fc) if n_fc else None,
             "mae_low": (abs_l / n_fc) if n_fc else None,
             "mae_close": (abs_c / n_fc) if n_fc else None,
         }
+        day["equity_hkd"][fam] = fam_state["equity_hkd"]
 
-    ledger["account"]["equity_hkd"] = equity + paper_pnl
-    ledger["account"]["cash_hkd"] = ledger["account"]["equity_hkd"]
-    day["paper_pnl_hkd"] = paper_pnl
-    day["paper_fills"] = paper_fills
-    day["equity_hkd"] = ledger["account"]["equity_hkd"]
     ledger["days"].append(day)
     ledger["realized_asofs"].append(asof_s)
     ledger["updated_at_utc"] = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
@@ -333,21 +363,24 @@ def realize_once(ledger: dict | None = None, ohlcv: pd.DataFrame | None = None) 
 def update_ledger() -> dict:
     ledger = realize_once()
     save_ledger(ledger)
-    print(
-        f"ledger equity_hkd={ledger['account']['equity_hkd']:.2f} "
-        f"asofs={ledger.get('realized_asofs')} fills={len(ledger.get('fills') or [])}"
-    )
+    eq = {fam: ledger["families"][fam]["equity_hkd"] for fam in FAMILY_PATHS}
+    print(f"ledger equities={eq} asofs={ledger.get('realized_asofs')} fills={len(ledger.get('fills') or [])}")
     return ledger
 
 
 def ledger_view(ledger: dict | None = None) -> dict:
-    ledger = ledger or load_ledger()
-    cards = _read_cards(FAMILY_PATHS[PAPER_FAMILY])
-    acct = ledger["account"]
+    ledger = _ensure_books(ledger or load_ledger())
+    fx = float(ledger["account"]["fx_hkd_per_usd"])
+    planned = {}
+    asofs = {}
+    for fam, path in FAMILY_PATHS.items():
+        cards = _read_cards(path)
+        asofs[fam] = cards.get("asof") if cards else None
+        eq = float(ledger["families"][fam]["equity_hkd"])
+        planned[fam] = planned_orders(cards, eq, fx)
     return {
         "ledger": ledger,
-        "headlines": ledger.get("headlines")
-        or {fam: _family_headline(ledger["families"][fam]) for fam in FAMILY_PATHS},
-        "planned": planned_orders(cards, float(acct["equity_hkd"]), float(acct["fx_hkd_per_usd"])),
-        "cards_asof": cards.get("asof") if cards else None,
+        "headlines": {fam: _family_headline(ledger["families"][fam]) for fam in FAMILY_PATHS},
+        "planned": planned,
+        "cards_asof": asofs,
     }
