@@ -70,7 +70,8 @@ jobs:
             data/artifacts/per_ticker_sector.json \
             data/artifacts/per_ticker_stock.json \
             data/artifacts/models \
-            data/universe/sp500.csv
+            data/universe/sp500.csv \
+            data/artifacts/ledger.json
           # One ohlcv.parquet in the working tree; commit it only after a monthly full pull
           # so git history does not grow ~11MB per weekday.
           if [ -f data/artifacts/.commit_ohlcv ]; then
