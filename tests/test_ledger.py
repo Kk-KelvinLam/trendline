@@ -29,7 +29,7 @@ def test_higher_fade_score_gets_more_size():
     assert set(out) == {"WEAK", "STRONG"}
     assert out["STRONG"]["shares"] > out["WEAK"]["shares"]
     assert out["STRONG"]["weight"] <= 0.12 + 1e-9
-    assert out["STRONG"]["fee_usd"] == 4.0
+    assert out["STRONG"]["fee_usd"] >= 2.0  # IBKR two-leg min around $1+$1
 
 
 def test_skips_tiny_notional():
@@ -52,13 +52,16 @@ def test_realize_is_idempotent():
 
 
 def test_fill_fee_math():
+    from trendline.ibkr_fees import roundtrip_fees
     filled = fill_fade(-1, 102.0, 100.0, 104.0, 101.0, 102.5, 99.5, 100.5)
     assert filled is not None
     ret, exit_px, reason = filled
     assert reason == "tp"
     shares = 40
-    pnl = shares * (exit_px - 102.0) * -1 - 4
-    assert abs(pnl - (80 - 4)) < 1e-6
+    fee = roundtrip_fees(-1, shares, 102.0, exit_px)["total"]
+    pnl = shares * (exit_px - 102.0) * -1 - fee
+    assert abs(pnl - (80 - fee)) < 1e-6
+    assert fee >= 2.0
 
 
 def test_three_books_same_start():

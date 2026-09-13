@@ -19,17 +19,17 @@ from trendline.config import (
     CARDS_SHARED_PATH,
     CARDS_STOCK_PATH,
     LEDGER_PATH,
+    PAPER_BROKER,
     PAPER_FAMILY,
-    PAPER_FEE_USD_PER_ORDER,
     PAPER_FX_HKD_PER_USD,
     PAPER_GROSS_FRAC,
     PAPER_MAX_NAME_FRAC,
     PAPER_MAX_POSITIONS,
     PAPER_MIN_NOTIONAL_USD,
-    PAPER_ORDERS_PER_ROUNDTRIP,
     PAPER_STARTING_HKD,
 )
 from trendline.data.store import load_ohlcv
+from trendline.ibkr_fees import roundtrip_fees
 from trendline.range_touch import fill_fade
 
 FAMILY_PATHS = {
@@ -61,11 +61,10 @@ def new_ledger() -> dict:
         "account": {
             "name": "Kk paper",
             "started": "2026-09-13",
-            "disclaimer": "模擬戶口。三個模型各 HK$500,000；即日平倉；按淡幅/ATR 分倉（總倉56%、單隻12%）。",
+            "disclaimer": "模擬戶口。三個模型各 HK$500,000；即日平倉；IBKR Pro Fixed 美股佣金（$0.005/股，每單最少$1）加賣出監管費。",
             "starting_equity_hkd": PAPER_STARTING_HKD,
             "fx_hkd_per_usd": PAPER_FX_HKD_PER_USD,
-            "fee_usd_per_order": PAPER_FEE_USD_PER_ORDER,
-            "orders_per_roundtrip": PAPER_ORDERS_PER_ROUNDTRIP,
+            "broker": PAPER_BROKER,
             "traded_families": list(FAMILY_PATHS),
             "max_positions": PAPER_MAX_POSITIONS,
             "gross_frac": PAPER_GROSS_FRAC,
@@ -97,9 +96,12 @@ def _ensure_books(ledger: dict) -> dict:
     acct = ledger.setdefault("account", {})
     acct["traded_families"] = list(FAMILY_PATHS)
     acct["starting_equity_hkd"] = PAPER_STARTING_HKD
+    acct["broker"] = PAPER_BROKER
     acct.pop("traded_family", None)
     acct.pop("equity_hkd", None)
     acct.pop("cash_hkd", None)
+    acct.pop("fee_usd_per_order", None)
+    acct.pop("orders_per_roundtrip", None)
     return ledger
 
 
@@ -245,7 +247,7 @@ def planned_orders(cards_payload: dict | None, equity_hkd: float, fx: float) -> 
                 "notional_usd": shares * entry,
                 "weight": frac,
                 "score": s,
-                "fee_usd": PAPER_FEE_USD_PER_ORDER * PAPER_ORDERS_PER_ROUNDTRIP,
+                "fee_usd": roundtrip_fees(int(c["side"]), shares, entry, float(c.get("tp") or entry))["total"],
             }
         )
     return out
@@ -312,7 +314,7 @@ def realize_once(ledger: dict | None = None, ohlcv: pd.DataFrame | None = None) 
 
     fx = _refresh_fx(float(ledger["account"].get("fx_hkd_per_usd") or PAPER_FX_HKD_PER_USD))
     ledger["account"]["fx_hkd_per_usd"] = fx
-    fee_rt = PAPER_FEE_USD_PER_ORDER * PAPER_ORDERS_PER_ROUNDTRIP
+    ledger["account"]["broker"] = PAPER_BROKER
     ledger = _ensure_books(ledger)
 
     day = {"asof": asof_s, "session": session, "families": {}, "equity_hkd": {}}
@@ -354,6 +356,8 @@ def realize_once(ledger: dict | None = None, ohlcv: pd.DataFrame | None = None) 
                     continue
                 side = scored["side"]
                 exit_px = float(scored["exit"])
+                fees = roundtrip_fees(side, shares, entry, exit_px)
+                fee_rt = float(fees["total"])
                 pnl_usd = shares * (exit_px - entry) * side - fee_rt
                 pnl_hkd = pnl_usd * fx
                 book_pnl += pnl_hkd
@@ -371,6 +375,8 @@ def realize_once(ledger: dict | None = None, ohlcv: pd.DataFrame | None = None) 
                         "reason": scored["fill"],
                         "ret": scored.get("ret"),
                         "fee_usd": fee_rt,
+                        "commission_usd": fees["commission"],
+                        "regulatory_usd": fees["regulatory"],
                         "pnl_usd": pnl_usd,
                         "pnl_hkd": pnl_hkd,
                         "fx": fx,

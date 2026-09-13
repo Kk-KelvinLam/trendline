@@ -292,7 +292,7 @@ def _render_ledger() -> None:
     st.caption(
         f"各本金 {_fmt_hkd(acct.get('starting_equity_hkd'))}　·　按淡幅/ATR 分配　·　"
         f"總倉上限 56%、單隻上限 12%、低於 US$2,500 唔開　·　"
-        f"每邊單 ${acct.get('fee_usd_per_order')} USD（來回 $4）　·　"
+        f"{acct.get('broker') or 'IBKR Pro Fixed'}　$0.005/股（每單最少 $1，賣出加 SEC/FINRA）　·　"
         f"匯率 {float(acct.get('fx_hkd_per_usd') or 0):.3f} HKD/USD　·　"
         f"已實現時段 {len(ledger.get('realized_asofs') or [])}"
     )
