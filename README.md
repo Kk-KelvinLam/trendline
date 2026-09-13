@@ -33,6 +33,7 @@ Streamlit radio:
 2. **行業模型** — sector-family cards  
 3. **個股模型** — per-stock (with shared fallback) cards  
 4. **計分板** — fold-by-fold High/Low/Close MAE horse race  
+5. **流水** — 模擬戶口 HK$500,000；共用淡區間、每邊 $2、三族實績每日更新  
 
 ```bash
 python3 -m venv .venv

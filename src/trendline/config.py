@@ -22,6 +22,7 @@ METRICS_PATH = ARTIFACT_DIR / "metrics.json"
 SCOREBOARD_PATH = ARTIFACT_DIR / "scoreboard.json"
 OOS_PATH = ARTIFACT_DIR / "oos_predictions.parquet"
 FEATURE_PATH = ARTIFACT_DIR / "features.parquet"
+LEDGER_PATH = ARTIFACT_DIR / "ledger.json"
 
 QUANTILES = (0.10, 0.50, 0.90)
 TARGETS = ("high", "low", "close")
@@ -81,6 +82,13 @@ DIR_RET_MIN = 0.0015  # unused for entries; kept for reference
 RANGE_ATR_MIN = 0.45  # stand-aside if (q90h-q10l)*close < this * ATR
 FADE_MIN_ATR = 0.30  # need this much room from High/Low trigger back to prior close
 MAX_POSITIONS = 10
+PAPER_STARTING_HKD = 500_000.0
+PAPER_FX_HKD_PER_USD = 7.80
+PAPER_FEE_USD_PER_ORDER = 2.0
+PAPER_ORDERS_PER_ROUNDTRIP = 2
+PAPER_MAX_POSITIONS = 8
+PAPER_NOTIONAL_FRAC = 0.07
+PAPER_FAMILY = "shared"
 ATR_SL_MULT = 1.0
 
 SHOW_TOP_N = 100
