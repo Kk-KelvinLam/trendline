@@ -22,8 +22,10 @@ from trendline.config import (
     PAPER_FAMILY,
     PAPER_FEE_USD_PER_ORDER,
     PAPER_FX_HKD_PER_USD,
+    PAPER_GROSS_FRAC,
+    PAPER_MAX_NAME_FRAC,
     PAPER_MAX_POSITIONS,
-    PAPER_NOTIONAL_FRAC,
+    PAPER_MIN_NOTIONAL_USD,
     PAPER_ORDERS_PER_ROUNDTRIP,
     PAPER_STARTING_HKD,
 )
@@ -59,14 +61,16 @@ def new_ledger() -> dict:
         "account": {
             "name": "Kk paper",
             "started": "2026-09-13",
-            "disclaimer": "模擬戶口，非真實下單。三個模型各 HK$500,000，同一規則同一日起跑。",
+            "disclaimer": "模擬戶口。三個模型各 HK$500,000；每日按淡幅/ATR 動態分倉（總倉56%、單隻12%）。",
             "starting_equity_hkd": PAPER_STARTING_HKD,
             "fx_hkd_per_usd": PAPER_FX_HKD_PER_USD,
             "fee_usd_per_order": PAPER_FEE_USD_PER_ORDER,
             "orders_per_roundtrip": PAPER_ORDERS_PER_ROUNDTRIP,
             "traded_families": list(FAMILY_PATHS),
             "max_positions": PAPER_MAX_POSITIONS,
-            "notional_frac": PAPER_NOTIONAL_FRAC,
+            "gross_frac": PAPER_GROSS_FRAC,
+            "max_name_frac": PAPER_MAX_NAME_FRAC,
+            "min_notional_usd": PAPER_MIN_NOTIONAL_USD,
         },
         "realized_asofs": [],
         "families": {fam: _empty_family() for fam in FAMILY_PATHS},
@@ -169,18 +173,64 @@ def _family_headline(fam: dict) -> dict:
     }
 
 
+def fade_score(card: dict) -> float:
+    """Confidence = fade room back to prior close, in ATR units."""
+    try:
+        entry = float(card.get("entry_px") or 0)
+        prior = float(card.get("prior_close") or 0)
+        atr = float(card.get("atr") or 0)
+        side = int(card.get("side") or 0)
+    except (TypeError, ValueError):
+        return 0.0
+    if entry <= 0 or prior <= 0 or atr <= 0 or side == 0:
+        return 0.0
+    room = (prior - entry) if side == 1 else (entry - prior)
+    if room <= 0:
+        return 0.0
+    return room / atr
+
+
 def planned_orders(cards_payload: dict | None, equity_hkd: float, fx: float) -> list[dict]:
-    if not cards_payload:
+    """Size by fade-room/ATR. No fixed 8 names. Gross cap 56%, name cap 12%."""
+    if not cards_payload or fx <= 0:
         return []
-    actionable = [c for c in cards_payload.get("cards") or [] if c.get("side")]
-    picks = actionable[:PAPER_MAX_POSITIONS]
-    out = []
-    for c in picks:
-        entry = c.get("entry_px")
-        if not entry or entry <= 0:
+    ranked = []
+    for c in cards_payload.get("cards") or []:
+        if not c.get("side") or not c.get("entry_px"):
             continue
-        notional_usd = (equity_hkd / fx) * PAPER_NOTIONAL_FRAC
-        shares = int(math.floor(notional_usd / float(entry)))
+        s = fade_score(c)
+        if s > 0:
+            ranked.append((s, c))
+    ranked.sort(key=lambda x: x[0], reverse=True)
+    ranked = ranked[:PAPER_MAX_POSITIONS]
+    if not ranked:
+        return []
+    equity_usd = float(equity_hkd) / float(fx)
+    # Drop weakest until every remaining name clears the fee floor.
+    while ranked:
+        score_sum = sum(s for s, _ in ranked)
+        notionals = []
+        ok = True
+        for s, c in ranked:
+            frac = min(PAPER_MAX_NAME_FRAC, PAPER_GROSS_FRAC * (s / score_sum))
+            notional = equity_usd * frac
+            notionals.append(notional)
+            if notional < PAPER_MIN_NOTIONAL_USD:
+                ok = False
+        if ok:
+            break
+        ranked = ranked[:-1]
+    out = []
+    if not ranked:
+        return []
+    score_sum = sum(s for s, _ in ranked)
+    for s, c in ranked:
+        frac = min(PAPER_MAX_NAME_FRAC, PAPER_GROSS_FRAC * (s / score_sum))
+        notional = equity_usd * frac
+        if notional < PAPER_MIN_NOTIONAL_USD:
+            continue
+        entry = float(c["entry_px"])
+        shares = int(math.floor(notional / entry))
         if shares < 1:
             continue
         out.append(
@@ -188,11 +238,13 @@ def planned_orders(cards_payload: dict | None, equity_hkd: float, fx: float) -> 
                 "ticker": c["ticker"],
                 "side": int(c["side"]),
                 "action": c.get("action"),
-                "entry": float(entry),
+                "entry": entry,
                 "tp": c.get("tp"),
                 "sl": c.get("sl"),
                 "shares": shares,
-                "notional_usd": shares * float(entry),
+                "notional_usd": shares * entry,
+                "weight": frac,
+                "score": s,
                 "fee_usd": PAPER_FEE_USD_PER_ORDER * PAPER_ORDERS_PER_ROUNDTRIP,
             }
         )
@@ -271,8 +323,7 @@ def realize_once(ledger: dict | None = None, ohlcv: pd.DataFrame | None = None) 
             continue
         fam_state = ledger["families"].setdefault(fam, _empty_family())
         equity = float(fam_state.get("equity_hkd") or PAPER_STARTING_HKD)
-        paper_idxs = {i for i, c in enumerate(payload.get("cards") or []) if c.get("side")}
-        paper_idxs = set(sorted(paper_idxs)[:PAPER_MAX_POSITIONS])
+        plan = {p["ticker"]: p for p in planned_orders(payload, equity, fx)}
         n_sig = n_fill = n_miss = n_win = 0
         abs_h = abs_l = abs_c = 0.0
         n_fc = 0
@@ -296,10 +347,9 @@ def realize_once(ledger: dict | None = None, ohlcv: pd.DataFrame | None = None) 
                     if scored.get("ret", 0) > 0:
                         n_win += 1
 
-            if i in paper_idxs and scored.get("fill") not in (None, "miss"):
+            if card["ticker"] in plan and scored.get("fill") not in (None, "miss"):
                 entry = float(scored["entry"])
-                notional_usd = (equity / fx) * PAPER_NOTIONAL_FRAC
-                shares = int(math.floor(notional_usd / entry))
+                shares = int(plan[card["ticker"]]["shares"])
                 if shares < 1:
                     continue
                 side = scored["side"]
