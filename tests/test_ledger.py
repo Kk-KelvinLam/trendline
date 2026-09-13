@@ -71,3 +71,20 @@ def test_three_books_same_start():
     eqs = [v["headlines"][f]["equity_hkd"] for f in ("shared", "sector", "stock")]
     assert eqs == [500_000.0, 500_000.0, 500_000.0]
     assert set(v["planned"]) == {"shared", "sector", "stock"}
+
+
+def test_spend_uses_current_equity_not_start():
+    cards = {
+        "asof": "2026-09-11",
+        "cards": [_card(f"T{i}", -1, 100.0, 98.0, 2.0) for i in range(20)],
+    }
+    fat = planned_orders(cards, 500_000, 7.8)
+    thin = planned_orders(cards, 250_000, 7.8)
+    assert fat and thin
+
+    def spend(rows):
+        return sum(r["notional_usd"] + r["fee_usd"] for r in rows)
+
+    assert spend(fat) <= 500_000 / 7.8 + 1e-6
+    assert spend(thin) <= 250_000 / 7.8 + 1e-6
+    assert spend(thin) < spend(fat)

@@ -63,7 +63,7 @@ def new_ledger() -> dict:
         "account": {
             "name": "Kk paper",
             "started": "2026-09-13",
-            "disclaimer": "模擬戶口。三個模型各 HK$500,000；即日平倉；按止損風險分倉（全日5%、單隻風險0.6%、名義12%）。",
+            "disclaimer": "模擬戶口。按當日權益分倉（唔係開戶本金）；支出不可超過當日權益。即日平倉。",
             "starting_equity_hkd": PAPER_STARTING_HKD,
             "fx_hkd_per_usd": PAPER_FX_HKD_PER_USD,
             "broker": PAPER_BROKER,
@@ -254,9 +254,27 @@ def _size_book(ranked: list, equity_usd: float) -> list[dict]:
                 "fee_usd": roundtrip_fees(int(c["side"]), shares, entry, float(c.get("tp") or entry))["total"],
             }
         )
-    # Keep same-day gross from exploding when the 12% name cap binds.
-    while len(out) > 1 and sum(r["weight"] for r in out) > PAPER_GROSS_FRAC + 1e-9:
+    def _spend(rows):
+        return sum(float(r["notional_usd"]) + float(r["fee_usd"]) for r in rows)
+
+    # Today's equity only — not the opening HK$500k.
+    while len(out) > 1 and _spend(out) > equity_usd + 1e-6:
         out = out[:-1]
+    if out and _spend(out) > equity_usd + 1e-6:
+        row = out[0]
+        entry = float(row["entry"])
+        dist = abs(entry - float(row["sl"] or entry))
+        budget = max(0.0, equity_usd - float(row["fee_usd"]))
+        cap_shares = int(math.floor(budget / entry)) if entry else 0
+        row["shares"] = max(0, min(int(row["shares"]), cap_shares))
+        if row["shares"] < 1 or row["shares"] * entry < PAPER_MIN_NOTIONAL_USD:
+            return []
+        row["notional_usd"] = row["shares"] * entry
+        row["weight"] = row["notional_usd"] / equity_usd
+        row["risk_frac"] = (row["shares"] * dist / equity_usd) if dist else 0.0
+        row["fee_usd"] = roundtrip_fees(int(row["side"]), row["shares"], entry, float(row.get("tp") or entry))["total"]
+        if _spend(out) > equity_usd + 1e-6:
+            return []
     return out
 
 
