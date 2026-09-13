@@ -18,18 +18,19 @@ def _card(ticker, side, entry, prior, atr):
 
 
 def test_higher_fade_score_gets_more_size():
+    # Many similar names so the 0.6% name-risk cap does not flatten the book.
     cards = {
         "asof": "2026-09-11",
-        "cards": [
-            _card("WEAK", -1, 101.0, 100.0, 2.0),   # room 1 / atr 2 = 0.5
-            _card("STRONG", -1, 106.0, 100.0, 2.0), # room 6 / atr 2 = 3.0
-        ],
+        "cards": [_card("STRONG", -1, 100.0, 94.0, 2.0)]
+        + [_card(f"W{i}", -1, 100.0, 99.0, 2.0) for i in range(9)],
     }
     out = {r["ticker"]: r for r in planned_orders(cards, 500_000, 7.8)}
-    assert set(out) == {"WEAK", "STRONG"}
-    assert out["STRONG"]["shares"] > out["WEAK"]["shares"]
+    assert "STRONG" in out
+    weaks = [out[k]["shares"] for k in out if k != "STRONG"]
+    assert weaks
+    assert out["STRONG"]["shares"] > max(weaks)
     assert out["STRONG"]["weight"] <= 0.12 + 1e-9
-    assert out["STRONG"]["fee_usd"] >= 2.0  # IBKR two-leg min around $1+$1
+    assert out["STRONG"]["fee_usd"] >= 2.0
 
 
 def test_skips_tiny_notional():

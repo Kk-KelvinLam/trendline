@@ -290,8 +290,8 @@ def _render_ledger() -> None:
         with col:
             st.metric(f"{label}權益", _fmt_hkd(h.get("equity_hkd")), delta=_fmt_hkd(h.get("pnl_hkd")))
     st.caption(
-        f"各本金 {_fmt_hkd(acct.get('starting_equity_hkd'))}　·　按淡幅/ATR 分配　·　"
-        f"總倉上限 56%、單隻上限 12%、低於 US$2,500 唔開　·　"
+        f"各本金 {_fmt_hkd(acct.get('starting_equity_hkd'))}　·　按止損風險分倉　·　"
+        f"全日 SL 風險 5%、單隻風險 0.6%、名義 12%、總倉 120%、低於 US$2,500 唔開　·　"
         f"{acct.get('broker') or 'IBKR Pro Fixed'}　$0.005/股（每單最少 $1，賣出加 SEC/FINRA）　·　"
         f"匯率 {float(acct.get('fx_hkd_per_usd') or 0):.3f} HKD/USD　·　"
         f"已實現時段 {len(ledger.get('realized_asofs') or [])}"

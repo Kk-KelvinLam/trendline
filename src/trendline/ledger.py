@@ -20,10 +20,12 @@ from trendline.config import (
     CARDS_STOCK_PATH,
     LEDGER_PATH,
     PAPER_BROKER,
+    PAPER_DAILY_RISK_FRAC,
     PAPER_FAMILY,
     PAPER_FX_HKD_PER_USD,
     PAPER_GROSS_FRAC,
     PAPER_MAX_NAME_FRAC,
+    PAPER_MAX_NAME_RISK,
     PAPER_MAX_POSITIONS,
     PAPER_MIN_NOTIONAL_USD,
     PAPER_STARTING_HKD,
@@ -61,13 +63,14 @@ def new_ledger() -> dict:
         "account": {
             "name": "Kk paper",
             "started": "2026-09-13",
-            "disclaimer": "模擬戶口。三個模型各 HK$500,000；即日平倉；IBKR Pro Fixed 美股佣金（$0.005/股，每單最少$1）加賣出監管費。",
+            "disclaimer": "模擬戶口。三個模型各 HK$500,000；即日平倉；按止損風險分倉（全日5%、單隻風險0.6%、名義12%）。",
             "starting_equity_hkd": PAPER_STARTING_HKD,
             "fx_hkd_per_usd": PAPER_FX_HKD_PER_USD,
             "broker": PAPER_BROKER,
             "traded_families": list(FAMILY_PATHS),
             "max_positions": PAPER_MAX_POSITIONS,
-            "gross_frac": PAPER_GROSS_FRAC,
+            "daily_risk_frac": PAPER_DAILY_RISK_FRAC,
+            "max_name_risk": PAPER_MAX_NAME_RISK,
             "max_name_frac": PAPER_MAX_NAME_FRAC,
             "min_notional_usd": PAPER_MIN_NOTIONAL_USD,
         },
@@ -97,6 +100,8 @@ def _ensure_books(ledger: dict) -> dict:
     acct["traded_families"] = list(FAMILY_PATHS)
     acct["starting_equity_hkd"] = PAPER_STARTING_HKD
     acct["broker"] = PAPER_BROKER
+    acct["daily_risk_frac"] = PAPER_DAILY_RISK_FRAC
+    acct["max_name_risk"] = PAPER_MAX_NAME_RISK
     acct.pop("traded_family", None)
     acct.pop("equity_hkd", None)
     acct.pop("cash_hkd", None)
@@ -192,48 +197,46 @@ def fade_score(card: dict) -> float:
     return room / atr
 
 
-def planned_orders(cards_payload: dict | None, equity_hkd: float, fx: float) -> list[dict]:
-    """Size by fade-room/ATR. No fixed 8 names. Gross cap 56%, name cap 12%."""
-    if not cards_payload or fx <= 0:
-        return []
-    ranked = []
-    for c in cards_payload.get("cards") or []:
-        if not c.get("side") or not c.get("entry_px"):
-            continue
-        s = fade_score(c)
-        if s > 0:
-            ranked.append((s, c))
-    ranked.sort(key=lambda x: x[0], reverse=True)
-    ranked = ranked[:PAPER_MAX_POSITIONS]
-    if not ranked:
-        return []
-    equity_usd = float(equity_hkd) / float(fx)
-    # Drop weakest until every remaining name clears the fee floor.
-    while ranked:
-        score_sum = sum(s for s, _ in ranked)
-        notionals = []
-        ok = True
-        for s, c in ranked:
-            frac = min(PAPER_MAX_NAME_FRAC, PAPER_GROSS_FRAC * (s / score_sum))
-            notional = equity_usd * frac
-            notionals.append(notional)
-            if notional < PAPER_MIN_NOTIONAL_USD:
-                ok = False
-        if ok:
-            break
-        ranked = ranked[:-1]
-    out = []
-    if not ranked:
+def _sl_distance(card: dict) -> float:
+    try:
+        entry = float(card.get("entry_px") or 0)
+        sl = float(card.get("sl") or 0)
+    except (TypeError, ValueError):
+        return 0.0
+    if entry <= 0 or sl <= 0:
+        return 0.0
+    return abs(entry - sl)
+
+
+def _size_book(ranked: list, equity_usd: float) -> list[dict]:
+    """Risk-first: fade-score shares a 5% daily SL budget; 12% name notional cap."""
+    if not ranked or equity_usd <= 0:
         return []
     score_sum = sum(s for s, _ in ranked)
+    if score_sum <= 0:
+        return []
+    raw = []
     for s, c in ranked:
-        frac = min(PAPER_MAX_NAME_FRAC, PAPER_GROSS_FRAC * (s / score_sum))
-        notional = equity_usd * frac
-        if notional < PAPER_MIN_NOTIONAL_USD:
-            continue
+        dist = _sl_distance(c)
         entry = float(c["entry_px"])
-        shares = int(math.floor(notional / entry))
+        if dist <= 1e-9 or entry <= 0:
+            continue
+        risk_frac = min(PAPER_MAX_NAME_RISK, PAPER_DAILY_RISK_FRAC * (s / score_sum))
+        raw.append((s, c, entry, dist, risk_frac))
+    tot = sum(r[-1] for r in raw)
+    if tot > PAPER_DAILY_RISK_FRAC and tot > 0:
+        scale = PAPER_DAILY_RISK_FRAC / tot
+        raw = [(s, c, e, d, rf * scale) for s, c, e, d, rf in raw]
+    out = []
+    for s, c, entry, dist, risk_frac in raw:
+        risk_usd = equity_usd * risk_frac
+        shares = int(math.floor(risk_usd / dist))
+        cap_shares = int(math.floor(equity_usd * PAPER_MAX_NAME_FRAC / entry))
+        shares = min(shares, cap_shares)
         if shares < 1:
+            continue
+        notional = shares * entry
+        if notional < PAPER_MIN_NOTIONAL_USD:
             continue
         out.append(
             {
@@ -244,13 +247,40 @@ def planned_orders(cards_payload: dict | None, equity_hkd: float, fx: float) -> 
                 "tp": c.get("tp"),
                 "sl": c.get("sl"),
                 "shares": shares,
-                "notional_usd": shares * entry,
-                "weight": frac,
+                "notional_usd": notional,
+                "weight": notional / equity_usd,
+                "risk_frac": shares * dist / equity_usd,
                 "score": s,
                 "fee_usd": roundtrip_fees(int(c["side"]), shares, entry, float(c.get("tp") or entry))["total"],
             }
         )
+    # Keep same-day gross from exploding when the 12% name cap binds.
+    while len(out) > 1 and sum(r["weight"] for r in out) > PAPER_GROSS_FRAC + 1e-9:
+        out = out[:-1]
     return out
+
+
+def planned_orders(cards_payload: dict | None, equity_hkd: float, fx: float) -> list[dict]:
+    """Size so a stop costs ~score-weighted share of a 5% daily risk budget."""
+    if not cards_payload or fx <= 0:
+        return []
+    ranked = []
+    for c in cards_payload.get("cards") or []:
+        if not c.get("side") or not c.get("entry_px"):
+            continue
+        s = fade_score(c)
+        if s > 0 and _sl_distance(c) > 0:
+            ranked.append((s, c))
+    ranked.sort(key=lambda x: x[0], reverse=True)
+    ranked = ranked[:PAPER_MAX_POSITIONS]
+    equity_usd = float(equity_hkd) / float(fx)
+    while ranked:
+        out = _size_book(ranked, equity_usd)
+        kept = {r["ticker"] for r in out}
+        if kept == {c["ticker"] for _, c in ranked} or (out and len(out) < len(ranked) and sum(r["weight"] for r in out) <= PAPER_GROSS_FRAC + 1e-9):
+            return out
+        ranked = ranked[:-1]
+    return []
 
 
 def _score_card(card: dict, bar: pd.Series) -> dict:
