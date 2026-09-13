@@ -61,7 +61,7 @@ def new_ledger() -> dict:
         "account": {
             "name": "Kk paper",
             "started": "2026-09-13",
-            "disclaimer": "模擬戶口。三個模型各 HK$500,000；每日按淡幅/ATR 動態分倉（總倉56%、單隻12%）。",
+            "disclaimer": "模擬戶口。三個模型各 HK$500,000；即日平倉；按淡幅/ATR 分倉（總倉56%、單隻12%）。",
             "starting_equity_hkd": PAPER_STARTING_HKD,
             "fx_hkd_per_usd": PAPER_FX_HKD_PER_USD,
             "fee_usd_per_order": PAPER_FEE_USD_PER_ORDER,

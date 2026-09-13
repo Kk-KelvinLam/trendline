@@ -27,3 +27,15 @@ def test_conservative_stop_if_both_print():
     assert reason == "sl"
     assert exit_px == 96.0
     assert ret < 0
+
+
+def test_flatten_at_session_close():
+    # long fills, neither SL nor TP → exit at the session close
+    ret, exit_px, reason = fill_fade(1, 98.0, 100.0, 96.0, 99.0, 99.5, 97.5, 99.2)
+    assert reason == "close"
+    assert exit_px == 99.2
+    assert abs(ret - (99.2 / 98.0 - 1.0)) < 1e-12
+    # short same rule
+    ret, exit_px, reason = fill_fade(-1, 102.0, 100.0, 104.0, 101.0, 103.0, 100.5, 101.4)
+    assert reason == "close"
+    assert exit_px == 101.4

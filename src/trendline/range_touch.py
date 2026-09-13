@@ -2,6 +2,8 @@
 
 High-win-rate setup. Close direction is not used.
 Conservative daily-OHLC fill: if stop and target both print, stop wins.
+If the trigger fills but neither TP nor SL prints, flatten at that session's close
+(same-day book; no overnight). Daily bars cannot exit a few minutes before the bell.
 Skip if the next open already gapped through the trigger (no chase).
 """
 
@@ -99,7 +101,10 @@ def fill_fade(
     next_low: float,
     next_close: float,
 ) -> tuple[float, float, str] | None:
-    """Return (ret, exit, reason) or None if no fill / gapped through."""
+    """Return (ret, exit, reason) or None if no fill / gapped through.
+
+    reason is sl, tp, or close (same-session flatten at the official close).
+    """
     if side == 0 or gapped_through(side, next_open, entry):
         return None
     if side == 1:
