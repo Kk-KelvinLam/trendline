@@ -65,7 +65,7 @@ def _fmt_num(x, digits=4) -> str:
 
 
 def _inject_back_to_top(*, jump: bool) -> None:
-    """Arrow-only back-to-top. Hidden at top. Rebind click each rerun (old iframe dies)."""
+    """Arrow-only back-to-top. Hidden at top. Pin to top after a real page load."""
     import streamlit.components.v1 as components
 
     flag = "1" if jump else "0"
@@ -92,6 +92,10 @@ def _inject_back_to_top(*, jump: bool) -> None:
       }}
     }});
     return found.filter(Boolean).filter(function(el, i, a) {{ return a.indexOf(el) === i; }});
+  }}
+  function hardTop() {{
+    scrollers().forEach(function(el) {{ el.scrollTop = 0; }});
+    try {{ win.scrollTo(0, 0); }} catch (e) {{}}
   }}
   function toTop() {{
     scrollers().forEach(function(el) {{
@@ -127,21 +131,19 @@ def _inject_back_to_top(*, jump: bool) -> None:
   function sync() {{
     btn.style.display = y() > 80 ? "flex" : "none";
   }}
-  scrollers().forEach(function(el) {{
-    el.removeEventListener("scroll", win.__tlBackTopSync);
-  }});
   win.__tlBackTopSync = sync;
   scrollers().forEach(function(el) {{
     el.addEventListener("scroll", sync, {{ passive: true }});
   }});
-  win.removeEventListener("scroll", sync);
   win.addEventListener("scroll", sync, {{ passive: true }});
-  sync();
-  if ("{flag}" === "1") {{
-    scrollers().forEach(function(el) {{ el.scrollTop = 0; }});
-    win.scrollTo(0, 0);
-    sync();
+  // Full refresh reloads the parent, so this flag is new. Widget reruns reuse it.
+  if (!win.__tlPinnedTop) {{
+    win.__tlPinnedTop = true;
+    hardTop();
+    [50, 150, 400, 800, 1600].forEach(function(ms) {{ win.setTimeout(hardTop, ms); }});
   }}
+  if ("{flag}" === "1") hardTop();
+  sync();
 }})();
 </script>
 """,
@@ -150,6 +152,7 @@ def _inject_back_to_top(*, jump: bool) -> None:
 
 
 def main() -> None:
+    _inject_back_to_top(jump=False)
     st.title("Trendline")
     st.caption("美股收市後 · 盤中觸價淡區間（止盈前收）。S&P 500 全數訓練 / 顯示前 100 成交額")
     st.warning(DISCLAIMER)
