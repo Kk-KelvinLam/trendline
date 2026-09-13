@@ -65,7 +65,7 @@ def _fmt_num(x, digits=4) -> str:
 
 
 def _inject_back_to_top(*, jump: bool) -> None:
-    """Floating 回頂. Also kill browser scroll restore so a reload can start at the top."""
+    """Arrow-only back-to-top. Hidden at top. Rebind click each rerun (old iframe dies)."""
     import streamlit.components.v1 as components
 
     flag = "1" if jump else "0"
@@ -76,39 +76,76 @@ def _inject_back_to_top(*, jump: bool) -> None:
   const doc = window.parent.document;
   const win = window.parent;
   try {{ win.history.scrollRestoration = "manual"; }} catch (e) {{}}
-  function mainEl() {{
-    return doc.querySelector('[data-testid="stAppViewContainer"]')
-        || doc.querySelector("section.main")
-        || doc.documentElement;
+  function scrollers() {{
+    const found = [
+      doc.scrollingElement, doc.documentElement, doc.body,
+      doc.querySelector(".stApp"),
+      doc.querySelector('[data-testid="stAppViewContainer"]'),
+      doc.querySelector('[data-testid="stAppScrollToBottomContainer"]'),
+      doc.querySelector("section.main"),
+      doc.querySelector(".main"),
+    ];
+    doc.querySelectorAll("section, div").forEach(function(el) {{
+      const s = win.getComputedStyle(el);
+      if ((s.overflowY === "auto" || s.overflowY === "scroll") && el.scrollHeight > el.clientHeight + 40) {{
+        found.push(el);
+      }}
+    }});
+    return found.filter(Boolean).filter(function(el, i, a) {{ return a.indexOf(el) === i; }});
   }}
-  function toTop(smooth) {{
-    const el = mainEl();
-    const opt = smooth ? {{ top: 0, behavior: "smooth" }} : {{ top: 0 }};
-    if (el && el.scrollTo) el.scrollTo(opt);
-    if (win.scrollTo) win.scrollTo(opt);
-    doc.documentElement.scrollTop = 0;
-    doc.body.scrollTop = 0;
+  function toTop() {{
+    scrollers().forEach(function(el) {{
+      try {{ el.scrollTo({{ top: 0, behavior: "smooth" }}); }}
+      catch (e) {{ el.scrollTop = 0; }}
+    }});
+    try {{ win.scrollTo({{ top: 0, behavior: "smooth" }}); }}
+    catch (e) {{ win.scrollTo(0, 0); }}
   }}
-  if (!doc.getElementById("tl-back-top")) {{
-    const btn = doc.createElement("button");
+  function y() {{
+    var m = win.scrollY || 0;
+    scrollers().forEach(function(el) {{ m = Math.max(m, el.scrollTop || 0); }});
+    return m;
+  }}
+  var btn = doc.getElementById("tl-back-top");
+  if (!btn) {{
+    btn = doc.createElement("button");
     btn.id = "tl-back-top";
     btn.type = "button";
-    btn.textContent = "回頂";
+    btn.textContent = "↑";
     btn.setAttribute("aria-label", "回到頁頂");
     btn.style.cssText = [
-      "position:fixed", "right:20px", "bottom:20px", "z-index:99999",
-      "padding:10px 14px", "border:0", "border-radius:999px",
-      "background:#1f2937", "color:#fff", "font-size:14px",
+      "position:fixed", "right:20px", "bottom:20px", "z-index:2147483647",
+      "width:44px", "height:44px", "padding:0", "border:0", "border-radius:999px",
+      "background:#1f2937", "color:#fff", "font-size:22px", "line-height:44px",
+      "display:none", "align-items:center", "justify-content:center",
       "box-shadow:0 4px 12px rgba(0,0,0,.25)", "cursor:pointer"
     ].join(";");
-    btn.onclick = function() {{ toTop(true); }};
     doc.body.appendChild(btn);
   }}
-  if ("{flag}" === "1") toTop(false);
+  btn.textContent = "↑";
+  btn.onclick = function(ev) {{ ev.preventDefault(); ev.stopPropagation(); toTop(); }};
+  function sync() {{
+    btn.style.display = y() > 80 ? "flex" : "none";
+  }}
+  scrollers().forEach(function(el) {{
+    el.removeEventListener("scroll", win.__tlBackTopSync);
+  }});
+  win.__tlBackTopSync = sync;
+  scrollers().forEach(function(el) {{
+    el.addEventListener("scroll", sync, {{ passive: true }});
+  }});
+  win.removeEventListener("scroll", sync);
+  win.addEventListener("scroll", sync, {{ passive: true }});
+  sync();
+  if ("{flag}" === "1") {{
+    scrollers().forEach(function(el) {{ el.scrollTop = 0; }});
+    win.scrollTo(0, 0);
+    sync();
+  }}
 }})();
 </script>
 """,
-        height=0,
+        height=1,
     )
 
 
