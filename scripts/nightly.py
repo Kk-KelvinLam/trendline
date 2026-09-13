@@ -75,6 +75,12 @@ def main() -> int:
     rc = _run("fetch.py", fetch_args)
     if rc != 0:
         return rc
+    try:
+        from trendline.ledger import update_ledger
+
+        update_ledger()
+    except Exception as exc:
+        print(f"ledger update failed (cards still refresh): {exc}")
     if args.retrain:
         return _run("backtest.py")
     return _refresh_cards()

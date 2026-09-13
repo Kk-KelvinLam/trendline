@@ -1,0 +1,66 @@
+{
+  "account": {
+    "name": "Kk paper",
+    "started": "2026-09-13",
+    "disclaimer": "模擬戶口，非真實下單。三個模型各 HK$500,000，同一規則同一日起跑。",
+    "starting_equity_hkd": 500000.0,
+    "fx_hkd_per_usd": 7.8,
+    "fee_usd_per_order": 2.0,
+    "orders_per_roundtrip": 2,
+    "traded_families": [
+      "shared",
+      "sector",
+      "stock"
+    ],
+    "max_positions": 8,
+    "notional_frac": 0.07
+  },
+  "realized_asofs": [],
+  "families": {
+    "shared": {
+      "n_signals": 0,
+      "n_fills": 0,
+      "n_miss": 0,
+      "n_wins": 0,
+      "n_forecast": 0,
+      "abs_high": 0.0,
+      "abs_low": 0.0,
+      "abs_close": 0.0,
+      "starting_equity_hkd": 500000.0,
+      "equity_hkd": 500000.0,
+      "cash_hkd": 500000.0,
+      "pnl_hkd": 0.0
+    },
+    "sector": {
+      "n_signals": 0,
+      "n_fills": 0,
+      "n_miss": 0,
+      "n_wins": 0,
+      "n_forecast": 0,
+      "abs_high": 0.0,
+      "abs_low": 0.0,
+      "abs_close": 0.0,
+      "starting_equity_hkd": 500000.0,
+      "equity_hkd": 500000.0,
+      "cash_hkd": 500000.0,
+      "pnl_hkd": 0.0
+    },
+    "stock": {
+      "n_signals": 0,
+      "n_fills": 0,
+      "n_miss": 0,
+      "n_wins": 0,
+      "n_forecast": 0,
+      "abs_high": 0.0,
+      "abs_low": 0.0,
+      "abs_close": 0.0,
+      "starting_equity_hkd": 500000.0,
+      "equity_hkd": 500000.0,
+      "cash_hkd": 500000.0,
+      "pnl_hkd": 0.0
+    }
+  },
+  "fills": [],
+  "days": [],
+  "updated_at_utc": null
+}

@@ -15,6 +15,7 @@ COPY data/artifacts/cards.json \
      data/artifacts/metrics.json \
      data/artifacts/scoreboard.json \
      data/artifacts/per_ticker.json \
+     data/artifacts/ledger.json \
      data/artifacts/
 
 ENV PYTHONPATH=/app/src

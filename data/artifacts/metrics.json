@@ -168,13 +168,13 @@
   "dir_acc_vs_next_open": 0.5118112390288385,
   "dir_acc_vs_next_open_baseline": 0.5120484746397155,
   "trading": {
-    "n_trades": 650,
-    "hit_rate": 0.5769230769230769,
-    "payoff": 0.7857585101962634,
-    "avg_return": 0.0004538279642314044,
-    "sharpe": 0.6004635454507974,
-    "max_dd": -0.07984089067028632,
-    "turnover": 10.0
+    "n_trades": 4390,
+    "hit_rate": 0.8006833712984055,
+    "payoff": 0.7874397839942577,
+    "avg_return": 0.006708281160793316,
+    "sharpe": 17.74286155544257,
+    "max_dd": -0.031390217158183464,
+    "turnover": 9.954648526077097
   },
   "tickers_beating_baseline": 149,
   "tickers_evaluated": 500,
@@ -255,5 +255,7 @@
         "coverage": 0.8663834041489628
       }
     }
-  }
+  },
+  "overall_beats_range": true,
+  "strategy": "fade_to_prior_close"
 }

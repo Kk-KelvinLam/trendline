@@ -8,13 +8,10 @@ import numpy as np
 import pandas as pd
 
 from trendline.config import (
-    ATR_SL_MULT,
-    DIR_RET_MIN,
     FEATURE_COLS,
     MAX_POSITIONS,
     MODEL_FAMILIES,
     QUANTILES,
-    RANGE_ATR_MIN,
     TARGETS,
     WF_MIN_TRAIN_DAYS,
     WF_PURGE_DAYS,
@@ -240,9 +237,16 @@ def evaluate_family(oos: pd.DataFrame, family: str) -> dict:
         )
     per = pd.DataFrame(rows)
     per["beats_baseline"] = per["model_mae_close"] < per["base_mae_close"]
+    per["beats_range"] = (per["model_mae_high"] < per["base_mae_high"]) & (
+        per["model_mae_low"] < per["base_mae_low"]
+    )
     report["per_ticker"] = per
     report["overall_beats_baseline"] = bool(
         report["model_close"]["mae_ret"] < report["baseline_close"]["mae_ret"]
+    )
+    report["overall_beats_range"] = bool(
+        report["model_high"]["mae_ret"] < report["baseline_high"]["mae_ret"]
+        and report["model_low"]["mae_ret"] < report["baseline_low"]["mae_ret"]
     )
     return report
 
@@ -338,11 +342,14 @@ def simulate_trades(
     overall_beats: bool,
     family: str = "shared",
 ) -> tuple[pd.DataFrame, pd.DataFrame]:
-    """Enter next open; TP at q50 extreme; SL at q10/q90 or 1×ATR. Conservative OHLC fill.
+    """Fade: touch predicted High/Low, TP at prior close. Conservative OHLC fill.
 
-    Uses the given family's predictions (default shared).
+    Gate on High/Low beating ATR (beats_range), not Close direction.
     """
-    beat = dict(zip(per_ticker["ticker"], per_ticker["beats_baseline"], strict=False))
+    from trendline.range_touch import choose_setup, fill_fade
+
+    beat_col = "beats_range" if "beats_range" in per_ticker.columns else "beats_baseline"
+    beat = dict(zip(per_ticker["ticker"], per_ticker[beat_col], strict=False))
     recs: list[dict] = []
 
     def _col(target: str, q: float) -> str:
@@ -355,48 +362,32 @@ def simulate_trades(
         for row in day.itertuples(index=False):
             ticker = row.ticker
             allowed = bool(beat.get(ticker, False) or overall_beats)
-            q50c = float(getattr(row, _col("close", 0.50)))
             q50h = float(getattr(row, _col("high", 0.50)))
             q50l = float(getattr(row, _col("low", 0.50)))
             q10l = float(getattr(row, _col("low", 0.10)))
             q90h = float(getattr(row, _col("high", 0.90)))
-            atr = float(row.atr)
-            close = float(row.close)
-            rng = (q90h - q10l) * close
-            tight = (not np.isfinite(rng)) or (rng < RANGE_ATR_MIN * atr)
-            weak = abs(q50c) < DIR_RET_MIN
-            side = 0
-            if allowed and (not tight) and (not weak):
-                if q50c > 0:
-                    side = 1
-                elif q50c < 0:
-                    side = -1
-            scored.append((abs(q50c), side, row, q50h, q50l, q10l, q90h, atr, close))
+            setup = choose_setup(float(row.close), float(row.atr), q50h, q50l, q10l, q90h, allowed)
+            scored.append((setup.room, setup, row))
 
         scored.sort(key=lambda x: x[0], reverse=True)
         taken = 0
-        for _, side, row, q50h, q50l, q10l, q90h, atr, close in scored:
-            if side == 0 or taken >= MAX_POSITIONS:
+        for _, setup, row in scored:
+            if setup.side == 0 or taken >= MAX_POSITIONS:
                 continue
-            entry = float(row.next_open)
-            if not np.isfinite(entry) or entry <= 0:
+            filled = fill_fade(
+                setup.side,
+                setup.entry,
+                setup.tp,
+                setup.sl,
+                float(row.next_open),
+                float(row.next_high),
+                float(row.next_low),
+                float(row.next_close),
+            )
+            if filled is None:
                 continue
-            if side == 1:
-                tp = close * (1.0 + q50h)
-                sl_q = close * (1.0 + q10l)
-                sl_atr = entry - ATR_SL_MULT * atr
-                sl = max(sl_q, sl_atr)
-                ret, exit_px, reason = _fill_long(
-                    entry, float(row.next_high), float(row.next_low), float(row.next_close), tp, sl
-                )
-            else:
-                tp = close * (1.0 + q50l)
-                sl_q = close * (1.0 + q90h)
-                sl_atr = entry + ATR_SL_MULT * atr
-                sl = min(sl_q, sl_atr)
-                ret, exit_px, reason = _fill_short(
-                    entry, float(row.next_high), float(row.next_low), float(row.next_close), tp, sl
-                )
+            ret, exit_px, reason = filled
+            entry, tp, sl, side = setup.entry, setup.tp, setup.sl, setup.side
             recs.append(
                 {
                     "date": pd.Timestamp(date),

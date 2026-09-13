@@ -19,7 +19,9 @@ from trendline.config import (
     CARDS_STOCK_PATH,
     METRICS_PATH,
     SCOREBOARD_PATH,
+    LEDGER_PATH,
 )
+from trendline.ledger import ledger_view
 
 
 st.set_page_config(page_title="Trendline · 美股翌日預測", page_icon="📈", layout="wide")
@@ -31,6 +33,7 @@ FAMILY_PAGES = {
     "行業模型": ("sector", CARDS_SECTOR_PATH),
     "個股模型": ("stock", CARDS_STOCK_PATH),
     "計分板": ("scoreboard", None),
+    "流水": ("ledger", None),
 }
 
 
@@ -62,7 +65,7 @@ def _fmt_num(x, digits=4) -> str:
 
 def main() -> None:
     st.title("Trendline")
-    st.caption("美股收市後 · 下一常規交易時段預測（S&P 500 全數訓練 / 顯示前 100 成交額）")
+    st.caption("美股收市後 · 盤中觸價淡區間（止盈前收）。S&P 500 全數訓練 / 顯示前 100 成交額")
     st.warning(DISCLAIMER)
 
     page = st.radio("頁面", list(FAMILY_PAGES.keys()), horizontal=True)
@@ -73,6 +76,9 @@ def main() -> None:
 
     if key == "scoreboard":
         _render_scoreboard(metrics, scoreboard)
+        return
+    if key == "ledger":
+        _render_ledger()
         return
 
     cards_payload = _load_json(cards_path) or ( _load_json(CARDS_PATH) if key == "shared" else None )
@@ -264,6 +270,88 @@ def _render_scoreboard(metrics: dict | None, scoreboard: dict | None) -> None:
             st.dataframe(pd.DataFrame(logs), hide_index=True, use_container_width=True)
 
 
+def _fmt_hkd(x) -> str:
+    if x is None or (isinstance(x, float) and pd.isna(x)):
+        return "—"
+    return f"HK${x:,.0f}"
+
+
+def _render_ledger() -> None:
+    st.subheader("流水 · 三戶口賽馬")
+    st.warning("紙上模擬，未接券商。三個模型各 HK$500,000。入場當日一定平倉，未中止盈／止損就用當日收市價出場，唔留過夜。")
+    view = ledger_view()
+    ledger = view["ledger"]
+    acct = ledger.get("account") or {}
+    headlines = view.get("headlines") or {}
+    labels = (("shared", "共用"), ("sector", "行業"), ("stock", "個股"))
+    cols = st.columns(3)
+    for col, (fam, label) in zip(cols, labels):
+        h = headlines.get(fam) or {}
+        with col:
+            st.metric(f"{label}權益", _fmt_hkd(h.get("equity_hkd")), delta=_fmt_hkd(h.get("pnl_hkd")))
+    st.caption(
+        f"各本金 {_fmt_hkd(acct.get('starting_equity_hkd'))}　·　按淡幅/ATR 分配　·　"
+        f"總倉上限 56%、單隻上限 12%、低於 US$2,500 唔開　·　"
+        f"{acct.get('broker') or 'IBKR Pro Fixed'}　$0.005/股（每單最少 $1，賣出加 SEC/FINRA）　·　"
+        f"匯率 {float(acct.get('fx_hkd_per_usd') or 0):.3f} HKD/USD　·　"
+        f"已實現時段 {len(ledger.get('realized_asofs') or [])}"
+    )
+    st.caption(f"更新（UTC）：{ledger.get('updated_at_utc') or '尚未有實盤時段。下一個有新 bar 嘅 Nightly 會記第一筆。'}")
+
+    st.markdown("#### 三族戶口")
+    rows = []
+    for fam, label in labels:
+        h = headlines.get(fam) or {}
+        rows.append(
+            {
+                "模型": label,
+                "權益HKD": h.get("equity_hkd"),
+                "損益HKD": h.get("pnl_hkd"),
+                "回報": h.get("ret"),
+                "信號": h.get("n_signals"),
+                "成交": h.get("n_fills"),
+                "錯過": h.get("n_miss"),
+                "勝率": h.get("hit_rate"),
+                "High MAE$": h.get("mae_high"),
+                "Low MAE$": h.get("mae_low"),
+                "Close MAE$": h.get("mae_close"),
+            }
+        )
+    st.dataframe(pd.DataFrame(rows), hide_index=True, use_container_width=True)
+
+    st.markdown("#### 下一轉計劃（未成交）")
+    planned = view.get("planned") or {}
+    asofs = view.get("cards_asof") or {}
+    tabs = st.tabs(["共用", "行業", "個股"])
+    for tab, fam in zip(tabs, ("shared", "sector", "stock")):
+        with tab:
+            rows_p = planned.get(fam) or []
+            if not rows_p:
+                st.info("未有可觸價信號。")
+            else:
+                st.caption(f"asof {asofs.get(fam)} · {len(rows_p)} 隻")
+                st.dataframe(pd.DataFrame(rows_p), hide_index=True, use_container_width=True)
+
+    st.markdown("#### 成交流水")
+    fills = ledger.get("fills") or []
+    if not fills:
+        st.info("未有成交。美股下一個完整時段收市後，Nightly 會自動記帳。")
+    else:
+        st.dataframe(pd.DataFrame(fills[::-1]), hide_index=True, use_container_width=True)
+
+    days = ledger.get("days") or []
+    if days:
+        st.markdown("#### 每日權益")
+        flat = []
+        for d in days:
+            row = {"session": d.get("session"), "asof": d.get("asof")}
+            eq = d.get("equity_hkd") or {}
+            if isinstance(eq, dict):
+                row.update({f"equity_{k}": v for k, v in eq.items()})
+            flat.append(row)
+        st.dataframe(pd.DataFrame(flat), hide_index=True, use_container_width=True)
+
+
 def _render_card(card: dict) -> None:
     action = card["action"]
     color = {"做多": "green", "做空": "red", "觀望": "gray"}.get(action, "gray")
@@ -271,7 +359,7 @@ def _render_card(card: dict) -> None:
     st.markdown(f"### {card['ticker']}  :{color}[{action}]{conf}")
     st.caption(
         f"#{card.get('dvol_rank', '—')} 成交額　·　{card.get('sector') or '—'}　·　"
-        f"{'模型優於基準' if card.get('beats_baseline') else '模型未優於該股基準'}"
+        f"{'High/Low 優於基準' if card.get('beats_range', card.get('beats_baseline')) else 'High/Low 未優於該股基準'}"
     )
     st.caption(
         f"數據來源：{card.get('data_source') or '未知'}　·　"
@@ -293,7 +381,7 @@ def _render_card(card: dict) -> None:
         st.info(f"入場：無　·　原因：{card.get('reason')}")
     else:
         st.success(
-            f"入場：{card.get('entry')}　·　止盈 {_fmt_px(card.get('tp'))}　·　止損 {_fmt_px(card.get('sl'))}"
+            f"入場：{card.get('entry')} {_fmt_px(card.get('entry_px'))}　·　止盈前收 {_fmt_px(card.get('tp'))}　·　止損 {_fmt_px(card.get('sl'))}"
         )
     err = card.get("recent_error") or {}
     st.caption(

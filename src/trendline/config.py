@@ -22,6 +22,7 @@ METRICS_PATH = ARTIFACT_DIR / "metrics.json"
 SCOREBOARD_PATH = ARTIFACT_DIR / "scoreboard.json"
 OOS_PATH = ARTIFACT_DIR / "oos_predictions.parquet"
 FEATURE_PATH = ARTIFACT_DIR / "features.parquet"
+LEDGER_PATH = ARTIFACT_DIR / "ledger.json"
 
 QUANTILES = (0.10, 0.50, 0.90)
 TARGETS = ("high", "low", "close")
@@ -77,9 +78,21 @@ WF_TEST_DAYS = 63
 WF_PURGE_DAYS = 5
 
 # Trade filters
-DIR_RET_MIN = 0.0015  # stand-aside if |q50 close ret| below this
+DIR_RET_MIN = 0.0015  # unused for entries; kept for reference
 RANGE_ATR_MIN = 0.45  # stand-aside if (q90h-q10l)*close < this * ATR
+FADE_MIN_ATR = 0.30  # need this much room from High/Low trigger back to prior close
 MAX_POSITIONS = 10
+PAPER_STARTING_HKD = 500_000.0
+PAPER_FX_HKD_PER_USD = 7.80
+PAPER_FEE_USD_PER_ORDER = 2.0  # unused; paper costs follow IBKR Pro Fixed
+PAPER_ORDERS_PER_ROUNDTRIP = 2  # unused
+PAPER_BROKER = "IBKR Pro Fixed"
+PAPER_MAX_POSITIONS = 20
+PAPER_NOTIONAL_FRAC = 0.07  # unused; kept for reference
+PAPER_GROSS_FRAC = 0.56
+PAPER_MAX_NAME_FRAC = 0.12
+PAPER_MIN_NOTIONAL_USD = 2500.0
+PAPER_FAMILY = "shared"
 ATR_SL_MULT = 1.0
 
 SHOW_TOP_N = 100
