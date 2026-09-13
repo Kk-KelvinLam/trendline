@@ -65,17 +65,51 @@ def _fmt_num(x, digits=4) -> str:
 
 
 def _inject_back_to_top(*, jump: bool) -> None:
-    """Arrow-only back-to-top. Hidden at top. Pin to top after a real page load."""
+    """Fixed ↑ in the Streamlit page. Hide only when we know we are at the top."""
     import streamlit.components.v1 as components
 
+    st.markdown(
+        """
+<style>
+#tl-top { position: relative; top: -8px; height: 1px; }
+#tl-arrow {
+  position: fixed !important;
+  right: 20px;
+  bottom: 20px;
+  z-index: 999999;
+  width: 44px;
+  height: 44px;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: #1f2937;
+  color: #fff !important;
+  text-decoration: none !important;
+  font-size: 22px;
+  line-height: 1;
+  box-shadow: 0 4px 12px rgba(0,0,0,.25);
+}
+#tl-arrow.tl-hide { display: none !important; }
+</style>
+<div id="tl-top"></div>
+<a id="tl-arrow" href="#tl-top" aria-label="回到頁頂">↑</a>
+""",
+        unsafe_allow_html=True,
+    )
     flag = "1" if jump else "0"
     components.html(
         f"""
 <script>
 (function() {{
-  const doc = window.parent.document;
   const win = window.parent;
+  const doc = win.document;
   try {{ win.history.scrollRestoration = "manual"; }} catch (e) {{}}
+  var orphan = doc.getElementById("tl-back-top");
+  if (orphan) orphan.remove();
+  function arrow() {{
+    return doc.getElementById("tl-arrow") || document.getElementById("tl-arrow");
+  }}
   function scrollers() {{
     const found = [
       doc.scrollingElement, doc.documentElement, doc.body,
@@ -83,71 +117,41 @@ def _inject_back_to_top(*, jump: bool) -> None:
       doc.querySelector('[data-testid="stAppViewContainer"]'),
       doc.querySelector('[data-testid="stAppScrollToBottomContainer"]'),
       doc.querySelector("section.main"),
-      doc.querySelector(".main"),
     ];
-    doc.querySelectorAll("section, div").forEach(function(el) {{
-      const s = win.getComputedStyle(el);
-      if ((s.overflowY === "auto" || s.overflowY === "scroll") && el.scrollHeight > el.clientHeight + 40) {{
-        found.push(el);
-      }}
-    }});
-    return found.filter(Boolean).filter(function(el, i, a) {{ return a.indexOf(el) === i; }});
+    return found.filter(Boolean);
   }}
   function hardTop() {{
     scrollers().forEach(function(el) {{ el.scrollTop = 0; }});
     try {{ win.scrollTo(0, 0); }} catch (e) {{}}
+    var top = doc.getElementById("tl-top");
+    if (top && top.scrollIntoView) top.scrollIntoView();
   }}
-  function toTop() {{
-    scrollers().forEach(function(el) {{
-      try {{ el.scrollTo({{ top: 0, behavior: "smooth" }}); }}
-      catch (e) {{ el.scrollTop = 0; }}
-    }});
-    try {{ win.scrollTo({{ top: 0, behavior: "smooth" }}); }}
-    catch (e) {{ win.scrollTo(0, 0); }}
-  }}
-  function y() {{
+  function maxY() {{
     var m = win.scrollY || 0;
     scrollers().forEach(function(el) {{ m = Math.max(m, el.scrollTop || 0); }});
     return m;
   }}
-  var btn = doc.getElementById("tl-back-top");
-  if (!btn) {{
-    btn = doc.createElement("button");
-    btn.id = "tl-back-top";
-    btn.type = "button";
-    btn.textContent = "↑";
-    btn.setAttribute("aria-label", "回到頁頂");
-    btn.style.cssText = [
-      "position:fixed", "right:20px", "bottom:20px", "z-index:2147483647",
-      "width:44px", "height:44px", "padding:0", "border:0", "border-radius:999px",
-      "background:#1f2937", "color:#fff", "font-size:22px", "line-height:44px",
-      "display:none", "align-items:center", "justify-content:center",
-      "box-shadow:0 4px 12px rgba(0,0,0,.25)", "cursor:pointer"
-    ].join(";");
-    doc.body.appendChild(btn);
-  }}
-  btn.textContent = "↑";
-  btn.onclick = function(ev) {{ ev.preventDefault(); ev.stopPropagation(); toTop(); }};
   function sync() {{
-    btn.style.display = y() > 80 ? "flex" : "none";
+    var a = arrow();
+    if (!a) return;
+    var tall = scrollers().some(function(el) {{ return el.scrollHeight > el.clientHeight + 80; }});
+    if (tall && maxY() <= 80) a.classList.add("tl-hide");
+    else a.classList.remove("tl-hide");
   }}
-  win.__tlBackTopSync = sync;
-  scrollers().forEach(function(el) {{
-    el.addEventListener("scroll", sync, {{ passive: true }});
-  }});
-  win.addEventListener("scroll", sync, {{ passive: true }});
-  // Full refresh reloads the parent, so this flag is new. Widget reruns reuse it.
+  if (!win.__tlArrowTimer) {{
+    win.__tlArrowTimer = win.setInterval(sync, 250);
+  }}
   if (!win.__tlPinnedTop) {{
     win.__tlPinnedTop = true;
     hardTop();
-    [50, 150, 400, 800, 1600].forEach(function(ms) {{ win.setTimeout(hardTop, ms); }});
+    [80, 250, 600].forEach(function(ms) {{ win.setTimeout(hardTop, ms); }});
   }}
   if ("{flag}" === "1") hardTop();
   sync();
 }})();
 </script>
 """,
-        height=1,
+        height=0,
     )
 
 
