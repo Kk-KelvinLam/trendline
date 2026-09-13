@@ -84,7 +84,7 @@ Model dumps under `data/artifacts/models/` are **tracked** (needed for weekday n
 
 | When | What |
 | --- | --- |
-| 23:00 UTC Mon–Fri | **Delta** OHLCV in the runner + infer three card files. Does **not** commit `ohlcv.parquet`. |
+| 23:15 UTC / 07:15 HKT Mon–Fri | **Delta** OHLCV in the runner + infer three card files. Does **not** commit `ohlcv.parquet`. |
 | 11:15 UTC / 19:15 HKT Sunday | Three-family walk-forward retrain. **First Sunday of the month:** refresh S&P list + **full** OHLCV pull and commit the single parquet (housekeep: ~12 blobs/year). Other Sundays keep delta and skip the parquet commit. |
 | Actions → Nightly cards → Run workflow | Manual, optional full retrain |
 
