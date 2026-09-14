@@ -30,9 +30,10 @@ from trendline.config import (
     PAPER_MIN_NOTIONAL_USD,
     PAPER_STARTING_HKD,
 )
+from trendline.data.intraday import fetch_rth_5m
 from trendline.data.store import load_ohlcv
 from trendline.ibkr_fees import roundtrip_fees
-from trendline.range_touch import fill_fade
+from trendline.range_touch import fill_fade, fill_fade_bars
 
 FAMILY_PATHS = {
     "shared": CARDS_SHARED_PATH,
@@ -301,7 +302,16 @@ def planned_orders(cards_payload: dict | None, equity_hkd: float, fx: float) -> 
     return []
 
 
-def _score_card(card: dict, bar: pd.Series) -> dict:
+def _bars_usable(bars) -> bool:
+    if bars is None:
+        return False
+    try:
+        return len(bars) > 0
+    except TypeError:
+        return False
+
+
+def _score_card(card: dict, bar: pd.Series, bars=None) -> dict:
     prior = float(card["prior_close"])
     pred = card.get("pred") or {}
     rec = {
@@ -317,17 +327,27 @@ def _score_card(card: dict, bar: pd.Series) -> dict:
     side = int(card.get("side") or 0)
     rec["side"] = side
     rec["fill"] = None
+    rec["fill_source"] = None
     if side and card.get("entry_px"):
-        filled = fill_fade(
-            side,
-            float(card["entry_px"]),
-            float(card["tp"]),
-            float(card["sl"]),
-            float(bar["open"]),
-            float(bar["high"]),
-            float(bar["low"]),
-            float(bar["close"]),
-        )
+        entry = float(card["entry_px"])
+        tp = float(card["tp"])
+        sl = float(card["sl"])
+        if _bars_usable(bars):
+            filled = fill_fade_bars(side, entry, tp, sl, bars)
+            fill_source = "5m"
+        else:
+            filled = fill_fade(
+                side,
+                entry,
+                tp,
+                sl,
+                float(bar["open"]),
+                float(bar["high"]),
+                float(bar["low"]),
+                float(bar["close"]),
+            )
+            fill_source = "daily"
+        rec["fill_source"] = fill_source
         if filled is None:
             rec["fill"] = "miss"
         else:
@@ -335,12 +355,21 @@ def _score_card(card: dict, bar: pd.Series) -> dict:
             rec["fill"] = reason
             rec["ret"] = float(ret)
             rec["exit"] = float(exit_px)
-            rec["entry"] = float(card["entry_px"])
+            rec["entry"] = entry
     return rec
 
 
-def realize_once(ledger: dict | None = None, ohlcv: pd.DataFrame | None = None) -> dict:
-    """Score current on-disk cards against the next session in ohlcv. Idempotent per asof."""
+def realize_once(
+    ledger: dict | None = None,
+    ohlcv: pd.DataFrame | None = None,
+    bars_by_ticker: dict | None = None,
+) -> dict:
+    """Score current on-disk cards against the next session in ohlcv. Idempotent per asof.
+
+    Paper fills prefer America/New_York RTH 5-minute bars; if 5m is missing for a
+    ticker, fall back to daily OHLC ``fill_fade``. Pass ``bars_by_ticker`` to inject
+    bars (tests) and skip Yahoo.
+    """
     ledger = ledger or load_ledger()
     ohlcv = load_ohlcv() if ohlcv is None else ohlcv
     ohlcv = ohlcv.copy()
@@ -365,10 +394,27 @@ def realize_once(ledger: dict | None = None, ohlcv: pd.DataFrame | None = None) 
     ledger["account"]["broker"] = PAPER_BROKER
     ledger = _ensure_books(ledger)
 
+    # Collect signal tickers once; fetch 5m for the session (or use inject).
+    side_tickers: set[str] = set()
+    payloads: dict[str, dict] = {}
+    for fam, path in FAMILY_PATHS.items():
+        payload = _read_cards(path)
+        if not payload:
+            continue
+        payloads[fam] = payload
+        for card in payload.get("cards") or []:
+            if int(card.get("side") or 0) and card.get("entry_px"):
+                side_tickers.add(card["ticker"])
+    if bars_by_ticker is None:
+        try:
+            bars_by_ticker = fetch_rth_5m(sorted(side_tickers), session) if side_tickers else {}
+        except Exception:
+            bars_by_ticker = {}
+
     day = {"asof": asof_s, "session": session, "families": {}, "equity_hkd": {}}
 
     for fam, path in FAMILY_PATHS.items():
-        payload = _read_cards(path)
+        payload = payloads.get(fam) or _read_cards(path)
         if not payload:
             continue
         fam_state = ledger["families"].setdefault(fam, _empty_family())
@@ -383,7 +429,8 @@ def realize_once(ledger: dict | None = None, ohlcv: pd.DataFrame | None = None) 
             bar = _next_bar(ohlcv, card["ticker"], asof)
             if bar is None:
                 continue
-            scored = _score_card(card, bar)
+            bars = (bars_by_ticker or {}).get(card["ticker"])
+            scored = _score_card(card, bar, bars=bars)
             n_fc += 1
             abs_h += scored["err_high"]
             abs_l += scored["err_low"]
@@ -421,6 +468,7 @@ def realize_once(ledger: dict | None = None, ohlcv: pd.DataFrame | None = None) 
                         "entry": entry,
                         "exit": exit_px,
                         "reason": scored["fill"],
+                        "fill_source": scored.get("fill_source") or "daily",
                         "ret": scored.get("ret"),
                         "fee_usd": fee_rt,
                         "commission_usd": fees["commission"],

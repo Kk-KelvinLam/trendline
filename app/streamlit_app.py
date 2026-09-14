@@ -375,6 +375,7 @@ def _fmt_hkd(x) -> str:
 def _render_ledger() -> None:
     st.subheader("流水 · 三戶口賽馬")
     st.warning("紙上模擬，未接券商。三個模型各 HK$500,000。入場當日一定平倉，未中止盈／止損就用當日收市價出場，唔留過夜。")
+    st.caption("對賬路徑：America/New_York 常規時段（09:30–16:00）5 分鐘 bar 成交；若個別股份缺 5m 資料則回退日 K OHLC（fill_source=5m / daily）。Walk-forward OOS 仍用日 K。")
     view = ledger_view()
     ledger = view["ledger"]
     acct = ledger.get("account") or {}

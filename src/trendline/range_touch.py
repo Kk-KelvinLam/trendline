@@ -1,10 +1,11 @@
 """Intraday fade: touch predicted High/Low, take profit at prior close.
 
 High-win-rate setup. Close direction is not used.
-Conservative daily-OHLC fill: if stop and target both print, stop wins.
-If the trigger fills but neither TP nor SL prints, flatten at that session's close
-(same-day book; no overnight). Daily bars cannot exit a few minutes before the bell.
-Skip if the next open already gapped through the trigger (no chase).
+Paper ledger prefers RTH 5-minute bars (``fill_fade_bars``); daily OHLC
+``fill_fade`` remains the walk-forward / missing-5m fallback.
+Conservative fill: if stop and target both print in the same bar, stop wins.
+If the trigger fills but neither TP nor SL prints, flatten at the last bar close
+(same-day book; no overnight). Skip if the session open gapped through the trigger.
 """
 
 from __future__ import annotations
@@ -126,3 +127,98 @@ def fill_fade(
     if hit_tp:
         return (entry - tp) / entry, tp, "tp"
     return (entry - next_close) / entry, next_close, "close"
+
+
+def _ohlc(bar) -> tuple[float, float, float, float]:
+    if isinstance(bar, dict):
+        return float(bar["open"]), float(bar["high"]), float(bar["low"]), float(bar["close"])
+    return float(bar["open"]), float(bar["high"]), float(bar["low"]), float(bar["close"])
+
+
+def _as_bar_seq(bars) -> list:
+    """Normalize DataFrame / list / tuple of OHLC rows (avoid list(df)=columns)."""
+    if bars is None:
+        return []
+    if hasattr(bars, "iterrows"):
+        return [row for _, row in bars.iterrows()]
+    if hasattr(bars, "iloc") and not isinstance(bars, (list, tuple, dict)):
+        return [bars.iloc[i] for i in range(len(bars))]
+    return list(bars)
+
+
+def fill_fade_bars(
+    side: int,
+    entry: float,
+    tp: float,
+    sl: float,
+    bars,
+) -> tuple[float, float, str] | None:
+    """Walk RTH (or any ordered) OHLC bars for a same-session fade fill.
+
+    Gap-through uses the *first* bar open (session open). Until filled, long
+    triggers on low<=entry / short on high>=entry at price=entry. After fill
+    (including the fill bar): SL if hit else TP; both in the same bar → SL.
+    Still open on the last bar → flatten at that close (reason=close).
+    Prints of TP/SL *before* the entry fill are ignored.
+    """
+    if side == 0:
+        return None
+    seq = _as_bar_seq(bars)
+    if not seq:
+        return None
+
+    first_open, _, _, _ = _ohlc(seq[0])
+    if gapped_through(side, first_open, entry):
+        return None
+
+    filled = False
+    for bar in seq:
+        _o, h, l, _c = _ohlc(bar)
+        if not filled:
+            if side == 1:
+                if l > entry:
+                    continue
+                filled = True
+            else:
+                if h < entry:
+                    continue
+                filled = True
+            # same-bar SL/TP after fill
+            if side == 1:
+                hit_sl = l <= sl
+                hit_tp = h >= tp
+            else:
+                hit_sl = h >= sl
+                hit_tp = l <= tp
+            if hit_sl:
+                if side == 1:
+                    return sl / entry - 1.0, sl, "sl"
+                return (entry - sl) / entry, sl, "sl"
+            if hit_tp:
+                if side == 1:
+                    return tp / entry - 1.0, tp, "tp"
+                return (entry - tp) / entry, tp, "tp"
+            continue
+
+        # already filled — later bars
+        if side == 1:
+            hit_sl = l <= sl
+            hit_tp = h >= tp
+            if hit_sl:
+                return sl / entry - 1.0, sl, "sl"
+            if hit_tp:
+                return tp / entry - 1.0, tp, "tp"
+        else:
+            hit_sl = h >= sl
+            hit_tp = l <= tp
+            if hit_sl:
+                return (entry - sl) / entry, sl, "sl"
+            if hit_tp:
+                return (entry - tp) / entry, tp, "tp"
+
+    if not filled:
+        return None
+    last_close = _ohlc(seq[-1])[3]
+    if side == 1:
+        return last_close / entry - 1.0, last_close, "close"
+    return (entry - last_close) / entry, last_close, "close"
