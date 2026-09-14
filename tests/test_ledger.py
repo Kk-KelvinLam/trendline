@@ -88,3 +88,94 @@ def test_spend_uses_current_equity_not_start():
     assert spend(fat) <= 500_000 / 7.8 + 1e-6
     assert spend(thin) <= 250_000 / 7.8 + 1e-6
     assert spend(thin) < spend(fat)
+
+
+def test_realize_uses_5m_when_bars_injected(monkeypatch):
+    """Inject RTH 5m bars; do not hit Yahoo. Fill path must record fill_source=5m."""
+    import trendline.ledger as ledger_mod
+    from trendline.ledger import new_ledger, realize_once
+
+    cards = {
+        "asof": "2026-09-11",
+        "cards": [
+            {
+                "ticker": "AAA",
+                "side": 1,
+                "action": "做多",
+                "entry_px": 98.0,
+                "prior_close": 100.0,
+                "atr": 2.0,
+                "tp": 100.0,
+                "sl": 96.0,
+                "pred": {"high": {"q50": 101}, "low": {"q50": 97}, "close": {"q50": 100}},
+            }
+        ],
+    }
+
+    def fake_read(path):
+        return cards
+
+    monkeypatch.setattr(ledger_mod, "_read_cards", fake_read)
+    monkeypatch.setattr(ledger_mod, "_refresh_fx", lambda default: 7.8)
+
+    ohlcv = pd.DataFrame(
+        [
+            {"date": "2026-09-11", "ticker": "AAA", "open": 100, "high": 101, "low": 99, "close": 100, "adj_close": 100, "volume": 1, "source": "yfinance"},
+            # Daily path alone would miss (low never <= 98); 5m path fills then flattens.
+            {"date": "2026-09-12", "ticker": "AAA", "open": 99.5, "high": 100.0, "low": 98.5, "close": 99.0, "adj_close": 99, "volume": 1, "source": "yfinance"},
+        ]
+    )
+    ohlcv["date"] = pd.to_datetime(ohlcv["date"])
+    bars = {
+        "AAA": [
+            # fill long (low<=98); high stays below TP=100 and low above SL=96
+            {"open": 99.5, "high": 99.8, "low": 97.5, "close": 98.5},
+            {"open": 98.5, "high": 99.0, "low": 98.0, "close": 98.8},
+        ]
+    }
+    led = new_ledger()
+    out = realize_once(led, ohlcv, bars_by_ticker=bars)
+    assert "2026-09-11" in out["realized_asofs"]
+    fills = [f for f in out["fills"] if f["ticker"] == "AAA"]
+    assert fills
+    assert all(f["fill_source"] == "5m" for f in fills)
+    assert fills[0]["reason"] == "close"
+    assert fills[0]["exit"] == 98.8
+
+
+def test_realize_falls_back_to_daily_when_5m_missing(monkeypatch):
+    import trendline.ledger as ledger_mod
+    from trendline.ledger import new_ledger, realize_once
+
+    cards = {
+        "asof": "2026-09-11",
+        "cards": [
+            {
+                "ticker": "BBB",
+                "side": -1,
+                "action": "做空",
+                "entry_px": 102.0,
+                "prior_close": 100.0,
+                "atr": 2.0,
+                "tp": 100.0,
+                "sl": 104.0,
+                "pred": {"high": {"q50": 103}, "low": {"q50": 99}, "close": {"q50": 100}},
+            }
+        ],
+    }
+    monkeypatch.setattr(ledger_mod, "_read_cards", lambda path: cards)
+    monkeypatch.setattr(ledger_mod, "_refresh_fx", lambda default: 7.8)
+
+    ohlcv = pd.DataFrame(
+        [
+            {"date": "2026-09-11", "ticker": "BBB", "open": 100, "high": 101, "low": 99, "close": 100, "adj_close": 100, "volume": 1, "source": "yfinance"},
+            {"date": "2026-09-12", "ticker": "BBB", "open": 101.0, "high": 102.5, "low": 99.5, "close": 100.5, "adj_close": 100.5, "volume": 1, "source": "yfinance"},
+        ]
+    )
+    ohlcv["date"] = pd.to_datetime(ohlcv["date"])
+    led = new_ledger()
+    out = realize_once(led, ohlcv, bars_by_ticker={})  # inject empty → daily fallback
+    fills = [f for f in out["fills"] if f["ticker"] == "BBB"]
+    assert fills
+    assert fills[0]["fill_source"] == "daily"
+    assert fills[0]["reason"] == "tp"

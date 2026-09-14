@@ -18,3 +18,6 @@ data/artifacts/trades.parquet
 data/artifacts/daily_returns.parquet
 # Track model dirs under data/artifacts/models/{shared,sector,stock} for nightly infer.
 # Do not ignore *.txt model dumps.
+
+# Yahoo 5m RTH cache for paper fills
+data/artifacts/intraday/

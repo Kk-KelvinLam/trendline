@@ -255,7 +255,5 @@
         "coverage": 0.8663834041489628
       }
     }
-  },
-  "overall_beats_range": true,
-  "strategy": "fade_to_prior_close"
+  }
 }

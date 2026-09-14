@@ -33,7 +33,7 @@ Streamlit radio:
 2. **行業模型** — sector-family cards  
 3. **個股模型** — per-stock (with shared fallback) cards  
 4. **計分板** — fold-by-fold High/Low/Close MAE horse race  
-5. **流水** — 模擬戶口 HK$500,000；共用淡區間、每邊 $2、三族實績每日更新  
+5. **流水** — 模擬戶口 HK$500,000；RTH 5 分鐘對賬（缺 bar 回退日 K）；三族實績每日更新  
 
 ```bash
 python3 -m venv .venv
@@ -84,7 +84,7 @@ Model dumps under `data/artifacts/models/` are **tracked** (needed for weekday n
 
 | When | What |
 | --- | --- |
-| 23:15 UTC / 07:15 HKT Mon–Fri | **Delta** OHLCV in the runner + infer three card files. Does **not** commit `ohlcv.parquet`. |
+| 23:15 UTC / 07:15 HKT Mon–Fri | **Delta** OHLCV in the runner + infer three card files + **paper ledger** realize (RTH **5-minute** fills, daily OHLC fallback). Does **not** commit `ohlcv.parquet`. |
 | 11:15 UTC / 19:15 HKT Sunday | Three-family walk-forward retrain. **First Sunday of the month:** refresh S&P list + **full** OHLCV pull and commit the single parquet (housekeep: ~12 blobs/year). Other Sundays keep delta and skip the parquet commit. |
 | Actions → Nightly cards → Run workflow | Manual, optional full retrain |
 

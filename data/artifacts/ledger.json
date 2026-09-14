@@ -5,15 +5,16 @@
     "disclaimer": "模擬戶口，非真實下單。三個模型各 HK$500,000，同一規則同一日起跑。",
     "starting_equity_hkd": 500000.0,
     "fx_hkd_per_usd": 7.8,
-    "fee_usd_per_order": 2.0,
-    "orders_per_roundtrip": 2,
     "traded_families": [
       "shared",
       "sector",
       "stock"
     ],
     "max_positions": 8,
-    "notional_frac": 0.07
+    "notional_frac": 0.07,
+    "broker": "IBKR Pro Fixed",
+    "daily_risk_frac": 0.05,
+    "max_name_risk": 0.006
   },
   "realized_asofs": [],
   "families": {
