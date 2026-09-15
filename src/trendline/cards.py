@@ -44,23 +44,47 @@ def _ticker_source(ohlcv: pd.DataFrame, ticker: str, asof: pd.Timestamp) -> str:
     return _source_label(str(g.iloc[-1]["source"]))
 
 
-def _recent_error(oos: pd.DataFrame | None, ticker: str, family: str = "shared", n: int = 20) -> dict:
-    if oos is None or getattr(oos, "empty", True):
-        return {"n": 0, "mae_close_ret": None, "mae_close_px": None}
-    g = oos.loc[oos["ticker"] == ticker].sort_values("date").tail(n)
-    if g.empty:
-        return {"n": 0, "mae_close_ret": None, "mae_close_px": None}
-    col = pred_col("close", 0.50, family)
-    if col not in g.columns:
-        col = pred_col("close", 0.50)
-    if col not in g.columns:
-        return {"n": 0, "mae_close_ret": None, "mae_close_px": None}
-    err = (g["y_close"] - g[col]).abs()
-    px_err = (g["close"] * err).abs()
+def _recent_error(
+    oos: pd.DataFrame | None,
+    ticker: str,
+    family: str = "shared",
+    n: int = 20,
+    *,
+    per_ticker_row: dict | None = None,
+    prior_close: float | None = None,
+) -> dict:
+    """Prefer last-n OOS rows from ``oos_predictions.parquet``.
+
+    That parquet is gitignored (large), so weekday Nightly often has no file.
+    Fall back to walk-forward per-ticker Close MAE from ``per_ticker_*.json``.
+    """
+    if oos is not None and not getattr(oos, "empty", True):
+        g = oos.loc[oos["ticker"] == ticker].sort_values("date").tail(n)
+        if not g.empty:
+            col = pred_col("close", 0.50, family)
+            if col not in g.columns:
+                col = pred_col("close", 0.50)
+            if col in g.columns:
+                err = (g["y_close"] - g[col]).abs()
+                px_err = (g["close"] * err).abs()
+                return {
+                    "n": int(len(g)),
+                    "mae_close_ret": float(err.mean()),
+                    "mae_close_px": float(px_err.mean()),
+                    "scope": "recent",
+                }
+    row = per_ticker_row or {}
+    mae_ret = row.get("model_mae_close")
+    if mae_ret is None:
+        return {"n": 0, "mae_close_ret": None, "mae_close_px": None, "scope": "none"}
+    px = None
+    if prior_close is not None and np.isfinite(prior_close):
+        px = float(abs(prior_close) * float(mae_ret))
     return {
-        "n": int(len(g)),
-        "mae_close_ret": float(err.mean()),
-        "mae_close_px": float(px_err.mean()),
+        "n": int(row.get("n") or 0),
+        "mae_close_ret": float(mae_ret),
+        "mae_close_px": px,
+        "scope": "walk_forward",
     }
 
 
@@ -179,6 +203,7 @@ def build_cards(
 
     beat_col = "beats_range" if "beats_range" in per_ticker.columns else "beats_baseline"
     beat = dict(zip(per_ticker["ticker"], per_ticker[beat_col], strict=False))
+    per_map = {r["ticker"]: r for r in per_ticker.to_dict(orient="records")}
     rank_map = dict(zip(ranked["ticker"], ranked["dvol_rank"], strict=False))
     dvol_map = dict(zip(ranked["ticker"], ranked["dollar_volume"], strict=False))
     last_bar_map = _last_bar_dates(ohlcv)
@@ -259,7 +284,11 @@ def build_cards(
                 "beats_baseline": bool(beat.get(ticker, False)),
                 "beats_range": bool(beat.get(ticker, False)),
                 "strategy": "fade_to_prior_close",
-                "recent_error": _recent_error(oos, ticker, family=family),
+                "recent_error": _recent_error(
+                    oos, ticker, family=family,
+                    per_ticker_row=per_map.get(ticker),
+                    prior_close=close,
+                ),
                 "data_source": _ticker_source(ohlcv, ticker, asof),
                 "universe_source": "S&P 500 · Wikipedia 2026-09-12",
             }
