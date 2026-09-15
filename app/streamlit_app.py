@@ -524,8 +524,15 @@ def _render_card(card: dict) -> None:
             f"入場：{card.get('entry')} {_fmt_px(card.get('entry_px'))}　·　止盈前收 {_fmt_px(card.get('tp'))}　·　止損 {_fmt_px(card.get('sl'))}"
         )
     err = card.get("recent_error") or {}
+    scope = err.get("scope") or ("recent" if err.get("n") else "none")
+    if scope == "walk_forward":
+        label = f"樣本外收市誤差（walk-forward 全段 {err.get('n', 0)} 日）"
+    elif scope == "recent":
+        label = f"近期樣本外收市誤差（{err.get('n', 0)} 日）"
+    else:
+        label = "樣本外收市誤差（暫無 OOS 檔）"
     st.caption(
-        f"近期樣本外收市誤差（{err.get('n', 0)} 日）："
+        f"{label}："
         f"{_fmt_px(err.get('mae_close_px'))}　（{_fmt_pct(err.get('mae_close_ret'))}）"
     )
     st.markdown("---")

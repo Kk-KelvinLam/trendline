@@ -1,5 +1,5 @@
 {
-  "generated_at_utc": "2026-09-15T02:21:04Z",
+  "generated_at_utc": "2026-09-15T02:43:56Z",
   "asof": "2026-09-14",
   "next_session": "下一常規交易時段",
   "model_family": "stock",
@@ -66,9 +66,10 @@
       "beats_range": true,
       "strategy": "fade_to_prior_close",
       "recent_error": {
-        "n": 0,
-        "mae_close_ret": null,
-        "mae_close_px": null
+        "n": 441,
+        "mae_close_ret": 0.0206444914,
+        "mae_close_px": 4.355162044348373,
+        "scope": "walk_forward"
       },
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
@@ -127,9 +128,10 @@
       "beats_range": true,
       "strategy": "fade_to_prior_close",
       "recent_error": {
-        "n": 0,
-        "mae_close_ret": null,
-        "mae_close_px": null
+        "n": 441,
+        "mae_close_ret": 0.0337195933,
+        "mae_close_px": 31.157916784877713,
+        "scope": "walk_forward"
       },
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
@@ -188,9 +190,10 @@
       "beats_range": true,
       "strategy": "fade_to_prior_close",
       "recent_error": {
-        "n": 0,
-        "mae_close_ret": null,
-        "mae_close_px": null
+        "n": 163,
+        "mae_close_ret": 0.0557108293,
+        "mae_close_px": 86.46264942125593,
+        "scope": "walk_forward"
       },
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
@@ -249,9 +252,10 @@
       "beats_range": true,
       "strategy": "fade_to_prior_close",
       "recent_error": {
-        "n": 0,
-        "mae_close_ret": null,
-        "mae_close_px": null
+        "n": 441,
+        "mae_close_ret": 0.0121888603,
+        "mae_close_px": 4.0598654250552215,
+        "scope": "walk_forward"
       },
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
@@ -310,9 +314,10 @@
       "beats_range": true,
       "strategy": "fade_to_prior_close",
       "recent_error": {
-        "n": 0,
-        "mae_close_ret": null,
-        "mae_close_px": null
+        "n": 441,
+        "mae_close_ret": 0.0166553896,
+        "mae_close_px": 11.085826911134278,
+        "scope": "walk_forward"
       },
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
@@ -371,9 +376,10 @@
       "beats_range": true,
       "strategy": "fade_to_prior_close",
       "recent_error": {
-        "n": 0,
-        "mae_close_ret": null,
-        "mae_close_px": null
+        "n": 441,
+        "mae_close_ret": 0.015031502700000001,
+        "mae_close_px": 5.251856948541028,
+        "scope": "walk_forward"
       },
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
@@ -432,9 +438,10 @@
       "beats_range": true,
       "strategy": "fade_to_prior_close",
       "recent_error": {
-        "n": 0,
-        "mae_close_ret": null,
-        "mae_close_px": null
+        "n": 441,
+        "mae_close_ret": 0.0279014544,
+        "mae_close_px": 13.766856717682177,
+        "scope": "walk_forward"
       },
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
@@ -493,9 +500,10 @@
       "beats_range": true,
       "strategy": "fade_to_prior_close",
       "recent_error": {
-        "n": 0,
-        "mae_close_ret": null,
-        "mae_close_px": null
+        "n": 441,
+        "mae_close_ret": 0.0118546946,
+        "mae_close_px": 5.991481241199188,
+        "scope": "walk_forward"
       },
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
@@ -554,9 +562,10 @@
       "beats_range": true,
       "strategy": "fade_to_prior_close",
       "recent_error": {
-        "n": 0,
-        "mae_close_ret": null,
-        "mae_close_px": null
+        "n": 441,
+        "mae_close_ret": 0.0280832971,
+        "mae_close_px": 10.081061194268369,
+        "scope": "walk_forward"
       },
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
@@ -615,9 +624,10 @@
       "beats_range": true,
       "strategy": "fade_to_prior_close",
       "recent_error": {
-        "n": 0,
-        "mae_close_ret": null,
-        "mae_close_px": null
+        "n": 441,
+        "mae_close_ret": 0.0227634627,
+        "mae_close_px": 7.84702088973143,
+        "scope": "walk_forward"
       },
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
@@ -676,9 +686,10 @@
       "beats_range": true,
       "strategy": "fade_to_prior_close",
       "recent_error": {
-        "n": 0,
-        "mae_close_ret": null,
-        "mae_close_px": null
+        "n": 441,
+        "mae_close_ret": 0.0314954879,
+        "mae_close_px": 3.061046545894281,
+        "scope": "walk_forward"
       },
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
@@ -737,9 +748,10 @@
       "beats_range": true,
       "strategy": "fade_to_prior_close",
       "recent_error": {
-        "n": 0,
-        "mae_close_ret": null,
-        "mae_close_px": null
+        "n": 441,
+        "mae_close_ret": 0.015197169200000001,
+        "mae_close_px": 3.8530901769362247,
+        "scope": "walk_forward"
       },
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
@@ -798,9 +810,10 @@
       "beats_range": true,
       "strategy": "fade_to_prior_close",
       "recent_error": {
-        "n": 0,
-        "mae_close_ret": null,
-        "mae_close_px": null
+        "n": 441,
+        "mae_close_ret": 0.014850415700000001,
+        "mae_close_px": 5.133937084751358,
+        "scope": "walk_forward"
       },
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
@@ -859,9 +872,10 @@
       "beats_range": true,
       "strategy": "fade_to_prior_close",
       "recent_error": {
-        "n": 0,
-        "mae_close_ret": null,
-        "mae_close_px": null
+        "n": 441,
+        "mae_close_ret": 0.024918507700000002,
+        "mae_close_px": 3.607950562583449,
+        "scope": "walk_forward"
       },
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
@@ -920,9 +934,10 @@
       "beats_range": true,
       "strategy": "fade_to_prior_close",
       "recent_error": {
-        "n": 0,
-        "mae_close_ret": null,
-        "mae_close_px": null
+        "n": 441,
+        "mae_close_ret": 0.0288771359,
+        "mae_close_px": 5.00469635232818,
+        "scope": "walk_forward"
       },
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
@@ -981,9 +996,10 @@
       "beats_range": true,
       "strategy": "fade_to_prior_close",
       "recent_error": {
-        "n": 0,
-        "mae_close_ret": null,
-        "mae_close_px": null
+        "n": 441,
+        "mae_close_ret": 0.026663737000000003,
+        "mae_close_px": 14.245902185524171,
+        "scope": "walk_forward"
       },
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
@@ -1042,9 +1058,10 @@
       "beats_range": true,
       "strategy": "fade_to_prior_close",
       "recent_error": {
-        "n": 0,
-        "mae_close_ret": null,
-        "mae_close_px": null
+        "n": 441,
+        "mae_close_ret": 0.0323555643,
+        "mae_close_px": 7.080044817105231,
+        "scope": "walk_forward"
       },
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
@@ -1103,9 +1120,10 @@
       "beats_range": true,
       "strategy": "fade_to_prior_close",
       "recent_error": {
-        "n": 0,
-        "mae_close_ret": null,
-        "mae_close_px": null
+        "n": 441,
+        "mae_close_ret": 0.0384759301,
+        "mae_close_px": 32.12855703862751,
+        "scope": "walk_forward"
       },
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
@@ -1164,9 +1182,10 @@
       "beats_range": true,
       "strategy": "fade_to_prior_close",
       "recent_error": {
-        "n": 0,
-        "mae_close_ret": null,
-        "mae_close_px": null
+        "n": 441,
+        "mae_close_ret": 0.011143972200000001,
+        "mae_close_px": 0.6627320403374818,
+        "scope": "walk_forward"
       },
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
@@ -1225,9 +1244,10 @@
       "beats_range": true,
       "strategy": "fade_to_prior_close",
       "recent_error": {
-        "n": 0,
-        "mae_close_ret": null,
-        "mae_close_px": null
+        "n": 441,
+        "mae_close_ret": 0.025685658400000002,
+        "mae_close_px": 7.024770464979492,
+        "scope": "walk_forward"
       },
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
@@ -1286,9 +1306,10 @@
       "beats_range": true,
       "strategy": "fade_to_prior_close",
       "recent_error": {
-        "n": 0,
-        "mae_close_ret": null,
-        "mae_close_px": null
+        "n": 441,
+        "mae_close_ret": 0.02313385,
+        "mae_close_px": 9.81361031082306,
+        "scope": "walk_forward"
       },
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
@@ -1347,9 +1368,10 @@
       "beats_range": true,
       "strategy": "fade_to_prior_close",
       "recent_error": {
-        "n": 0,
-        "mae_close_ret": null,
-        "mae_close_px": null
+        "n": 441,
+        "mae_close_ret": 0.0110637688,
+        "mae_close_px": 3.8737574239663086,
+        "scope": "walk_forward"
       },
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
@@ -1408,9 +1430,10 @@
       "beats_range": true,
       "strategy": "fade_to_prior_close",
       "recent_error": {
-        "n": 0,
-        "mae_close_ret": null,
-        "mae_close_px": null
+        "n": 441,
+        "mae_close_ret": 0.027142145500000003,
+        "mae_close_px": 21.864354976199984,
+        "scope": "walk_forward"
       },
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
@@ -1469,9 +1492,10 @@
       "beats_range": true,
       "strategy": "fade_to_prior_close",
       "recent_error": {
-        "n": 0,
-        "mae_close_ret": null,
-        "mae_close_px": null
+        "n": 441,
+        "mae_close_ret": 0.029518454200000002,
+        "mae_close_px": 12.60260890821454,
+        "scope": "walk_forward"
       },
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
@@ -1530,9 +1554,10 @@
       "beats_range": true,
       "strategy": "fade_to_prior_close",
       "recent_error": {
-        "n": 0,
-        "mae_close_ret": null,
-        "mae_close_px": null
+        "n": 384,
+        "mae_close_ret": 0.0250886986,
+        "mae_close_px": 21.946590232342825,
+        "scope": "walk_forward"
       },
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
@@ -1591,9 +1616,10 @@
       "beats_range": true,
       "strategy": "fade_to_prior_close",
       "recent_error": {
-        "n": 0,
-        "mae_close_ret": null,
-        "mae_close_px": null
+        "n": 441,
+        "mae_close_ret": 0.0344043138,
+        "mae_close_px": 9.1687496277,
+        "scope": "walk_forward"
       },
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
@@ -1652,9 +1678,10 @@
       "beats_range": true,
       "strategy": "fade_to_prior_close",
       "recent_error": {
-        "n": 0,
-        "mae_close_ret": null,
-        "mae_close_px": null
+        "n": 441,
+        "mae_close_ret": 0.0111806327,
+        "mae_close_px": 1.21958343538835,
+        "scope": "walk_forward"
       },
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
@@ -1713,9 +1740,10 @@
       "beats_range": true,
       "strategy": "fade_to_prior_close",
       "recent_error": {
-        "n": 0,
-        "mae_close_ret": null,
-        "mae_close_px": null
+        "n": 441,
+        "mae_close_ret": 0.0302216288,
+        "mae_close_px": 7.1743124423861815,
+        "scope": "walk_forward"
       },
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
@@ -1774,9 +1802,10 @@
       "beats_range": true,
       "strategy": "fade_to_prior_close",
       "recent_error": {
-        "n": 0,
-        "mae_close_ret": null,
-        "mae_close_px": null
+        "n": 441,
+        "mae_close_ret": 0.0231248171,
+        "mae_close_px": 3.3207238767026825,
+        "scope": "walk_forward"
       },
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
@@ -1835,9 +1864,10 @@
       "beats_range": true,
       "strategy": "fade_to_prior_close",
       "recent_error": {
-        "n": 0,
-        "mae_close_ret": null,
-        "mae_close_px": null
+        "n": 441,
+        "mae_close_ret": 0.035459991,
+        "mae_close_px": 6.788815168734696,
+        "scope": "walk_forward"
       },
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
@@ -1896,9 +1926,10 @@
       "beats_range": true,
       "strategy": "fade_to_prior_close",
       "recent_error": {
-        "n": 0,
-        "mae_close_ret": null,
-        "mae_close_px": null
+        "n": 441,
+        "mae_close_ret": 0.0149575993,
+        "mae_close_px": 1.201394371211303,
+        "scope": "walk_forward"
       },
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
@@ -1957,9 +1988,10 @@
       "beats_range": true,
       "strategy": "fade_to_prior_close",
       "recent_error": {
-        "n": 0,
-        "mae_close_ret": null,
-        "mae_close_px": null
+        "n": 441,
+        "mae_close_ret": 0.0193740928,
+        "mae_close_px": 3.490242699669922,
+        "scope": "walk_forward"
       },
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
@@ -2018,9 +2050,10 @@
       "beats_range": true,
       "strategy": "fade_to_prior_close",
       "recent_error": {
-        "n": 0,
-        "mae_close_ret": null,
-        "mae_close_px": null
+        "n": 441,
+        "mae_close_ret": 0.0171277091,
+        "mae_close_px": 19.496129216136353,
+        "scope": "walk_forward"
       },
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
@@ -2079,9 +2112,10 @@
       "beats_range": true,
       "strategy": "fade_to_prior_close",
       "recent_error": {
-        "n": 0,
-        "mae_close_ret": null,
-        "mae_close_px": null
+        "n": 441,
+        "mae_close_ret": 0.0099444153,
+        "mae_close_px": 3.7319401616448213,
+        "scope": "walk_forward"
       },
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
@@ -2140,9 +2174,10 @@
       "beats_range": true,
       "strategy": "fade_to_prior_close",
       "recent_error": {
-        "n": 0,
-        "mae_close_ret": null,
-        "mae_close_px": null
+        "n": 441,
+        "mae_close_ret": 0.0118193819,
+        "mae_close_px": 1.9511435856939348,
+        "scope": "walk_forward"
       },
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
@@ -2201,9 +2236,10 @@
       "beats_range": true,
       "strategy": "fade_to_prior_close",
       "recent_error": {
-        "n": 0,
-        "mae_close_ret": null,
-        "mae_close_px": null
+        "n": 441,
+        "mae_close_ret": 0.0145359843,
+        "mae_close_px": 14.368093858776215,
+        "scope": "walk_forward"
       },
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
@@ -2262,9 +2298,10 @@
       "beats_range": true,
       "strategy": "fade_to_prior_close",
       "recent_error": {
-        "n": 0,
-        "mae_close_ret": null,
-        "mae_close_px": null
+        "n": 441,
+        "mae_close_ret": 0.0140526457,
+        "mae_close_px": 1.9136891885013487,
+        "scope": "walk_forward"
       },
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
@@ -2323,9 +2360,10 @@
       "beats_range": true,
       "strategy": "fade_to_prior_close",
       "recent_error": {
-        "n": 0,
-        "mae_close_ret": null,
-        "mae_close_px": null
+        "n": 441,
+        "mae_close_ret": 0.0077426196,
+        "mae_close_px": 3.9870620575343994,
+        "scope": "walk_forward"
       },
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
@@ -2384,9 +2422,10 @@
       "beats_range": true,
       "strategy": "fade_to_prior_close",
       "recent_error": {
-        "n": 0,
-        "mae_close_ret": null,
-        "mae_close_px": null
+        "n": 441,
+        "mae_close_ret": 0.0224339702,
+        "mae_close_px": 3.7933599389623476,
+        "scope": "walk_forward"
       },
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
@@ -2445,9 +2484,10 @@
       "beats_range": true,
       "strategy": "fade_to_prior_close",
       "recent_error": {
-        "n": 0,
-        "mae_close_ret": null,
-        "mae_close_px": null
+        "n": 441,
+        "mae_close_ret": 0.011211209100000001,
+        "mae_close_px": 2.378682214218663,
+        "scope": "walk_forward"
       },
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
@@ -2506,9 +2546,10 @@
       "beats_range": true,
       "strategy": "fade_to_prior_close",
       "recent_error": {
-        "n": 0,
-        "mae_close_ret": null,
-        "mae_close_px": null
+        "n": 441,
+        "mae_close_ret": 0.035364896300000004,
+        "mae_close_px": 4.04326865873406,
+        "scope": "walk_forward"
       },
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
@@ -2567,9 +2608,10 @@
       "beats_range": true,
       "strategy": "fade_to_prior_close",
       "recent_error": {
-        "n": 0,
-        "mae_close_ret": null,
-        "mae_close_px": null
+        "n": 441,
+        "mae_close_ret": 0.0158168372,
+        "mae_close_px": 12.4004003648,
+        "scope": "walk_forward"
       },
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
@@ -2628,9 +2670,10 @@
       "beats_range": true,
       "strategy": "fade_to_prior_close",
       "recent_error": {
-        "n": 0,
-        "mae_close_ret": null,
-        "mae_close_px": null
+        "n": 441,
+        "mae_close_ret": 0.0171057526,
+        "mae_close_px": 6.550648166980456,
+        "scope": "walk_forward"
       },
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
@@ -2689,9 +2732,10 @@
       "beats_range": true,
       "strategy": "fade_to_prior_close",
       "recent_error": {
-        "n": 0,
-        "mae_close_ret": null,
-        "mae_close_px": null
+        "n": 441,
+        "mae_close_ret": 0.0098319005,
+        "mae_close_px": 9.034631424414703,
+        "scope": "walk_forward"
       },
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
@@ -2750,9 +2794,10 @@
       "beats_range": true,
       "strategy": "fade_to_prior_close",
       "recent_error": {
-        "n": 0,
-        "mae_close_ret": null,
-        "mae_close_px": null
+        "n": 441,
+        "mae_close_ret": 0.0174711248,
+        "mae_close_px": 4.602243929413623,
+        "scope": "walk_forward"
       },
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
@@ -2811,9 +2856,10 @@
       "beats_range": true,
       "strategy": "fade_to_prior_close",
       "recent_error": {
-        "n": 0,
-        "mae_close_ret": null,
-        "mae_close_px": null
+        "n": 441,
+        "mae_close_ret": 0.0161424617,
+        "mae_close_px": 4.0209257257375395,
+        "scope": "walk_forward"
       },
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
@@ -2872,9 +2918,10 @@
       "beats_range": true,
       "strategy": "fade_to_prior_close",
       "recent_error": {
-        "n": 0,
-        "mae_close_ret": null,
-        "mae_close_px": null
+        "n": 441,
+        "mae_close_ret": 0.0170882691,
+        "mae_close_px": 6.554205404707965,
+        "scope": "walk_forward"
       },
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
@@ -2933,9 +2980,10 @@
       "beats_range": true,
       "strategy": "fade_to_prior_close",
       "recent_error": {
-        "n": 0,
-        "mae_close_ret": null,
-        "mae_close_px": null
+        "n": 441,
+        "mae_close_ret": 0.0165230062,
+        "mae_close_px": 5.965135516796832,
+        "scope": "walk_forward"
       },
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
@@ -2994,9 +3042,10 @@
       "beats_range": true,
       "strategy": "fade_to_prior_close",
       "recent_error": {
-        "n": 0,
-        "mae_close_ret": null,
-        "mae_close_px": null
+        "n": 441,
+        "mae_close_ret": 0.037262095200000005,
+        "mae_close_px": 12.454482335760353,
+        "scope": "walk_forward"
       },
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
@@ -3055,9 +3104,10 @@
       "beats_range": true,
       "strategy": "fade_to_prior_close",
       "recent_error": {
-        "n": 0,
-        "mae_close_ret": null,
-        "mae_close_px": null
+        "n": 441,
+        "mae_close_ret": 0.0148440056,
+        "mae_close_px": 4.713862382095752,
+        "scope": "walk_forward"
       },
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
@@ -3116,9 +3166,10 @@
       "beats_range": true,
       "strategy": "fade_to_prior_close",
       "recent_error": {
-        "n": 0,
-        "mae_close_ret": null,
-        "mae_close_px": null
+        "n": 441,
+        "mae_close_ret": 0.0283295393,
+        "mae_close_px": 9.326084683379571,
+        "scope": "walk_forward"
       },
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
@@ -3177,9 +3228,10 @@
       "beats_range": true,
       "strategy": "fade_to_prior_close",
       "recent_error": {
-        "n": 0,
-        "mae_close_ret": null,
-        "mae_close_px": null
+        "n": 441,
+        "mae_close_ret": 0.032566961400000004,
+        "mae_close_px": 4.777247647275184,
+        "scope": "walk_forward"
       },
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
@@ -3238,9 +3290,10 @@
       "beats_range": true,
       "strategy": "fade_to_prior_close",
       "recent_error": {
-        "n": 0,
-        "mae_close_ret": null,
-        "mae_close_px": null
+        "n": 441,
+        "mae_close_ret": 0.0135449435,
+        "mae_close_px": 2.7981144530315323,
+        "scope": "walk_forward"
       },
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
@@ -3299,9 +3352,10 @@
       "beats_range": true,
       "strategy": "fade_to_prior_close",
       "recent_error": {
-        "n": 0,
-        "mae_close_ret": null,
-        "mae_close_px": null
+        "n": 441,
+        "mae_close_ret": 0.0157735549,
+        "mae_close_px": 4.189456277714139,
+        "scope": "walk_forward"
       },
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
@@ -3360,9 +3414,10 @@
       "beats_range": true,
       "strategy": "fade_to_prior_close",
       "recent_error": {
-        "n": 0,
-        "mae_close_ret": null,
-        "mae_close_px": null
+        "n": 441,
+        "mae_close_ret": 0.0105334914,
+        "mae_close_px": 1.4361361789012026,
+        "scope": "walk_forward"
       },
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
@@ -3421,9 +3476,10 @@
       "beats_range": true,
       "strategy": "fade_to_prior_close",
       "recent_error": {
-        "n": 0,
-        "mae_close_ret": null,
-        "mae_close_px": null
+        "n": 441,
+        "mae_close_ret": 0.0445860832,
+        "mae_close_px": 1.6380927716042604,
+        "scope": "walk_forward"
       },
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
@@ -3482,9 +3538,10 @@
       "beats_range": true,
       "strategy": "fade_to_prior_close",
       "recent_error": {
-        "n": 0,
-        "mae_close_ret": null,
-        "mae_close_px": null
+        "n": 441,
+        "mae_close_ret": 0.0148889381,
+        "mae_close_px": 2.610775386709866,
+        "scope": "walk_forward"
       },
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
@@ -3543,9 +3600,10 @@
       "beats_range": true,
       "strategy": "fade_to_prior_close",
       "recent_error": {
-        "n": 0,
-        "mae_close_ret": null,
-        "mae_close_px": null
+        "n": 441,
+        "mae_close_ret": 0.0104756211,
+        "mae_close_px": 6.017406093235272,
+        "scope": "walk_forward"
       },
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
@@ -3604,9 +3662,10 @@
       "beats_range": true,
       "strategy": "fade_to_prior_close",
       "recent_error": {
-        "n": 0,
-        "mae_close_ret": null,
-        "mae_close_px": null
+        "n": 441,
+        "mae_close_ret": 0.0156583635,
+        "mae_close_px": 6.207758400717133,
+        "scope": "walk_forward"
       },
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
@@ -3665,9 +3724,10 @@
       "beats_range": true,
       "strategy": "fade_to_prior_close",
       "recent_error": {
-        "n": 0,
-        "mae_close_ret": null,
-        "mae_close_px": null
+        "n": 441,
+        "mae_close_ret": 0.0130951808,
+        "mae_close_px": 1.161673476779004,
+        "scope": "walk_forward"
       },
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
@@ -3726,9 +3786,10 @@
       "beats_range": true,
       "strategy": "fade_to_prior_close",
       "recent_error": {
-        "n": 0,
-        "mae_close_ret": null,
-        "mae_close_px": null
+        "n": 441,
+        "mae_close_ret": 0.0171109153,
+        "mae_close_px": 1.2427657312424676,
+        "scope": "walk_forward"
       },
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
@@ -3787,9 +3848,10 @@
       "beats_range": true,
       "strategy": "fade_to_prior_close",
       "recent_error": {
-        "n": 0,
-        "mae_close_ret": null,
-        "mae_close_px": null
+        "n": 441,
+        "mae_close_ret": 0.0120570034,
+        "mae_close_px": 1.3269937647679566,
+        "scope": "walk_forward"
       },
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
@@ -3848,9 +3910,10 @@
       "beats_range": true,
       "strategy": "fade_to_prior_close",
       "recent_error": {
-        "n": 0,
-        "mae_close_ret": null,
-        "mae_close_px": null
+        "n": 441,
+        "mae_close_ret": 0.011993875400000001,
+        "mae_close_px": 3.7285359870341557,
+        "scope": "walk_forward"
       },
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
@@ -3909,9 +3972,10 @@
       "beats_range": true,
       "strategy": "fade_to_prior_close",
       "recent_error": {
-        "n": 0,
-        "mae_close_ret": null,
-        "mae_close_px": null
+        "n": 441,
+        "mae_close_ret": 0.0095183509,
+        "mae_close_px": 1.3909166634933228,
+        "scope": "walk_forward"
       },
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
@@ -3970,9 +4034,10 @@
       "beats_range": true,
       "strategy": "fade_to_prior_close",
       "recent_error": {
-        "n": 0,
-        "mae_close_ret": null,
-        "mae_close_px": null
+        "n": 441,
+        "mae_close_ret": 0.0090666409,
+        "mae_close_px": 2.4146278708940616,
+        "scope": "walk_forward"
       },
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
@@ -4031,9 +4096,10 @@
       "beats_range": true,
       "strategy": "fade_to_prior_close",
       "recent_error": {
-        "n": 0,
-        "mae_close_ret": null,
-        "mae_close_px": null
+        "n": 441,
+        "mae_close_ret": 0.0088027786,
+        "mae_close_px": 0.7865282544780258,
+        "scope": "walk_forward"
       },
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
@@ -4092,9 +4158,10 @@
       "beats_range": true,
       "strategy": "fade_to_prior_close",
       "recent_error": {
-        "n": 0,
-        "mae_close_ret": null,
-        "mae_close_px": null
+        "n": 441,
+        "mae_close_ret": 0.0164851697,
+        "mae_close_px": 6.481309379622495,
+        "scope": "walk_forward"
       },
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
@@ -4153,9 +4220,10 @@
       "beats_range": true,
       "strategy": "fade_to_prior_close",
       "recent_error": {
-        "n": 0,
-        "mae_close_ret": null,
-        "mae_close_px": null
+        "n": 441,
+        "mae_close_ret": 0.012360483700000001,
+        "mae_close_px": 36.6552618634397,
+        "scope": "walk_forward"
       },
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
@@ -4214,9 +4282,10 @@
       "beats_range": true,
       "strategy": "fade_to_prior_close",
       "recent_error": {
-        "n": 0,
-        "mae_close_ret": null,
-        "mae_close_px": null
+        "n": 441,
+        "mae_close_ret": 0.0124287254,
+        "mae_close_px": 3.253467311411945,
+        "scope": "walk_forward"
       },
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
@@ -4275,9 +4344,10 @@
       "beats_range": true,
       "strategy": "fade_to_prior_close",
       "recent_error": {
-        "n": 0,
-        "mae_close_ret": null,
-        "mae_close_px": null
+        "n": 441,
+        "mae_close_ret": 0.0164726896,
+        "mae_close_px": 0.6103131371123351,
+        "scope": "walk_forward"
       },
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
@@ -4336,9 +4406,10 @@
       "beats_range": true,
       "strategy": "fade_to_prior_close",
       "recent_error": {
-        "n": 0,
-        "mae_close_ret": null,
-        "mae_close_px": null
+        "n": 441,
+        "mae_close_ret": 0.025984978000000002,
+        "mae_close_px": 29.707065994960452,
+        "scope": "walk_forward"
       },
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
@@ -4397,9 +4468,10 @@
       "beats_range": true,
       "strategy": "fade_to_prior_close",
       "recent_error": {
-        "n": 0,
-        "mae_close_ret": null,
-        "mae_close_px": null
+        "n": 441,
+        "mae_close_ret": 0.013198443800000001,
+        "mae_close_px": 1.9117946649869082,
+        "scope": "walk_forward"
       },
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
@@ -4458,9 +4530,10 @@
       "beats_range": true,
       "strategy": "fade_to_prior_close",
       "recent_error": {
-        "n": 0,
-        "mae_close_ret": null,
-        "mae_close_px": null
+        "n": 441,
+        "mae_close_ret": 0.0089760385,
+        "mae_close_px": 2.311240065708374,
+        "scope": "walk_forward"
       },
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
@@ -4519,9 +4592,10 @@
       "beats_range": true,
       "strategy": "fade_to_prior_close",
       "recent_error": {
-        "n": 0,
-        "mae_close_ret": null,
-        "mae_close_px": null
+        "n": 441,
+        "mae_close_ret": 0.025296438900000003,
+        "mae_close_px": 4.750924128050117,
+        "scope": "walk_forward"
       },
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
@@ -4580,9 +4654,10 @@
       "beats_range": true,
       "strategy": "fade_to_prior_close",
       "recent_error": {
-        "n": 0,
-        "mae_close_ret": null,
-        "mae_close_px": null
+        "n": 441,
+        "mae_close_ret": 0.020334672300000002,
+        "mae_close_px": 4.559643482949907,
+        "scope": "walk_forward"
       },
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
@@ -4641,9 +4716,10 @@
       "beats_range": true,
       "strategy": "fade_to_prior_close",
       "recent_error": {
-        "n": 0,
-        "mae_close_ret": null,
-        "mae_close_px": null
+        "n": 441,
+        "mae_close_ret": 0.0160527497,
+        "mae_close_px": 3.1302861915,
+        "scope": "walk_forward"
       },
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
@@ -4702,9 +4778,10 @@
       "beats_range": true,
       "strategy": "fade_to_prior_close",
       "recent_error": {
-        "n": 0,
-        "mae_close_ret": null,
-        "mae_close_px": null
+        "n": 441,
+        "mae_close_ret": 0.012387820400000001,
+        "mae_close_px": 4.7259534826000005,
+        "scope": "walk_forward"
       },
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
@@ -4763,9 +4840,10 @@
       "beats_range": true,
       "strategy": "fade_to_prior_close",
       "recent_error": {
-        "n": 0,
-        "mae_close_ret": null,
-        "mae_close_px": null
+        "n": 441,
+        "mae_close_ret": 0.0114330135,
+        "mae_close_px": 0.3030891905018091,
+        "scope": "walk_forward"
       },
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
@@ -4824,9 +4902,10 @@
       "beats_range": true,
       "strategy": "fade_to_prior_close",
       "recent_error": {
-        "n": 0,
-        "mae_close_ret": null,
-        "mae_close_px": null
+        "n": 441,
+        "mae_close_ret": 0.0173728386,
+        "mae_close_px": 2.9565095457055297,
+        "scope": "walk_forward"
       },
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
@@ -4885,9 +4964,10 @@
       "beats_range": true,
       "strategy": "fade_to_prior_close",
       "recent_error": {
-        "n": 0,
-        "mae_close_ret": null,
-        "mae_close_px": null
+        "n": 441,
+        "mae_close_ret": 0.0247184214,
+        "mae_close_px": 6.539752930841125,
+        "scope": "walk_forward"
       },
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
@@ -4946,9 +5026,10 @@
       "beats_range": true,
       "strategy": "fade_to_prior_close",
       "recent_error": {
-        "n": 0,
-        "mae_close_ret": null,
-        "mae_close_px": null
+        "n": 441,
+        "mae_close_ret": 0.0180871583,
+        "mae_close_px": 1.4207463396626265,
+        "scope": "walk_forward"
       },
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
@@ -5007,9 +5088,10 @@
       "beats_range": true,
       "strategy": "fade_to_prior_close",
       "recent_error": {
-        "n": 0,
-        "mae_close_ret": null,
-        "mae_close_px": null
+        "n": 441,
+        "mae_close_ret": 0.0088878965,
+        "mae_close_px": 1.1197860610484047,
+        "scope": "walk_forward"
       },
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
@@ -5068,9 +5150,10 @@
       "beats_range": true,
       "strategy": "fade_to_prior_close",
       "recent_error": {
-        "n": 0,
-        "mae_close_ret": null,
-        "mae_close_px": null
+        "n": 441,
+        "mae_close_ret": 0.012799213,
+        "mae_close_px": 0.31844440869847296,
+        "scope": "walk_forward"
       },
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
@@ -5129,9 +5212,10 @@
       "beats_range": true,
       "strategy": "fade_to_prior_close",
       "recent_error": {
-        "n": 0,
-        "mae_close_ret": null,
-        "mae_close_px": null
+        "n": 441,
+        "mae_close_ret": 0.0105089198,
+        "mae_close_px": 0.5390025061632034,
+        "scope": "walk_forward"
       },
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
@@ -5190,9 +5274,10 @@
       "beats_range": true,
       "strategy": "fade_to_prior_close",
       "recent_error": {
-        "n": 0,
-        "mae_close_ret": null,
-        "mae_close_px": null
+        "n": 441,
+        "mae_close_ret": 0.012656426,
+        "mae_close_px": 0.5701719816439133,
+        "scope": "walk_forward"
       },
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
@@ -5251,9 +5336,10 @@
       "beats_range": true,
       "strategy": "fade_to_prior_close",
       "recent_error": {
-        "n": 0,
-        "mae_close_ret": null,
-        "mae_close_px": null
+        "n": 441,
+        "mae_close_ret": 0.0144185358,
+        "mae_close_px": 5.449341455453504,
+        "scope": "walk_forward"
       },
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
@@ -5312,9 +5398,10 @@
       "beats_range": true,
       "strategy": "fade_to_prior_close",
       "recent_error": {
-        "n": 0,
-        "mae_close_ret": null,
-        "mae_close_px": null
+        "n": 441,
+        "mae_close_ret": 0.0116701669,
+        "mae_close_px": 4.884431754046664,
+        "scope": "walk_forward"
       },
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
@@ -5373,9 +5460,10 @@
       "beats_range": true,
       "strategy": "fade_to_prior_close",
       "recent_error": {
-        "n": 0,
-        "mae_close_ret": null,
-        "mae_close_px": null
+        "n": 441,
+        "mae_close_ret": 0.0120512734,
+        "mae_close_px": 0.983745414542189,
+        "scope": "walk_forward"
       },
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
@@ -5434,9 +5522,10 @@
       "beats_range": true,
       "strategy": "fade_to_prior_close",
       "recent_error": {
-        "n": 0,
-        "mae_close_ret": null,
-        "mae_close_px": null
+        "n": 441,
+        "mae_close_ret": 0.0152058495,
+        "mae_close_px": 3.908815635346344,
+        "scope": "walk_forward"
       },
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
@@ -5495,9 +5584,10 @@
       "beats_range": true,
       "strategy": "fade_to_prior_close",
       "recent_error": {
-        "n": 0,
-        "mae_close_ret": null,
-        "mae_close_px": null
+        "n": 441,
+        "mae_close_ret": 0.0152050686,
+        "mae_close_px": 2.0780766977206877,
+        "scope": "walk_forward"
       },
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
@@ -5556,9 +5646,10 @@
       "beats_range": true,
       "strategy": "fade_to_prior_close",
       "recent_error": {
-        "n": 0,
-        "mae_close_ret": null,
-        "mae_close_px": null
+        "n": 441,
+        "mae_close_ret": 0.0109599753,
+        "mae_close_px": 3.414470798614133,
+        "scope": "walk_forward"
       },
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
@@ -5617,9 +5708,10 @@
       "beats_range": true,
       "strategy": "fade_to_prior_close",
       "recent_error": {
-        "n": 0,
-        "mae_close_ret": null,
-        "mae_close_px": null
+        "n": 441,
+        "mae_close_ret": 0.0271269648,
+        "mae_close_px": 1.9436470693124634,
+        "scope": "walk_forward"
       },
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
@@ -5678,9 +5770,10 @@
       "beats_range": true,
       "strategy": "fade_to_prior_close",
       "recent_error": {
-        "n": 0,
-        "mae_close_ret": null,
-        "mae_close_px": null
+        "n": 441,
+        "mae_close_ret": 0.0104331279,
+        "mae_close_px": 0.9786274288593796,
+        "scope": "walk_forward"
       },
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
@@ -5739,9 +5832,10 @@
       "beats_range": true,
       "strategy": "fade_to_prior_close",
       "recent_error": {
-        "n": 0,
-        "mae_close_ret": null,
-        "mae_close_px": null
+        "n": 441,
+        "mae_close_ret": 0.0222856355,
+        "mae_close_px": 5.24559299280658,
+        "scope": "walk_forward"
       },
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
@@ -5800,9 +5894,10 @@
       "beats_range": true,
       "strategy": "fade_to_prior_close",
       "recent_error": {
-        "n": 0,
-        "mae_close_ret": null,
-        "mae_close_px": null
+        "n": 441,
+        "mae_close_ret": 0.0183471071,
+        "mae_close_px": 6.860717273766742,
+        "scope": "walk_forward"
       },
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
@@ -5861,9 +5956,10 @@
       "beats_range": true,
       "strategy": "fade_to_prior_close",
       "recent_error": {
-        "n": 0,
-        "mae_close_ret": null,
-        "mae_close_px": null
+        "n": 441,
+        "mae_close_ret": 0.0175518743,
+        "mae_close_px": 4.553482621095233,
+        "scope": "walk_forward"
       },
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
@@ -5922,9 +6018,10 @@
       "beats_range": true,
       "strategy": "fade_to_prior_close",
       "recent_error": {
-        "n": 0,
-        "mae_close_ret": null,
-        "mae_close_px": null
+        "n": 441,
+        "mae_close_ret": 0.0210488825,
+        "mae_close_px": 2.9963085523471835,
+        "scope": "walk_forward"
       },
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
@@ -5983,9 +6080,10 @@
       "beats_range": true,
       "strategy": "fade_to_prior_close",
       "recent_error": {
-        "n": 0,
-        "mae_close_ret": null,
-        "mae_close_px": null
+        "n": 441,
+        "mae_close_ret": 0.0212213025,
+        "mae_close_px": 1.1758723682868863,
+        "scope": "walk_forward"
       },
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
@@ -6044,9 +6142,10 @@
       "beats_range": true,
       "strategy": "fade_to_prior_close",
       "recent_error": {
-        "n": 0,
-        "mae_close_ret": null,
-        "mae_close_px": null
+        "n": 441,
+        "mae_close_ret": 0.0180474202,
+        "mae_close_px": 6.120782450677289,
+        "scope": "walk_forward"
       },
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
@@ -6105,9 +6204,10 @@
       "beats_range": true,
       "strategy": "fade_to_prior_close",
       "recent_error": {
-        "n": 0,
-        "mae_close_ret": null,
-        "mae_close_px": null
+        "n": 441,
+        "mae_close_ret": 0.019223269600000002,
+        "mae_close_px": 1.5236363895613345,
+        "scope": "walk_forward"
       },
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
