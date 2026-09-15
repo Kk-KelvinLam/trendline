@@ -1,12 +1,15 @@
 from trendline.cards import _recent_error
 
 
-def test_walk_forward_fallback_when_oos_missing():
+def test_walk_forward_fallback_when_oos_missing(monkeypatch):
+    # Ignore on-disk recent_close_error_*.json so we exercise the WF fallback path.
+    monkeypatch.setattr("trendline.cards._load_recent_error_artifact", lambda family="shared": {})
     out = _recent_error(
         None,
         "AAPL",
         per_ticker_row={"n": 441, "model_mae_close": 0.02},
         prior_close=100.0,
+        recent_lookup={},
     )
     assert out["scope"] == "walk_forward"
     assert out["n"] == 441
