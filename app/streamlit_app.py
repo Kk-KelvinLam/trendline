@@ -32,9 +32,12 @@ FAMILY_PAGES = {
     "共用模型": ("shared", CARDS_SHARED_PATH),
     "行業模型": ("sector", CARDS_SECTOR_PATH),
     "個股模型": ("stock", CARDS_STOCK_PATH),
+    "釘選對照": ("pinned", None),
     "計分板": ("scoreboard", None),
     "流水": ("ledger", None),
 }
+
+FAMILY_LABELS = (("shared", "共用"), ("sector", "行業"), ("stock", "個股"))
 
 
 def _load_json(path: Path) -> dict | None:
@@ -62,6 +65,66 @@ def _fmt_num(x, digits=4) -> str:
         return "—"
     return f"{x:.{digits}f}"
 
+
+
+
+
+def _ensure_pinned_state() -> list[str]:
+    if "pinned_tickers" not in st.session_state:
+        st.session_state["pinned_tickers"] = []
+    return st.session_state["pinned_tickers"]
+
+
+def _pin_ticker(ticker: str) -> None:
+    t = (ticker or "").strip().upper()
+    if not t:
+        return
+    pinned = _ensure_pinned_state()
+    if t not in pinned:
+        pinned.append(t)
+
+
+def _unpin_ticker(ticker: str) -> None:
+    t = (ticker or "").strip().upper()
+    pinned = _ensure_pinned_state()
+    st.session_state["pinned_tickers"] = [x for x in pinned if x != t]
+
+
+def _filter_cards_by_query(cards: list[dict], query: str) -> list[dict]:
+    q = (query or "").strip().upper()
+    if not q:
+        return cards
+    return [c for c in cards if str(c.get("ticker", "")).upper().startswith(q)]
+
+
+def _card_index_by_ticker(payload: dict | None) -> dict[str, dict]:
+    if not payload:
+        return {}
+    out: dict[str, dict] = {}
+    for c in payload.get("cards") or []:
+        t = str(c.get("ticker", "")).upper()
+        if t:
+            out[t] = c
+    return out
+
+
+def _recent_error_summary(card: dict | None) -> str:
+    if not card:
+        return "—"
+    err = card.get("recent_error") or {}
+    if not err.get("n"):
+        return "暫無"
+    scope = err.get("scope") or "recent"
+    scope_zh = {"walk_forward": "WF", "recent": "近期"}.get(scope, scope)
+    return f"{scope_zh} {_fmt_px(err.get('mae_close_px'))}（{_fmt_pct(err.get('mae_close_ret'))}，n={err.get('n', 0)}）"
+
+
+def _find_ticker_in_payloads(ticker: str, payloads: dict[str, dict | None]) -> bool:
+    t = ticker.strip().upper()
+    for payload in payloads.values():
+        if payload and any(str(c.get("ticker", "")).upper() == t for c in payload.get("cards") or []):
+            return True
+    return False
 
 
 def _inject_back_to_top(*, jump: bool) -> None:
@@ -156,6 +219,7 @@ def _inject_back_to_top(*, jump: bool) -> None:
 
 
 def main() -> None:
+    _ensure_pinned_state()
     _inject_back_to_top(jump=False)
     st.title("Trendline")
     st.caption("美股收市後 · 盤中觸價淡區間（止盈前收）。S&P 500 全數訓練 / 顯示前 100 成交額")
@@ -176,6 +240,9 @@ def main() -> None:
     if key == "ledger":
         _render_ledger()
         return
+    if key == "pinned":
+        _render_pinned()
+        return
 
     cards_payload = _load_json(cards_path) or ( _load_json(CARDS_PATH) if key == "shared" else None )
     if cards_payload is None or metrics is None:
@@ -193,9 +260,16 @@ def main() -> None:
     c4.metric("做空 / 觀望", f"{cards_payload.get('n_short', 0)} / {cards_payload.get('n_flat', 0)}")
     st.caption(f"模型家族：{cards_payload.get('model_family_zh') or page}")
 
+    search_q = st.text_input(
+        "搜尋",
+        value="",
+        placeholder="搜尋股票代號（例如 NVDA）",
+        key=f"search_{key}",
+    )
     filt = st.radio("篩選", ["全部", "做多", "做空", "高信心"], horizontal=True, key=f"filt_{key}")
 
     cards = cards_payload.get("cards", [])
+    cards = _filter_cards_by_query(cards, search_q)
     if filt == "做多":
         cards = [c for c in cards if c["action"] == "做多"]
     elif filt == "做空":
@@ -205,12 +279,12 @@ def main() -> None:
 
     st.subheader("翌日交易卡")
     if not cards:
-        st.info("此篩選沒有卡片。")
+        st.info("此篩選沒有卡片。" if not (search_q or "").strip() else "搜尋／篩選沒有符合嘅卡片。")
     else:
         cols = st.columns(3)
         for i, card in enumerate(cards):
             with cols[i % 3]:
-                _render_card(card)
+                _render_card(card, family=key)
 
     st.divider()
     _render_family_metrics(metrics, key)
@@ -482,11 +556,26 @@ def _render_ledger() -> None:
         st.dataframe(pd.DataFrame(flat), hide_index=True, use_container_width=True)
 
 
-def _render_card(card: dict) -> None:
+def _render_card(card: dict, *, family: str = "shared") -> None:
     action = card["action"]
     color = {"做多": "green", "做空": "red", "觀望": "gray"}.get(action, "gray")
     conf = " · 高信心" if card.get("high_confidence") else ""
-    st.markdown(f"### {card['ticker']}  :{color}[{action}]{conf}")
+    ticker = str(card.get("ticker", "")).upper()
+    title_col, pin_col = st.columns([4, 1])
+    with title_col:
+        st.markdown(f"### {ticker}  :{color}[{action}]{conf}")
+    with pin_col:
+        pinned = _ensure_pinned_state()
+        is_pinned = ticker in pinned
+        pin_key = f"pin_{family}_{ticker}"
+        if is_pinned:
+            if st.button("Unpin", key=pin_key, use_container_width=True):
+                _unpin_ticker(ticker)
+                st.rerun()
+        else:
+            if st.button("📌 Pin", key=pin_key, use_container_width=True):
+                _pin_ticker(ticker)
+                st.rerun()
     st.caption(
         f"#{card.get('dvol_rank', '—')} 成交額　·　{card.get('sector') or '—'}　·　"
         f"{'High/Low 優於基準' if card.get('beats_range', card.get('beats_baseline')) else 'High/Low 未優於該股基準'}"
@@ -536,6 +625,117 @@ def _render_card(card: dict) -> None:
         f"{_fmt_px(err.get('mae_close_px'))}　（{_fmt_pct(err.get('mae_close_ret'))}）"
     )
     st.markdown("---")
+
+
+def _comparison_row(card: dict | None) -> dict:
+    if card is None:
+        return {
+            "行動": "—",
+            "方向": "—",
+            "前收": "—",
+            "入場價": "—",
+            "止盈": "—",
+            "止損": "—",
+            "預測高 q50": "—",
+            "預測低 q50": "—",
+            "預測收 q50": "—",
+            "最後 bar": "—",
+            "近期誤差": "—",
+        }
+    p = card.get("pred") or {}
+    return {
+        "行動": card.get("action") or "—",
+        "方向": card.get("side") or "—",
+        "前收": _fmt_px(card.get("prior_close")),
+        "入場價": _fmt_px(card.get("entry_px")),
+        "止盈": _fmt_px(card.get("tp")),
+        "止損": _fmt_px(card.get("sl")),
+        "預測高 q50": _fmt_px((p.get("high") or {}).get("q50")),
+        "預測低 q50": _fmt_px((p.get("low") or {}).get("q50")),
+        "預測收 q50": _fmt_px((p.get("close") or {}).get("q50")),
+        "最後 bar": card.get("last_bar_date") or "—",
+        "近期誤差": _recent_error_summary(card),
+    }
+
+
+def _render_pinned() -> None:
+    st.subheader("釘選對照 · 三族模型並排")
+    st.caption("喺共用／行業／個股頁面 Pin 股票，或喺下面直接輸入代號加入。對照行動、入場、止盈止損同預測中位。")
+
+    payloads = {
+        "shared": _load_json(CARDS_SHARED_PATH) or _load_json(CARDS_PATH),
+        "sector": _load_json(CARDS_SECTOR_PATH),
+        "stock": _load_json(CARDS_STOCK_PATH),
+    }
+    indexes = {fam: _card_index_by_ticker(payloads.get(fam)) for fam, _ in FAMILY_LABELS}
+
+    add_col, btn_col = st.columns([3, 1])
+    with add_col:
+        add_q = st.text_input(
+            "手動釘選",
+            value="",
+            placeholder="輸入股票代號（例如 AAPL）",
+            key="pinned_add_input",
+        )
+    with btn_col:
+        st.write("")  # align with text_input label
+        st.write("")
+        if st.button("加入釘選", key="pinned_add_btn", use_container_width=True):
+            t = (add_q or "").strip().upper()
+            if not t:
+                st.warning("請輸入股票代號。")
+            elif not _find_ticker_in_payloads(t, payloads):
+                st.warning(f"三族卡片都搵唔到 {t}。")
+            else:
+                _pin_ticker(t)
+                st.rerun()
+
+    pinned = list(_ensure_pinned_state())
+    if not pinned:
+        st.info("尚未釘選任何股票。請到共用／行業／個股頁面按 📌 Pin，或喺上面輸入代號加入。")
+        return
+
+    st.caption(f"已釘選 {len(pinned)} 隻")
+    for ticker in pinned:
+        header_l, header_r = st.columns([5, 1])
+        with header_l:
+            st.markdown(f"### {ticker}")
+        with header_r:
+            if st.button("Unpin", key=f"unpin_page_{ticker}", use_container_width=True):
+                _unpin_ticker(ticker)
+                st.rerun()
+
+        cards_by_fam = {fam: indexes[fam].get(ticker) for fam, _ in FAMILY_LABELS}
+        actions = {
+            fam: (cards_by_fam[fam] or {}).get("action")
+            for fam, _ in FAMILY_LABELS
+            if cards_by_fam[fam] is not None
+        }
+        present_actions = {a for a in actions.values() if a}
+        if len(present_actions) > 1:
+            bits = "／".join(
+                f"{label}：{(cards_by_fam[fam] or {}).get('action') or '—'}"
+                for fam, label in FAMILY_LABELS
+            )
+            st.warning(f"⚠️ 三族行動不一致：{bits}")
+        elif len(present_actions) == 1 and sum(1 for c in cards_by_fam.values() if c) < 3:
+            st.caption("部分模型未有此股票卡片。")
+
+        cols = st.columns(3)
+        for col, (fam, label) in zip(cols, FAMILY_LABELS):
+            with col:
+                st.markdown(f"**{label}**")
+                card = cards_by_fam[fam]
+                if card is None:
+                    st.info("無此卡片")
+                    continue
+                row = _comparison_row(card)
+                st.dataframe(
+                    pd.DataFrame([row]).T.rename(columns={0: "值"}),
+                    use_container_width=True,
+                    height=420,
+                )
+        st.markdown("---")
 
 
 if __name__ == "__main__":
