@@ -77,7 +77,8 @@
       setHeight(Math.max(40, document.body.scrollHeight));
     }
     document.getElementById("pin").addEventListener("click", function () {
-      setValue("toggle");
+      // Unique id so Python handles each click once (component value otherwise sticks and loops).
+      setValue({ action: "toggle", id: Date.now() + "-" + Math.random().toString(36).slice(2, 8) });
     });
     window.addEventListener("message", onRender);
     sendMessage("streamlit:componentReady", { apiVersion: 1 });
