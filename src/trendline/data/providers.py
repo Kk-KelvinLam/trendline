@@ -148,11 +148,10 @@ def _normalize_yf_frame(part: pd.DataFrame, ticker: str) -> pd.DataFrame:
             "source": "yfinance",
         }
     )
-    # Yahoo often publishes next-session rows with OHLC volume but Close still NaN
-    # for a while; dropping those left only ^VIX on the newest day after 429/partial pulls.
+    # Incomplete Yahoo rows (Close still NaN) are dropped — do not invent Close from
+    # mid/open. Prefer Adj Close when Yahoo published that but left Close empty.
+    # Nightly skips cards/ledger when the newest equity session is too thin; retry later.
     out["close"] = out["close"].fillna(out["adj_close"])
-    mid = (out["high"] + out["low"]) / 2.0
-    out["close"] = out["close"].fillna(mid).fillna(out["open"])
     out["adj_close"] = out["adj_close"].fillna(out["close"])
     return out.dropna(subset=["open", "high", "low", "close"])
 

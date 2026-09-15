@@ -1,4 +1,4 @@
-"""CombinedProvider must retry tickers behind the panel's newest day."""
+"""CombinedProvider retry + incomplete Close handling."""
 
 from __future__ import annotations
 
@@ -6,7 +6,8 @@ from dataclasses import dataclass, field
 
 import pandas as pd
 
-from trendline.data.providers import CombinedProvider
+from trendline.data.providers import CombinedProvider, _normalize_yf_frame
+from trendline.data.store import equity_session_coverage
 
 
 def _bars(ticker: str, dates: list[str], source: str = "yfinance") -> pd.DataFrame:
@@ -30,8 +31,6 @@ def _bars(ticker: str, dates: list[str], source: str = "yfinance") -> pd.DataFra
 
 @dataclass
 class _FakeYahoo:
-    """Batch returns VIX@9/14 + AAPL@9/11; single AAPL returns through 9/14."""
-
     singles: list = field(default_factory=list)
 
     def download(self, tickers, start, end=None):
@@ -39,7 +38,6 @@ class _FakeYahoo:
         if tickers == ["AAPL"]:
             self.singles.append("AAPL")
             return _bars("AAPL", ["2026-09-11", "2026-09-14"])
-        # batch
         return pd.concat(
             [_bars("^VIX", ["2026-09-11", "2026-09-14"]), _bars("AAPL", ["2026-09-11"])],
             ignore_index=True,
@@ -65,13 +63,10 @@ def test_single_yahoo_retry_fills_behind_panel_max():
     assert yahoo.singles == ["AAPL"]
     aapl = out[out["ticker"] == "AAPL"]
     assert pd.Timestamp("2026-09-14") in set(pd.to_datetime(aapl["date"]).dt.normalize())
-    assert stooq.called_with is None  # single retry succeeded
+    assert stooq.called_with is None
 
 
-def test_normalize_keeps_row_when_close_nan(monkeypatch):
-    import pandas as pd
-    from trendline.data import providers as prov
-
+def test_normalize_drops_row_when_close_and_adj_nan():
     part = pd.DataFrame(
         {
             "date": [pd.Timestamp("2026-09-14")],
@@ -83,6 +78,37 @@ def test_normalize_keeps_row_when_close_nan(monkeypatch):
             "volume": [1000],
         }
     )
-    out = prov._normalize_yf_frame(part, "AAPL")
+    out = _normalize_yf_frame(part, "AAPL")
+    assert out.empty
+
+
+def test_normalize_uses_adj_close_when_close_nan():
+    part = pd.DataFrame(
+        {
+            "date": [pd.Timestamp("2026-09-14")],
+            "open": [10.0],
+            "high": [12.0],
+            "low": [9.0],
+            "close": [float("nan")],
+            "adj_close": [11.0],
+            "volume": [1000],
+        }
+    )
+    out = _normalize_yf_frame(part, "AAPL")
     assert len(out) == 1
-    assert out.iloc[0]["close"] == 10.5  # mid high/low
+    assert float(out.iloc[0]["close"]) == 11.0
+
+
+def test_equity_session_coverage_incomplete():
+    # Only one real S&P name on the day → well under 90% of the Wikipedia list.
+    ohlcv = pd.concat(
+        [
+            _bars("AAPL", ["2026-09-14"]),
+            _bars("^VIX", ["2026-09-14"]),
+        ],
+        ignore_index=True,
+    )
+    cov = equity_session_coverage(ohlcv, "2026-09-14")
+    assert cov["n_have"] == 1
+    assert cov["frac"] < 0.90
+    assert cov["complete"] is False
