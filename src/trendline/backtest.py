@@ -386,7 +386,7 @@ def simulate_trades(
             )
             if filled is None:
                 continue
-            ret, exit_px, reason = filled
+            ret, exit_px, reason = filled.ret, filled.exit_px, filled.reason
             entry, tp, sl, side = setup.entry, setup.tp, setup.sl, setup.side
             recs.append(
                 {
