@@ -128,7 +128,7 @@ def _find_ticker_in_payloads(ticker: str, payloads: dict[str, dict | None]) -> b
 
 
 def _inject_back_to_top(*, jump: bool) -> None:
-    """Fixed ↑ in the Streamlit page. Hide only when we know we are at the top."""
+    """Fixed ↑ control. Avoid remounting the JS iframe on every widget rerun (scroll jank)."""
     import streamlit.components.v1 as components
 
     st.markdown(
@@ -154,12 +154,69 @@ def _inject_back_to_top(*, jump: bool) -> None:
   box-shadow: 0 4px 12px rgba(0,0,0,.25);
 }
 #tl-arrow.tl-hide { display: none !important; }
+/* Keep ticker + action + pin on one tight row (mobile + desktop) */
+.tl-card-head {
+  display: flex;
+  align-items: center;
+  flex-wrap: nowrap;
+  gap: 0.45rem;
+  margin: 0 0 0.15rem 0;
+  line-height: 1.2;
+}
+.tl-card-head .tl-t {
+  font-size: 1.35rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.tl-card-head .tl-a {
+  font-size: 1.35rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.tl-card-head .tl-a.green { color: #2ecc71; }
+.tl-card-head .tl-a.red { color: #e74c3c; }
+.tl-card-head .tl-a.gray { color: #9ca3af; }
+.tl-card-head .tl-conf {
+  font-size: 0.85rem;
+  opacity: 0.75;
+  white-space: nowrap;
+}
+/* marker is in the element-container *before* the columns row */
+div.element-container:has(.tl-pin-mark) + div.element-container div[data-testid="stHorizontalBlock"] {
+  flex-wrap: nowrap !important;
+  gap: 0.25rem !important;
+  align-items: center !important;
+  margin-top: -0.15rem;
+  margin-bottom: 0.15rem;
+}
+div.element-container:has(.tl-pin-mark) + div.element-container div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:last-child {
+  flex: 0 0 2.6rem !important;
+  width: 2.6rem !important;
+  min-width: 2.6rem !important;
+}
+div.element-container:has(.tl-pin-mark) + div.element-container div[data-testid="stHorizontalBlock"] button {
+  padding: 0.15rem 0.35rem !important;
+  min-height: 2rem !important;
+}
+div.element-container:has(.tl-align-mark) + div.element-container div[data-testid="stHorizontalBlock"] {
+  align-items: flex-end !important;
+  gap: 0.5rem !important;
+}
+div.element-container:has(.tl-align-mark) + div.element-container div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:last-child {
+  padding-bottom: 0.15rem;
+}
 </style>
 <div id="tl-top"></div>
 <a id="tl-arrow" href="#tl-top" aria-label="回到頁頂">↑</a>
 """,
         unsafe_allow_html=True,
     )
+
+    # Only mount the scroll helper iframe when needed (page change / first load).
+    need_js = jump or not st.session_state.get("_tl_arrow_js_mounted")
+    if not need_js:
+        return
+    st.session_state["_tl_arrow_js_mounted"] = True
     flag = "1" if jump else "0"
     components.html(
         f"""
@@ -167,9 +224,6 @@ def _inject_back_to_top(*, jump: bool) -> None:
 (function() {{
   const win = window.parent;
   const doc = win.document;
-  try {{ win.history.scrollRestoration = "manual"; }} catch (e) {{}}
-  var orphan = doc.getElementById("tl-back-top");
-  if (orphan) orphan.remove();
   function arrow() {{
     return doc.getElementById("tl-arrow") || document.getElementById("tl-arrow");
   }}
@@ -187,7 +241,7 @@ def _inject_back_to_top(*, jump: bool) -> None:
     scrollers().forEach(function(el) {{ el.scrollTop = 0; }});
     try {{ win.scrollTo(0, 0); }} catch (e) {{}}
     var top = doc.getElementById("tl-top");
-    if (top && top.scrollIntoView) top.scrollIntoView();
+    if (top && top.scrollIntoView) top.scrollIntoView({{block: "start"}});
   }}
   function maxY() {{
     var m = win.scrollY || 0;
@@ -202,14 +256,12 @@ def _inject_back_to_top(*, jump: bool) -> None:
     else a.classList.remove("tl-hide");
   }}
   if (!win.__tlArrowTimer) {{
-    win.__tlArrowTimer = win.setInterval(sync, 250);
+    win.__tlArrowTimer = win.setInterval(sync, 400);
   }}
-  if (!win.__tlPinnedTop) {{
-    win.__tlPinnedTop = true;
+  if ("{flag}" === "1") {{
     hardTop();
-    [80, 250, 600].forEach(function(ms) {{ win.setTimeout(hardTop, ms); }});
+    win.setTimeout(hardTop, 80);
   }}
-  if ("{flag}" === "1") hardTop();
   sync();
 }})();
 </script>
@@ -218,9 +270,9 @@ def _inject_back_to_top(*, jump: bool) -> None:
     )
 
 
+
 def main() -> None:
     _ensure_pinned_state()
-    _inject_back_to_top(jump=False)
     st.title("Trendline")
     st.caption("美股收市後 · 盤中觸價淡區間（止盈前收）。S&P 500 全數訓練 / 顯示前 100 成交額")
     st.warning(DISCLAIMER)
@@ -263,6 +315,7 @@ def main() -> None:
     search_key = f"search_{key}"
     if search_key not in st.session_state:
         st.session_state[search_key] = ""
+    st.markdown('<div class="tl-align-mark"></div>', unsafe_allow_html=True)
     search_col, clear_col = st.columns([5, 1])
     with search_col:
         search_q = st.text_input(
@@ -271,10 +324,13 @@ def main() -> None:
             key=search_key,
         )
     with clear_col:
-        st.markdown("<div style='height:1.7rem'></div>", unsafe_allow_html=True)
-        if st.button("清除", key=f"clear_search_{key}", use_container_width=True, disabled=not bool((st.session_state.get(search_key) or "").strip())):
+        if st.button(
+            "清除",
+            key=f"clear_search_{key}",
+            use_container_width=True,
+            disabled=not bool((st.session_state.get(search_key) or "").strip()),
+        ):
             st.session_state[search_key] = ""
-            st.rerun()
     filt = st.radio("篩選", ["全部", "做多", "做空", "高信心"], horizontal=True, key=f"filt_{key}")
 
     cards = cards_payload.get("cards", [])
@@ -573,14 +629,20 @@ def _render_card(card: dict, *, family: str = "shared") -> None:
     pinned = _ensure_pinned_state()
     is_pinned = ticker in pinned
     pin_key = f"pin_{family}_{ticker}"
-    # Ticker · direction · pin icon (icon sits next to predicted direction)
-    t_col, a_col, pin_col = st.columns([2.2, 2.6, 0.7])
-    with t_col:
-        st.markdown(f"### {ticker}")
-    with a_col:
-        st.markdown(f"### :{color}[{action}]{conf}")
+    conf_html = f'<span class="tl-conf">{conf}</span>' if conf else ""
+    # One tight row: ticker + direction + pin. Marker+CSS stop Streamlit stacking on mobile.
+    st.markdown('<div class="tl-pin-mark"></div>', unsafe_allow_html=True)
+    head_col, pin_col = st.columns([10, 1], gap="small")
+    with head_col:
+        st.markdown(
+            f'<div class="tl-card-head">'
+            f'<span class="tl-t">{ticker}</span>'
+            f'<span class="tl-a {color}">{action}</span>'
+            f"{conf_html}"
+            f"</div>",
+            unsafe_allow_html=True,
+        )
     with pin_col:
-        st.markdown("<div style='height:0.35rem'></div>", unsafe_allow_html=True)
         pin_label = "📍" if is_pinned else "📌"
         pin_help = "取消釘選" if is_pinned else "釘選對照"
         if st.button(pin_label, key=pin_key, help=pin_help):
@@ -588,7 +650,6 @@ def _render_card(card: dict, *, family: str = "shared") -> None:
                 _unpin_ticker(ticker)
             else:
                 _pin_ticker(ticker)
-            st.rerun()
     st.caption(
         f"#{card.get('dvol_rank', '—')} 成交額　·　{card.get('sector') or '—'}　·　"
         f"{'High/Low 優於基準' if card.get('beats_range', card.get('beats_baseline')) else 'High/Low 未優於該股基準'}"
@@ -682,26 +743,27 @@ def _render_pinned() -> None:
     }
     indexes = {fam: _card_index_by_ticker(payloads.get(fam)) for fam, _ in FAMILY_LABELS}
 
-    add_col, btn_col = st.columns([3, 1])
+    if "pinned_add_input" not in st.session_state:
+        st.session_state["pinned_add_input"] = ""
+    st.markdown('<div class="tl-align-mark"></div>', unsafe_allow_html=True)
+    add_col, btn_col = st.columns([4, 1])
     with add_col:
         add_q = st.text_input(
             "手動釘選",
-            value="",
             placeholder="輸入股票代號（例如 AAPL）",
             key="pinned_add_input",
         )
     with btn_col:
-        st.write("")  # align with text_input label
-        st.write("")
-        if st.button("加入釘選", key="pinned_add_btn", use_container_width=True):
-            t = (add_q or "").strip().upper()
-            if not t:
-                st.warning("請輸入股票代號。")
-            elif not _find_ticker_in_payloads(t, payloads):
-                st.warning(f"三族卡片都搵唔到 {t}。")
-            else:
-                _pin_ticker(t)
-                st.rerun()
+        add_clicked = st.button("加入釘選", key="pinned_add_btn", use_container_width=True)
+    if add_clicked:
+        t = (add_q or "").strip().upper()
+        if not t:
+            st.warning("請輸入股票代號。")
+        elif not _find_ticker_in_payloads(t, payloads):
+            st.warning(f"三族卡片都搵唔到 {t}。")
+        else:
+            _pin_ticker(t)
+            st.session_state["pinned_add_input"] = ""
 
     pinned = list(_ensure_pinned_state())
     if not pinned:
@@ -710,13 +772,16 @@ def _render_pinned() -> None:
 
     st.caption(f"已釘選 {len(pinned)} 隻")
     for ticker in pinned:
-        header_l, header_r = st.columns([5, 1])
+        st.markdown('<div class="tl-pin-mark"></div>', unsafe_allow_html=True)
+        header_l, header_r = st.columns([12, 1])
         with header_l:
-            st.markdown(f"### {ticker}")
+            st.markdown(
+                f'<div class="tl-card-head"><span class="tl-t">{ticker}</span></div>',
+                unsafe_allow_html=True,
+            )
         with header_r:
-            if st.button("Unpin", key=f"unpin_page_{ticker}", use_container_width=True):
+            if st.button("📍", key=f"unpin_page_{ticker}", help="取消釘選"):
                 _unpin_ticker(ticker)
-                st.rerun()
 
         cards_by_fam = {fam: indexes[fam].get(ticker) for fam, _ in FAMILY_LABELS}
         actions = {
