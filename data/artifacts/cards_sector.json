@@ -1,13 +1,13 @@
 {
-  "generated_at_utc": "2026-09-15T05:00:44Z",
+  "generated_at_utc": "2026-09-15T05:09:21Z",
   "asof": "2026-09-14",
   "next_session": "下一常規交易時段",
   "model_family": "sector",
   "model_family_zh": "行業模型",
   "n_cards": 100,
-  "n_long": 8,
-  "n_short": 44,
-  "n_flat": 48,
+  "n_long": 7,
+  "n_short": 18,
+  "n_flat": 75,
   "disclaimer_zh": "本頁為量化模型輸出，並非投資建議。過往回測不代表未來表現。",
   "disclaimer_en": "Model output, not investment advice. Past backtests do not predict future results.",
   "universe_source": "S&P 500 · Wikipedia 2026-09-12",
@@ -71,133 +71,6 @@
         "mae_close_px": 4.8938786764653175,
         "scope": "recent"
       },
-      "size_scale": 0.5280935440732313,
-      "data_source": "Yahoo Finance",
-      "universe_source": "S&P 500 · Wikipedia 2026-09-12"
-    },
-    {
-      "ticker": "MU",
-      "name": "Information Technology",
-      "sector": "Information Technology",
-      "model_family": "sector",
-      "dvol_rank": 2,
-      "dollar_volume": 24974314019.82422,
-      "action": "做空",
-      "side": -1,
-      "reason": "fade_to_prior_close",
-      "asof": "2026-09-14",
-      "last_bar_date": "2026-09-14",
-      "prior_close": 924.030029296875,
-      "entry": "盤中觸價",
-      "entry_px": 941.4902537953014,
-      "tp": 924.030029296875,
-      "sl": 985.1745450899443,
-      "pred": {
-        "high": {
-          "q10": 919.409864683714,
-          "q50": 941.4902537953014,
-          "q90": 967.9066889535042,
-          "q10_ret": -0.00500001565606767,
-          "q50_ret": 0.018895732762832983,
-          "q90_ret": 0.047484019204458605
-        },
-        "low": {
-          "q10": 882.6971418340892,
-          "q50": 907.6199851642069,
-          "q90": 930.9175507967534,
-          "q10_ret": -0.04473110846217566,
-          "q50_ret": -0.01775921086152906,
-          "q90_ret": 0.00745378535491899
-        },
-        "close": {
-          "q10": 895.5635404470113,
-          "q50": 922.6845400034454,
-          "q90": 956.3515399323861,
-          "q10_ret": -0.030806887165263218,
-          "q50_ret": -0.001456109921506983,
-          "q90_ret": 0.03497885307916418
-        }
-      },
-      "baseline": {
-        "high_q50": 967.7143205915178,
-        "low_q50": 880.3457380022322,
-        "close_q50": 924.030029296875
-      },
-      "atr": 43.684291294642854,
-      "high_confidence": false,
-      "beats_baseline": true,
-      "beats_range": true,
-      "strategy": "fade_to_prior_close",
-      "recent_error": {
-        "n": 19,
-        "mae_close_ret": 0.026666573749624667,
-        "mae_close_px": 25.926014654108286,
-        "scope": "recent"
-      },
-      "size_scale": 0.25,
-      "data_source": "Yahoo Finance",
-      "universe_source": "S&P 500 · Wikipedia 2026-09-12"
-    },
-    {
-      "ticker": "SNDK",
-      "name": "Information Technology",
-      "sector": "Information Technology",
-      "model_family": "sector",
-      "dvol_rank": 3,
-      "dollar_volume": 14832368336.669922,
-      "action": "做空",
-      "side": -1,
-      "reason": "fade_to_prior_close",
-      "asof": "2026-09-14",
-      "last_bar_date": "2026-09-14",
-      "prior_close": 1551.989990234375,
-      "entry": "盤中觸價",
-      "entry_px": 1588.3337919402575,
-      "tp": 1551.989990234375,
-      "sl": 1686.0600667030924,
-      "pred": {
-        "high": {
-          "q10": 1543.221992562847,
-          "q50": 1588.3337919402575,
-          "q90": 1648.4663507924017,
-          "q10_ret": -0.00564951947286979,
-          "q50_ret": 0.023417549039987128,
-          "q90_ret": 0.06216300437830604
-        },
-        "low": {
-          "q10": 1464.3128200032093,
-          "q50": 1521.8635736967037,
-          "q90": 1568.297775004049,
-          "q10_ret": -0.05649338641541434,
-          "q50_ret": -0.01941147605798782,
-          "q90_ret": 0.010507661049548003
-        },
-        "close": {
-          "q10": 1496.9737247825788,
-          "q50": 1549.7301222115152,
-          "q90": 1616.7655522543057,
-          "q10_ret": -0.035448853277390044,
-          "q50_ret": -0.001456109921506983,
-          "q90_ret": 0.04173710038564661
-        }
-      },
-      "baseline": {
-        "high_q50": 1649.71626499721,
-        "low_q50": 1454.26371547154,
-        "close_q50": 1551.989990234375
-      },
-      "atr": 97.72627476283482,
-      "high_confidence": false,
-      "beats_baseline": true,
-      "beats_range": true,
-      "strategy": "fade_to_prior_close",
-      "recent_error": {
-        "n": 19,
-        "mae_close_ret": 0.03127488824268093,
-        "mae_close_px": 50.773417991958524,
-        "scope": "recent"
-      },
-      "size_scale": 0.25,
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
     },
@@ -260,70 +133,6 @@
         "mae_close_px": 3.9428554303821515,
         "scope": "recent"
       },
-      "size_scale": 1.0,
-      "data_source": "Yahoo Finance",
-      "universe_source": "S&P 500 · Wikipedia 2026-09-12"
-    },
-    {
-      "ticker": "AMD",
-      "name": "Information Technology",
-      "sector": "Information Technology",
-      "model_family": "sector",
-      "dvol_rank": 7,
-      "dollar_volume": 12223542066.723633,
-      "action": "做空",
-      "side": -1,
-      "reason": "fade_to_prior_close",
-      "asof": "2026-09-14",
-      "last_bar_date": "2026-09-14",
-      "prior_close": 493.4100036621094,
-      "entry": "盤中觸價",
-      "entry_px": 502.42728456391785,
-      "tp": 493.4100036621094,
-      "sl": 522.4344234973721,
-      "pred": {
-        "high": {
-          "q10": 490.65851601071796,
-          "q50": 502.42728456391785,
-          "q90": 517.1563399243427,
-          "q10_ret": -0.00557647317843123,
-          "q50_ret": 0.018275431861700976,
-          "q90_ret": 0.048126985845416435
-        },
-        "low": {
-          "q10": 468.8331541458638,
-          "q50": 485.22833715532914,
-          "q90": 496.5540699594462,
-          "q10_ret": -0.049810197064986954,
-          "q50_ret": -0.01658188209816496,
-          "q90_ret": 0.006372117050731562
-        },
-        "close": {
-          "q10": 478.2767891441255,
-          "q50": 492.69154446040613,
-          "q90": 509.6410310217102,
-          "q10_ret": -0.03067066821844824,
-          "q50_ret": -0.001456109921506983,
-          "q90_ret": 0.03289561873317016
-        }
-      },
-      "baseline": {
-        "high_q50": 513.4171425955635,
-        "low_q50": 473.4028647286551,
-        "close_q50": 493.4100036621094
-      },
-      "atr": 20.00713893345424,
-      "high_confidence": false,
-      "beats_baseline": true,
-      "beats_range": true,
-      "strategy": "fade_to_prior_close",
-      "recent_error": {
-        "n": 19,
-        "mae_close_ret": 0.026116598908249206,
-        "mae_close_px": 12.657149497930709,
-        "scope": "recent"
-      },
-      "size_scale": 0.25,
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
     },
@@ -386,70 +195,6 @@
         "mae_close_px": 5.11202013718065,
         "scope": "recent"
       },
-      "size_scale": 1.0,
-      "data_source": "Yahoo Finance",
-      "universe_source": "S&P 500 · Wikipedia 2026-09-12"
-    },
-    {
-      "ticker": "TSLA",
-      "name": "Consumer Discretionary",
-      "sector": "Consumer Discretionary",
-      "model_family": "sector",
-      "dvol_rank": 9,
-      "dollar_volume": 11631166494.552612,
-      "action": "做多",
-      "side": 1,
-      "reason": "fade_to_prior_close",
-      "asof": "2026-09-14",
-      "last_bar_date": "2026-09-14",
-      "prior_close": 358.9700012207031,
-      "entry": "盤中觸價",
-      "entry_px": 354.3645875813874,
-      "tp": 358.9700012207031,
-      "sl": 340.39887626023784,
-      "pred": {
-        "high": {
-          "q10": 357.67179737722455,
-          "q50": 363.28734089462597,
-          "q90": 372.29292172059905,
-          "q10_ret": -0.0036164688945147672,
-          "q50_ret": 0.012027020807425222,
-          "q90_ret": 0.037114300511436604
-        },
-        "low": {
-          "q10": 346.4722062913876,
-          "q50": 354.3645875813874,
-          "q90": 359.78592562951656,
-          "q10_ret": -0.03481570851830484,
-          "q50_ret": -0.012829522310094557,
-          "q90_ret": 0.0022729598741923155
-        },
-        "close": {
-          "q10": 348.7850102456521,
-          "q50": 359.34483125302455,
-          "q90": 366.9695410181586,
-          "q10_ret": -0.02837281928967957,
-          "q50_ret": 0.0010441820515552536,
-          "q90_ret": 0.022284702817094656
-        }
-      },
-      "baseline": {
-        "high_q50": 372.9357125418527,
-        "low_q50": 345.00428989955356,
-        "close_q50": 358.9700012207031
-      },
-      "atr": 13.965711321149554,
-      "high_confidence": false,
-      "beats_baseline": true,
-      "beats_range": true,
-      "strategy": "fade_to_prior_close",
-      "recent_error": {
-        "n": 19,
-        "mae_close_ret": 0.026038058799922447,
-        "mae_close_px": 9.262246221889864,
-        "scope": "recent"
-      },
-      "size_scale": 0.25,
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
     },
@@ -512,70 +257,6 @@
         "mae_close_px": 6.324641279558151,
         "scope": "recent"
       },
-      "size_scale": 1.0,
-      "data_source": "Yahoo Finance",
-      "universe_source": "S&P 500 · Wikipedia 2026-09-12"
-    },
-    {
-      "ticker": "INTC",
-      "name": "Information Technology",
-      "sector": "Information Technology",
-      "model_family": "sector",
-      "dvol_rank": 11,
-      "dollar_volume": 9354003189.971924,
-      "action": "做空",
-      "side": -1,
-      "reason": "fade_to_prior_close",
-      "asof": "2026-09-14",
-      "last_bar_date": "2026-09-14",
-      "prior_close": 97.19000244140625,
-      "entry": "盤中觸價",
-      "entry_px": 99.11097674121353,
-      "tp": 97.19000244140625,
-      "sl": 103.94097693739796,
-      "pred": {
-        "high": {
-          "q10": 96.70405090758597,
-          "q50": 99.11097674121353,
-          "q90": 101.84056637904968,
-          "q10_ret": -0.00500001565606767,
-          "q50_ret": 0.01976514303480347,
-          "q90_ret": 0.04785022966170987
-        },
-        "low": {
-          "q10": 92.55882894740895,
-          "q50": 95.41501298659631,
-          "q90": 97.75336300158115,
-          "q10_ret": -0.04765071897996233,
-          "q50_ret": -0.018263086842497486,
-          "q90_ret": 0.005796486737558688
-        },
-        "close": {
-          "q10": 94.16671064193885,
-          "q50": 97.04848311458002,
-          "q90": 100.47824115303291,
-          "q10_ret": -0.03110702462725094,
-          "q50_ret": -0.001456109921506983,
-          "q90_ret": 0.03383309629618606
-        }
-      },
-      "baseline": {
-        "high_q50": 102.02000263759068,
-        "low_q50": 92.36000224522182,
-        "close_q50": 97.19000244140625
-      },
-      "atr": 4.8300001961844305,
-      "high_confidence": false,
-      "beats_baseline": true,
-      "beats_range": true,
-      "strategy": "fade_to_prior_close",
-      "recent_error": {
-        "n": 19,
-        "mae_close_ret": 0.03053844836375007,
-        "mae_close_px": 2.9562493629842668,
-        "scope": "recent"
-      },
-      "size_scale": 0.25,
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
     },
@@ -638,511 +319,6 @@
         "mae_close_px": 3.493540862814021,
         "scope": "recent"
       },
-      "size_scale": 1.0,
-      "data_source": "Yahoo Finance",
-      "universe_source": "S&P 500 · Wikipedia 2026-09-12"
-    },
-    {
-      "ticker": "ORCL",
-      "name": "Information Technology",
-      "sector": "Information Technology",
-      "model_family": "sector",
-      "dvol_rank": 14,
-      "dollar_volume": 6088361301.68457,
-      "action": "做空",
-      "side": -1,
-      "reason": "fade_to_prior_close",
-      "asof": "2026-09-14",
-      "last_bar_date": "2026-09-14",
-      "prior_close": 144.7899932861328,
-      "entry": "盤中觸價",
-      "entry_px": 148.11069845893994,
-      "tp": 144.7899932861328,
-      "sl": 155.89141331140925,
-      "pred": {
-        "high": {
-          "q10": 144.1663108257844,
-          "q50": 148.11069845893994,
-          "q90": 151.96242713125298,
-          "q10_ret": -0.004307496990595882,
-          "q50_ret": 0.022934631720334202,
-          "q90_ret": 0.04953680625529191
-        },
-        "low": {
-          "q10": 137.34996608425544,
-          "q50": 141.97749038709185,
-          "q90": 145.36308589836506,
-          "q10_ret": -0.05138495439511787,
-          "q50_ret": -0.01942470494824128,
-          "q90_ret": 0.003958095440336959
-        },
-        "close": {
-          "q10": 139.28805841000172,
-          "q50": 144.57916314037394,
-          "q90": 149.78548455830966,
-          "q10_ret": -0.03799941384939627,
-          "q50_ret": -0.001456109921506983,
-          "q90_ret": 0.034501633426453585
-        }
-      },
-      "baseline": {
-        "high_q50": 152.57070813860213,
-        "low_q50": 137.0092784336635,
-        "close_q50": 144.7899932861328
-      },
-      "atr": 7.780714852469308,
-      "high_confidence": false,
-      "beats_baseline": true,
-      "beats_range": true,
-      "strategy": "fade_to_prior_close",
-      "recent_error": {
-        "n": 19,
-        "mae_close_ret": 0.02575416938691694,
-        "mae_close_px": 3.847087686493234,
-        "scope": "recent"
-      },
-      "size_scale": 0.25,
-      "data_source": "Yahoo Finance",
-      "universe_source": "S&P 500 · Wikipedia 2026-09-12"
-    },
-    {
-      "ticker": "CRWD",
-      "name": "Information Technology",
-      "sector": "Information Technology",
-      "model_family": "sector",
-      "dvol_rank": 15,
-      "dollar_volume": 5956691169.567871,
-      "action": "做空",
-      "side": -1,
-      "reason": "fade_to_prior_close",
-      "asof": "2026-09-14",
-      "last_bar_date": "2026-09-14",
-      "prior_close": 235.3800048828125,
-      "entry": "盤中觸價",
-      "entry_px": 241.79938213422278,
-      "tp": 235.3800048828125,
-      "sl": 257.00074038443205,
-      "pred": {
-        "high": {
-          "q10": 233.47099938306874,
-          "q50": 241.79938213422278,
-          "q90": 252.646726548946,
-          "q10_ret": -0.008110312941382558,
-          "q50_ret": 0.027272398327148843,
-          "q90_ret": 0.0733567903303001
-        },
-        "low": {
-          "q10": 216.3566524908543,
-          "q50": 230.01905686792827,
-          "q90": 238.7696712162239,
-          "q10_ret": -0.08081974678107974,
-          "q50_ret": -0.022775715454476583,
-          "q90_ret": 0.014400825316912585
-        },
-        "close": {
-          "q10": 223.78811615544763,
-          "q50": 235.13250850536556,
-          "q90": 249.60202265375534,
-          "q10_ret": -0.04924755071330752,
-          "q50_ret": -0.001051475793664598,
-          "q90_ret": 0.06042152041769009
-        }
-      },
-      "baseline": {
-        "high_q50": 250.58136313302177,
-        "low_q50": 220.17864663260323,
-        "close_q50": 235.3800048828125
-      },
-      "atr": 15.201358250209264,
-      "high_confidence": false,
-      "beats_baseline": true,
-      "beats_range": true,
-      "strategy": "fade_to_prior_close",
-      "recent_error": {
-        "n": 19,
-        "mae_close_ret": 0.044187054657895006,
-        "mae_close_px": 9.08836815961352,
-        "scope": "recent"
-      },
-      "size_scale": 0.25,
-      "data_source": "Yahoo Finance",
-      "universe_source": "S&P 500 · Wikipedia 2026-09-12"
-    },
-    {
-      "ticker": "PLTR",
-      "name": "Information Technology",
-      "sector": "Information Technology",
-      "model_family": "sector",
-      "dvol_rank": 16,
-      "dollar_volume": 5045036697.930908,
-      "action": "做空",
-      "side": -1,
-      "reason": "fade_to_prior_close",
-      "asof": "2026-09-14",
-      "last_bar_date": "2026-09-14",
-      "prior_close": 173.30999755859375,
-      "entry": "盤中觸價",
-      "entry_px": 176.2898746990067,
-      "tp": 173.30999755859375,
-      "sl": 183.8755898566518,
-      "pred": {
-        "high": {
-          "q10": 172.59775826599525,
-          "q50": 176.2898746990067,
-          "q90": 180.01153093966946,
-          "q10_ret": -0.004109626118699235,
-          "q50_ret": 0.017193913694479538,
-          "q90_ret": 0.038667898421786084
-        },
-        "low": {
-          "q10": 166.0793142393979,
-          "q50": 170.21566410774255,
-          "q90": 173.83795930891839,
-          "q10_ret": -0.04172109757690842,
-          "q50_ret": -0.0178543274735494,
-          "q90_ret": 0.003046343302533035
-        },
-        "close": {
-          "q10": 168.208670408855,
-          "q50": 173.1277662913608,
-          "q90": 177.96998027809522,
-          "q10_ret": -0.029434696333741902,
-          "q50_ret": -0.001051475793664598,
-          "q90_ret": 0.02688813562487063
-        }
-      },
-      "baseline": {
-        "high_q50": 180.89571271623882,
-        "low_q50": 165.72428240094865,
-        "close_q50": 173.30999755859375
-      },
-      "atr": 7.585715157645089,
-      "high_confidence": false,
-      "beats_baseline": true,
-      "beats_range": true,
-      "strategy": "fade_to_prior_close",
-      "recent_error": {
-        "n": 19,
-        "mae_close_ret": 0.02533307060438495,
-        "mae_close_px": 4.442123578399823,
-        "scope": "recent"
-      },
-      "size_scale": 0.25,
-      "data_source": "Yahoo Finance",
-      "universe_source": "S&P 500 · Wikipedia 2026-09-12"
-    },
-    {
-      "ticker": "DELL",
-      "name": "Information Technology",
-      "sector": "Information Technology",
-      "model_family": "sector",
-      "dvol_rank": 17,
-      "dollar_volume": 4886097723.925781,
-      "action": "做空",
-      "side": -1,
-      "reason": "fade_to_prior_close",
-      "asof": "2026-09-14",
-      "last_bar_date": "2026-09-14",
-      "prior_close": 534.280029296875,
-      "entry": "盤中觸價",
-      "entry_px": 548.4158505856473,
-      "tp": 534.280029296875,
-      "sl": 582.3301310683481,
-      "pred": {
-        "high": {
-          "q10": 531.0364848778238,
-          "q50": 548.4158505856473,
-          "q90": 570.9339097028067,
-          "q10_ret": -0.0060708696585941085,
-          "q50_ret": 0.026457701043730422,
-          "q90_ret": 0.06860424944980442
-        },
-        "low": {
-          "q10": 499.70917046108366,
-          "q50": 522.3660727655457,
-          "q90": 541.3804572576013,
-          "q10_ret": -0.06470550449225551,
-          "q50_ret": -0.022299086392969392,
-          "q90_ret": 0.013289712456725243
-        },
-        "close": {
-          "q10": 511.90180544675894,
-          "q50": 533.5020588453527,
-          "q90": 560.2394396378595,
-          "q10_ret": -0.04188482185936525,
-          "q50_ret": -0.001456109921506983,
-          "q90_ret": 0.04858764864400358
-        }
-      },
-      "baseline": {
-        "high_q50": 568.1943097795759,
-        "low_q50": 500.3657488141741,
-        "close_q50": 534.280029296875
-      },
-      "atr": 33.914280482700896,
-      "high_confidence": false,
-      "beats_baseline": true,
-      "beats_range": true,
-      "strategy": "fade_to_prior_close",
-      "recent_error": {
-        "n": 19,
-        "mae_close_ret": 0.04203243743473018,
-        "mae_close_px": 20.036544526472245,
-        "scope": "recent"
-      },
-      "size_scale": 0.25,
-      "data_source": "Yahoo Finance",
-      "universe_source": "S&P 500 · Wikipedia 2026-09-12"
-    },
-    {
-      "ticker": "MRVL",
-      "name": "Information Technology",
-      "sector": "Information Technology",
-      "model_family": "sector",
-      "dvol_rank": 18,
-      "dollar_volume": 4843755918.127441,
-      "action": "做空",
-      "side": -1,
-      "reason": "fade_to_prior_close",
-      "asof": "2026-09-14",
-      "last_bar_date": "2026-09-14",
-      "prior_close": 218.82000732421875,
-      "entry": "盤中觸價",
-      "entry_px": 223.5680091161173,
-      "tp": 218.82000732421875,
-      "sl": 237.2287234018316,
-      "pred": {
-        "high": {
-          "q10": 217.58377943178706,
-          "q50": 223.5680091161173,
-          "q90": 230.8408425755735,
-          "q10_ret": -0.00564951947286979,
-          "q50_ret": 0.021698206895969806,
-          "q90_ret": 0.05493480874234624
-        },
-        "low": {
-          "q10": 206.8994473306151,
-          "q50": 214.6682653671255,
-          "q90": 220.8069173226887,
-          "q10_ret": -0.05447655422084577,
-          "q50_ret": -0.018973319706281307,
-          "q90_ret": 0.009080111196258279
-        },
-        "close": {
-          "q10": 211.2041788575346,
-          "q50": 218.50138134052972,
-          "q90": 226.72497608642652,
-          "q10_ret": -0.03480407737762303,
-          "q50_ret": -0.001456109921506983,
-          "q90_ret": 0.03612543870586406
-        }
-      },
-      "baseline": {
-        "high_q50": 232.48072160993303,
-        "low_q50": 205.15929303850447,
-        "close_q50": 218.82000732421875
-      },
-      "atr": 13.660714285714286,
-      "high_confidence": false,
-      "beats_baseline": true,
-      "beats_range": true,
-      "strategy": "fade_to_prior_close",
-      "recent_error": {
-        "n": 19,
-        "mae_close_ret": 0.043911454426771725,
-        "mae_close_px": 10.112279821618165,
-        "scope": "recent"
-      },
-      "size_scale": 0.25,
-      "data_source": "Yahoo Finance",
-      "universe_source": "S&P 500 · Wikipedia 2026-09-12"
-    },
-    {
-      "ticker": "PANW",
-      "name": "Information Technology",
-      "sector": "Information Technology",
-      "model_family": "sector",
-      "dvol_rank": 19,
-      "dollar_volume": 4492365613.330078,
-      "action": "做空",
-      "side": -1,
-      "reason": "fade_to_prior_close",
-      "asof": "2026-09-14",
-      "last_bar_date": "2026-09-14",
-      "prior_close": 373.94000244140625,
-      "entry": "盤中觸價",
-      "entry_px": 383.5653817062535,
-      "tp": 373.94000244140625,
-      "sl": 405.5710950328439,
-      "pred": {
-        "high": {
-          "q10": 370.7890408208041,
-          "q50": 383.5653817062535,
-          "q90": 401.26431535609044,
-          "q10_ret": -0.008426382842247266,
-          "q50_ret": 0.025740437508702918,
-          "q90_ret": 0.07307138240436223
-        },
-        "low": {
-          "q10": 348.572625201846,
-          "q50": 365.7493088344448,
-          "q90": 378.03920194889406,
-          "q10_ret": -0.06783809454441853,
-          "q50_ret": -0.021903764115862166,
-          "q90_ret": 0.010962185058364021
-        },
-        "close": {
-          "q10": 357.37888263592083,
-          "q50": 373.5468135805562,
-          "q90": 393.75082063509154,
-          "q10_ret": -0.04428817376413327,
-          "q50_ret": -0.001051475793664598,
-          "q90_ret": 0.052978601017123136
-        }
-      },
-      "baseline": {
-        "high_q50": 395.94571576799666,
-        "low_q50": 351.93428911481584,
-        "close_q50": 373.94000244140625
-      },
-      "atr": 22.005713326590403,
-      "high_confidence": false,
-      "beats_baseline": true,
-      "beats_range": true,
-      "strategy": "fade_to_prior_close",
-      "recent_error": {
-        "n": 19,
-        "mae_close_ret": 0.03499613704694262,
-        "mae_close_px": 12.306430860137574,
-        "scope": "recent"
-      },
-      "size_scale": 0.25,
-      "data_source": "Yahoo Finance",
-      "universe_source": "S&P 500 · Wikipedia 2026-09-12"
-    },
-    {
-      "ticker": "LITE",
-      "name": "Information Technology",
-      "sector": "Information Technology",
-      "model_family": "sector",
-      "dvol_rank": 20,
-      "dollar_volume": 4096239808.7158203,
-      "action": "做空",
-      "side": -1,
-      "reason": "fade_to_prior_close",
-      "asof": "2026-09-14",
-      "last_bar_date": "2026-09-14",
-      "prior_close": 835.030029296875,
-      "entry": "盤中觸價",
-      "entry_px": 857.6672282308805,
-      "tp": 835.030029296875,
-      "sl": 918.7675220715613,
-      "pred": {
-        "high": {
-          "q10": 829.9606708280016,
-          "q50": 857.6672282308805,
-          "q90": 887.1530132133752,
-          "q10_ret": -0.0060708696585941085,
-          "q50_ret": 0.027109442941910453,
-          "q90_ret": 0.06242049038690204
-        },
-        "low": {
-          "q10": 782.3997427374032,
-          "q50": 815.9233002500146,
-          "q90": 840.5521318890574,
-          "q10_ret": -0.06302801661371177,
-          "q50_ret": -0.022881487343573727,
-          "q90_ret": 0.006613058690634258
-        },
-        "close": {
-          "q10": 802.972187540441,
-          "q50": 833.8141337864595,
-          "q90": 871.3859750824508,
-          "q10_ret": -0.03839124418486814,
-          "q50_ret": -0.001456109921506983,
-          "q90_ret": 0.043538489048338465
-        }
-      },
-      "baseline": {
-        "high_q50": 896.1303231375559,
-        "low_q50": 773.9297354561942,
-        "close_q50": 835.030029296875
-      },
-      "atr": 61.100293840680806,
-      "high_confidence": false,
-      "beats_baseline": true,
-      "beats_range": true,
-      "strategy": "fade_to_prior_close",
-      "recent_error": {
-        "n": 19,
-        "mae_close_ret": 0.04782084848484604,
-        "mae_close_px": 43.14714443985501,
-        "scope": "recent"
-      },
-      "size_scale": 0.25,
-      "data_source": "Yahoo Finance",
-      "universe_source": "S&P 500 · Wikipedia 2026-09-12"
-    },
-    {
-      "ticker": "LRCX",
-      "name": "Information Technology",
-      "sector": "Information Technology",
-      "model_family": "sector",
-      "dvol_rank": 22,
-      "dollar_volume": 3737623602.5390625,
-      "action": "做空",
-      "side": -1,
-      "reason": "fade_to_prior_close",
-      "asof": "2026-09-14",
-      "last_bar_date": "2026-09-14",
-      "prior_close": 273.489990234375,
-      "entry": "盤中觸價",
-      "entry_px": 279.4136757220289,
-      "tp": 273.489990234375,
-      "sl": 292.49581596337936,
-      "pred": {
-        "high": {
-          "q10": 272.1393923353181,
-          "q50": 279.4136757220289,
-          "q90": 286.75536172831573,
-          "q10_ret": -0.004938381466537107,
-          "q50_ret": 0.021659606198301557,
-          "q90_ret": 0.048504047561567565
-        },
-        "low": {
-          "q10": 258.90918912401105,
-          "q50": 268.55235463003106,
-          "q90": 274.7065299834373,
-          "q10_ret": -0.053313838279304186,
-          "q50_ret": -0.018054173025171743,
-          "q90_ret": 0.004448205757072617
-        },
-        "close": {
-          "q10": 262.5537677824109,
-          "q50": 273.0917587461619,
-          "q90": 283.2560314761063,
-          "q10_ret": -0.03998765162334465,
-          "q50_ret": -0.001456109921506983,
-          "q90_ret": 0.035708953126079614
-        }
-      },
-      "baseline": {
-        "high_q50": 286.57213047572543,
-        "low_q50": 260.40784999302457,
-        "close_q50": 273.489990234375
-      },
-      "atr": 13.082140241350446,
-      "high_confidence": false,
-      "beats_baseline": true,
-      "beats_range": true,
-      "strategy": "fade_to_prior_close",
-      "recent_error": {
-        "n": 19,
-        "mae_close_ret": 0.028308875215197298,
-        "mae_close_px": 8.830325116153224,
-        "scope": "recent"
-      },
-      "size_scale": 0.25,
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
     },
@@ -1205,448 +381,6 @@
         "mae_close_px": 10.455295882471242,
         "scope": "recent"
       },
-      "size_scale": 0.5623515006371675,
-      "data_source": "Yahoo Finance",
-      "universe_source": "S&P 500 · Wikipedia 2026-09-12"
-    },
-    {
-      "ticker": "CRM",
-      "name": "Information Technology",
-      "sector": "Information Technology",
-      "model_family": "sector",
-      "dvol_rank": 25,
-      "dollar_volume": 3363172596.0510254,
-      "action": "做空",
-      "side": -1,
-      "reason": "fade_to_prior_close",
-      "asof": "2026-09-14",
-      "last_bar_date": "2026-09-14",
-      "prior_close": 259.42999267578125,
-      "entry": "盤中觸價",
-      "entry_px": 264.0026006453843,
-      "tp": 259.42999267578125,
-      "sl": 276.4111710712353,
-      "pred": {
-        "high": {
-          "q10": 258.1328386507488,
-          "q50": 264.0026006453843,
-          "q90": 270.76079426731525,
-          "q10_ret": -0.00500001565606767,
-          "q50_ret": 0.017625594953153974,
-          "q90_ret": 0.04367575805197872
-        },
-        "low": {
-          "q10": 247.59950574640243,
-          "q50": 254.9058775695192,
-          "q90": 260.9124833320016,
-          "q10_ret": -0.045601847370684755,
-          "q50_ret": -0.017438674147117625,
-          "q90_ret": 0.005714415056369786
-        },
-        "close": {
-          "q10": 250.91843442561495,
-          "q50": 259.1572083183321,
-          "q90": 267.86680573600495,
-          "q10_ret": -0.032808690168694137,
-          "q50_ret": -0.001051475793664598,
-          "q90_ret": 0.03252057702814458
-        }
-      },
-      "baseline": {
-        "high_q50": 271.83856310163225,
-        "low_q50": 247.02142224993023,
-        "close_q50": 259.42999267578125
-      },
-      "atr": 12.408570425851005,
-      "high_confidence": false,
-      "beats_baseline": true,
-      "beats_range": true,
-      "strategy": "fade_to_prior_close",
-      "recent_error": {
-        "n": 19,
-        "mae_close_ret": 0.028323538227141416,
-        "mae_close_px": 6.279341749441331,
-        "scope": "recent"
-      },
-      "size_scale": 0.25,
-      "data_source": "Yahoo Finance",
-      "universe_source": "S&P 500 · Wikipedia 2026-09-12"
-    },
-    {
-      "ticker": "STX",
-      "name": "Information Technology",
-      "sector": "Information Technology",
-      "model_family": "sector",
-      "dvol_rank": 26,
-      "dollar_volume": 3340776909.375,
-      "action": "做空",
-      "side": -1,
-      "reason": "fade_to_prior_close",
-      "asof": "2026-09-14",
-      "last_bar_date": "2026-09-14",
-      "prior_close": 805.5499877929688,
-      "entry": "盤中觸價",
-      "entry_px": 823.2445422333964,
-      "tp": 805.5499877929688,
-      "sl": 867.2652549496352,
-      "pred": {
-        "high": {
-          "q10": 801.3628303638179,
-          "q50": 823.2445422333964,
-          "q90": 847.6305507741912,
-          "q10_ret": -0.005197886527964317,
-          "q50_ret": 0.021965805609291716,
-          "q90_ret": 0.052238301308295064
-        },
-        "low": {
-          "q10": 761.4405377822411,
-          "q50": 789.9808174183249,
-          "q90": 813.080950045931,
-          "q10_ret": -0.0547569370978179,
-          "q50_ret": -0.0193273795674679,
-          "q90_ret": 0.009348845344278845
-        },
-        "close": {
-          "q10": 776.7473143059213,
-          "q50": 804.3770184634735,
-          "q90": 834.0830520656159,
-          "q10_ret": -0.03575529007946546,
-          "q50_ret": -0.001456109921506983,
-          "q90_ret": 0.03542060046555464
-        }
-      },
-      "baseline": {
-        "high_q50": 849.5707005092075,
-        "low_q50": 761.52927507673,
-        "close_q50": 805.5499877929688
-      },
-      "atr": 44.02071271623884,
-      "high_confidence": false,
-      "beats_baseline": true,
-      "beats_range": true,
-      "strategy": "fade_to_prior_close",
-      "recent_error": {
-        "n": 19,
-        "mae_close_ret": 0.03284521813032691,
-        "mae_close_px": 28.530501378430543,
-        "scope": "recent"
-      },
-      "size_scale": 0.25,
-      "data_source": "Yahoo Finance",
-      "universe_source": "S&P 500 · Wikipedia 2026-09-12"
-    },
-    {
-      "ticker": "WDC",
-      "name": "Information Technology",
-      "sector": "Information Technology",
-      "model_family": "sector",
-      "dvol_rank": 27,
-      "dollar_volume": 3114996951.812744,
-      "action": "做空",
-      "side": -1,
-      "reason": "fade_to_prior_close",
-      "asof": "2026-09-14",
-      "last_bar_date": "2026-09-14",
-      "prior_close": 426.94000244140625,
-      "entry": "盤中觸價",
-      "entry_px": 436.9615280914958,
-      "tp": 426.94000244140625,
-      "sl": 461.48510074077035,
-      "pred": {
-        "high": {
-          "q10": 425.09375509060715,
-          "q50": 436.9615280914958,
-          "q90": 449.52103178316446,
-          "q10_ret": -0.00432437190294073,
-          "q50_ret": 0.023472913273018602,
-          "q90_ret": 0.05289040430184846
-        },
-        "low": {
-          "q10": 405.72926757274445,
-          "q50": 418.7981116145626,
-          "q90": 429.39258814004444,
-          "q10_ret": -0.049680832780649976,
-          "q50_ret": -0.019070339580000026,
-          "q90_ret": 0.005744567584703658
-        },
-        "close": {
-          "q10": 412.20284939573503,
-          "q50": 426.3183308679631,
-          "q90": 443.32254763841917,
-          "q10_ret": -0.03451808910244658,
-          "q50_ret": -0.001456109921506983,
-          "q90_ret": 0.03837200801829592
-        }
-      },
-      "baseline": {
-        "high_q50": 451.4635750906808,
-        "low_q50": 402.41642979213174,
-        "close_q50": 426.94000244140625
-      },
-      "atr": 24.523572649274552,
-      "high_confidence": false,
-      "beats_baseline": true,
-      "beats_range": true,
-      "strategy": "fade_to_prior_close",
-      "recent_error": {
-        "n": 19,
-        "mae_close_ret": 0.03047973869230078,
-        "mae_close_px": 14.370971448307989,
-        "scope": "recent"
-      },
-      "size_scale": 0.25,
-      "data_source": "Yahoo Finance",
-      "universe_source": "S&P 500 · Wikipedia 2026-09-12"
-    },
-    {
-      "ticker": "COHR",
-      "name": "Information Technology",
-      "sector": "Information Technology",
-      "model_family": "sector",
-      "dvol_rank": 29,
-      "dollar_volume": 2643520100.0,
-      "action": "做空",
-      "side": -1,
-      "reason": "fade_to_prior_close",
-      "asof": "2026-09-14",
-      "last_bar_date": "2026-09-14",
-      "prior_close": 266.5,
-      "entry": "盤中觸價",
-      "entry_px": 273.50697539494365,
-      "tp": 266.5,
-      "sl": 291.31625797027846,
-      "pred": {
-        "high": {
-          "q10": 265.13776378633474,
-          "q50": 273.50697539494365,
-          "q90": 282.0290412021365,
-          "q10_ret": -0.005111580539081508,
-          "q50_ret": 0.026292590600163843,
-          "q90_ret": 0.0582703234601744
-        },
-        "low": {
-          "q10": 246.918197726142,
-          "q50": 260.6773788425083,
-          "q90": 268.27053064597663,
-          "q10_ret": -0.07347768207826634,
-          "q50_ret": -0.021848484643496036,
-          "q90_ret": 0.0066436421987865835
-        },
-        "close": {
-          "q10": 254.1861680848229,
-          "q50": 266.1119467059184,
-          "q90": 277.1754361473091,
-          "q10_ret": -0.04620574827458583,
-          "q50_ret": -0.001456109921506983,
-          "q90_ret": 0.040057921753504984
-        }
-      },
-      "baseline": {
-        "high_q50": 284.30928257533486,
-        "low_q50": 248.6907174246652,
-        "close_q50": 266.5
-      },
-      "atr": 17.809282575334823,
-      "high_confidence": false,
-      "beats_baseline": true,
-      "beats_range": true,
-      "strategy": "fade_to_prior_close",
-      "recent_error": {
-        "n": 19,
-        "mae_close_ret": 0.041088073218456075,
-        "mae_close_px": 12.330941128160676,
-        "scope": "recent"
-      },
-      "size_scale": 0.25,
-      "data_source": "Yahoo Finance",
-      "universe_source": "S&P 500 · Wikipedia 2026-09-12"
-    },
-    {
-      "ticker": "GLW",
-      "name": "Information Technology",
-      "sector": "Information Technology",
-      "model_family": "sector",
-      "dvol_rank": 32,
-      "dollar_volume": 2542940708.0841064,
-      "action": "做空",
-      "side": -1,
-      "reason": "fade_to_prior_close",
-      "asof": "2026-09-14",
-      "last_bar_date": "2026-09-14",
-      "prior_close": 143.60000610351562,
-      "entry": "盤中觸價",
-      "entry_px": 146.9612307601453,
-      "tp": 143.60000610351562,
-      "sl": 154.68265867762577,
-      "pred": {
-        "high": {
-          "q10": 142.86463967125917,
-          "q50": 146.9612307601453,
-          "q90": 151.055394392315,
-          "q10_ret": -0.0051209359401166105,
-          "q50_ret": 0.023406855945442628,
-          "q90_ret": 0.05191774353703777
-        },
-        "low": {
-          "q10": 134.92453817992015,
-          "q50": 140.8394949416161,
-          "q90": 144.28898592758804,
-          "q10_ret": -0.06041411946279213,
-          "q50_ret": -0.01922361451648948,
-          "q90_ret": 0.004797909434459027
-        },
-        "close": {
-          "q10": 137.72017176362178,
-          "q50": 143.39090870989983,
-          "q90": 149.86595514549728,
-          "q10_ret": -0.040945919846655854,
-          "q50_ret": -0.001456109921506983,
-          "q90_ret": 0.043634740777551015
-        }
-      },
-      "baseline": {
-        "high_q50": 151.3214340209961,
-        "low_q50": 135.87857818603516,
-        "close_q50": 143.60000610351562
-      },
-      "atr": 7.721427917480469,
-      "high_confidence": false,
-      "beats_baseline": true,
-      "beats_range": true,
-      "strategy": "fade_to_prior_close",
-      "recent_error": {
-        "n": 19,
-        "mae_close_ret": 0.03303446586226838,
-        "mae_close_px": 5.247725931235723,
-        "scope": "recent"
-      },
-      "size_scale": 0.25,
-      "data_source": "Yahoo Finance",
-      "universe_source": "S&P 500 · Wikipedia 2026-09-12"
-    },
-    {
-      "ticker": "COIN",
-      "name": "Financials",
-      "sector": "Financials",
-      "model_family": "sector",
-      "dvol_rank": 33,
-      "dollar_volume": 2517854634.864807,
-      "action": "做空",
-      "side": -1,
-      "reason": "fade_to_prior_close",
-      "asof": "2026-09-14",
-      "last_bar_date": "2026-09-14",
-      "prior_close": 191.4499969482422,
-      "entry": "盤中觸價",
-      "entry_px": 196.1283095098723,
-      "tp": 191.4499969482422,
-      "sl": 207.77973882244206,
-      "pred": {
-        "high": {
-          "q10": 191.08496339081157,
-          "q50": 196.1283095098723,
-          "q90": 202.33810595156817,
-          "q10_ret": -0.001906678314177754,
-          "q50_ret": 0.024436211210256076,
-          "q90_ret": 0.056871816019247776
-        },
-        "low": {
-          "q10": 180.67120800016687,
-          "q50": 187.76598709897303,
-          "q90": 191.97974907397412,
-          "q10_ret": -0.05630080501379862,
-          "q50_ret": -0.019242673846921566,
-          "q90_ret": 0.0027670521503070423
-        },
-        "close": {
-          "q10": 182.19806042219724,
-          "q50": 191.1934811183255,
-          "q90": 199.4084812379809,
-          "q10_ret": -0.048325602891214375,
-          "q50_ret": -0.0013398581039728264,
-          "q90_ret": 0.04156951902114821
-        }
-      },
-      "baseline": {
-        "high_q50": 203.10142626081193,
-        "low_q50": 179.79856763567244,
-        "close_q50": 191.4499969482422
-      },
-      "atr": 11.651429312569755,
-      "high_confidence": false,
-      "beats_baseline": true,
-      "beats_range": true,
-      "strategy": "fade_to_prior_close",
-      "recent_error": {
-        "n": 19,
-        "mae_close_ret": 0.049341138878949996,
-        "mae_close_px": 8.612888760482363,
-        "scope": "recent"
-      },
-      "size_scale": 0.25,
-      "data_source": "Yahoo Finance",
-      "universe_source": "S&P 500 · Wikipedia 2026-09-12"
-    },
-    {
-      "ticker": "NOW",
-      "name": "Information Technology",
-      "sector": "Information Technology",
-      "model_family": "sector",
-      "dvol_rank": 35,
-      "dollar_volume": 2480320741.3482666,
-      "action": "做空",
-      "side": -1,
-      "reason": "fade_to_prior_close",
-      "asof": "2026-09-14",
-      "last_bar_date": "2026-09-14",
-      "prior_close": 142.35000610351562,
-      "entry": "盤中觸價",
-      "entry_px": 145.1813871568135,
-      "tp": 142.35000610351562,
-      "sl": 152.31424270839693,
-      "pred": {
-        "high": {
-          "q10": 141.62415536439394,
-          "q50": 145.1813871568135,
-          "q90": 149.1067928149466,
-          "q10_ret": -0.0050990566069512334,
-          "q50_ret": 0.019890277006654442,
-          "q90_ret": 0.04746600928501189
-        },
-        "low": {
-          "q10": 135.63957207405474,
-          "q50": 139.7368618867024,
-          "q90": 142.87740814777237,
-          "q10_ret": -0.047140384557350305,
-          "q50_ret": -0.018357176710712516,
-          "q90_ret": 0.003704966783585812
-        },
-        "close": {
-          "q10": 137.6886060272791,
-          "q50": 142.20032851786976,
-          "q90": 147.0942322318058,
-          "q10_ret": -0.03274604760358629,
-          "q50_ret": -0.001051475793664598,
-          "q90_ret": 0.03332789550314591
-        }
-      },
-      "baseline": {
-        "high_q50": 149.48286165509904,
-        "low_q50": 135.2171505519322,
-        "close_q50": 142.35000610351562
-      },
-      "atr": 7.132855551583426,
-      "high_confidence": false,
-      "beats_baseline": true,
-      "beats_range": true,
-      "strategy": "fade_to_prior_close",
-      "recent_error": {
-        "n": 19,
-        "mae_close_ret": 0.03281670120295683,
-        "mae_close_px": 4.381252871781061,
-        "scope": "recent"
-      },
-      "size_scale": 0.25,
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
     },
@@ -1709,7 +443,6 @@
         "mae_close_px": 2.4200611269288363,
         "scope": "recent"
       },
-      "size_scale": 1.0,
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
     },
@@ -1772,70 +505,6 @@
         "mae_close_px": 4.466873075680533,
         "scope": "recent"
       },
-      "size_scale": 0.3339897203355797,
-      "data_source": "Yahoo Finance",
-      "universe_source": "S&P 500 · Wikipedia 2026-09-12"
-    },
-    {
-      "ticker": "HOOD",
-      "name": "Financials",
-      "sector": "Financials",
-      "model_family": "sector",
-      "dvol_rank": 45,
-      "dollar_volume": 1946136724.168396,
-      "action": "做空",
-      "side": -1,
-      "reason": "fade_to_prior_close",
-      "asof": "2026-09-14",
-      "last_bar_date": "2026-09-14",
-      "prior_close": 114.33000183105469,
-      "entry": "盤中觸價",
-      "entry_px": 116.73601956316718,
-      "tp": 114.33000183105469,
-      "sl": 123.21280549543559,
-      "pred": {
-        "high": {
-          "q10": 114.036070957964,
-          "q50": 116.73601956316718,
-          "q90": 120.5951504637185,
-          "q10_ret": -0.0025708988750392475,
-          "q50_ret": 0.02104450007503598,
-          "q90_ret": 0.054798815116978684
-        },
-        "low": {
-          "q10": 107.98344359390109,
-          "q50": 112.39695440468347,
-          "q90": 114.64635890846593,
-          "q10_ret": -0.05551087322234026,
-          "q50_ret": -0.016907613009817638,
-          "q90_ret": 0.0027670521503070423
-        },
-        "close": {
-          "q10": 109.77034308637306,
-          "q50": 114.17681585157412,
-          "q90": 118.70870698303654,
-          "q10_ret": -0.03988155927277452,
-          "q50_ret": -0.0013398581039728264,
-          "q90_ret": 0.038298828670117996
-        }
-      },
-      "baseline": {
-        "high_q50": 120.8067877633231,
-        "low_q50": 107.85321589878627,
-        "close_q50": 114.33000183105469
-      },
-      "atr": 6.476785932268415,
-      "high_confidence": false,
-      "beats_baseline": true,
-      "beats_range": true,
-      "strategy": "fade_to_prior_close",
-      "recent_error": {
-        "n": 19,
-        "mae_close_ret": 0.04082707145768411,
-        "mae_close_px": 4.287220989639287,
-        "scope": "recent"
-      },
-      "size_scale": 0.25,
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
     },
@@ -1898,7 +567,6 @@
         "mae_close_px": 4.205063886246834,
         "scope": "recent"
       },
-      "size_scale": 1.0,
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
     },
@@ -1961,70 +629,6 @@
         "mae_close_px": 4.021240661808986,
         "scope": "recent"
       },
-      "size_scale": 1.0,
-      "data_source": "Yahoo Finance",
-      "universe_source": "S&P 500 · Wikipedia 2026-09-12"
-    },
-    {
-      "ticker": "HPE",
-      "name": "Information Technology",
-      "sector": "Information Technology",
-      "model_family": "sector",
-      "dvol_rank": 51,
-      "dollar_volume": 1726265299.2462158,
-      "action": "做空",
-      "side": -1,
-      "reason": "fade_to_prior_close",
-      "asof": "2026-09-14",
-      "last_bar_date": "2026-09-14",
-      "prior_close": 55.40999984741211,
-      "entry": "盤中觸價",
-      "entry_px": 56.88536576493486,
-      "tp": 55.40999984741211,
-      "sl": 60.65679400938938,
-      "pred": {
-        "high": {
-          "q10": 55.08269014215223,
-          "q50": 56.88536576493486,
-          "q90": 59.64046556350446,
-          "q10_ret": -0.005907051185006795,
-          "q50_ret": 0.026626347619303617,
-          "q90_ret": 0.0763484159491463
-        },
-        "low": {
-          "q10": 51.76766875914719,
-          "q50": 54.16250431799486,
-          "q90": 56.141090812008485,
-          "q10_ret": -0.0657341833296365,
-          "q50_ret": -0.022513906025132556,
-          "q90_ret": 0.013194206219268161
-        },
-        "close": {
-          "q10": 53.229559777992016,
-          "q50": 55.32931679688359,
-          "q90": 58.31090517473935,
-          "q10_ret": -0.03935102103274839,
-          "q50_ret": -0.001456109921506983,
-          "q90_ret": 0.05235346210640206
-        }
-      },
-      "baseline": {
-        "high_q50": 59.18142809186663,
-        "low_q50": 51.63857160295759,
-        "close_q50": 55.40999984741211
-      },
-      "atr": 3.77142824445452,
-      "high_confidence": false,
-      "beats_baseline": true,
-      "beats_range": true,
-      "strategy": "fade_to_prior_close",
-      "recent_error": {
-        "n": 19,
-        "mae_close_ret": 0.04130216076607868,
-        "mae_close_px": 2.296821032776666,
-        "scope": "recent"
-      },
-      "size_scale": 0.25,
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
     },
@@ -2087,70 +691,6 @@
         "mae_close_px": 5.40352720153019,
         "scope": "recent"
       },
-      "size_scale": 1.0,
-      "data_source": "Yahoo Finance",
-      "universe_source": "S&P 500 · Wikipedia 2026-09-12"
-    },
-    {
-      "ticker": "TER",
-      "name": "Information Technology",
-      "sector": "Information Technology",
-      "model_family": "sector",
-      "dvol_rank": 56,
-      "dollar_volume": 1608635859.6496582,
-      "action": "做空",
-      "side": -1,
-      "reason": "fade_to_prior_close",
-      "asof": "2026-09-14",
-      "last_bar_date": "2026-09-14",
-      "prior_close": 329.20001220703125,
-      "entry": "盤中觸價",
-      "entry_px": 337.18030885534074,
-      "tp": 329.20001220703125,
-      "sl": 356.35816312082625,
-      "pred": {
-        "high": {
-          "q10": 327.4699974169259,
-          "q50": 337.18030885534074,
-          "q90": 347.14817385356685,
-          "q10_ret": -0.0052552087665701745,
-          "q50_ret": 0.02424148345198349,
-          "q90_ret": 0.054520537609361146
-        },
-        "low": {
-          "q10": 308.2684620873726,
-          "q50": 322.7600007596447,
-          "q90": 330.8408988462597,
-          "q10_ret": -0.06358307820017624,
-          "q50_ret": -0.019562609989626858,
-          "q90_ret": 0.004984467127530196
-        },
-        "close": {
-          "q10": 315.3491211296726,
-          "q50": 328.72066080309634,
-          "q90": 344.4217728477676,
-          "q10_ret": -0.042074394179086295,
-          "q50_ret": -0.001456109921506983,
-          "q90_ret": 0.04623863935692541
-        }
-      },
-      "baseline": {
-        "high_q50": 348.3778664725167,
-        "low_q50": 310.02215794154574,
-        "close_q50": 329.20001220703125
-      },
-      "atr": 19.17785426548549,
-      "high_confidence": false,
-      "beats_baseline": true,
-      "beats_range": true,
-      "strategy": "fade_to_prior_close",
-      "recent_error": {
-        "n": 19,
-        "mae_close_ret": 0.03709900966458973,
-        "mae_close_px": 14.067009041211625,
-        "scope": "recent"
-      },
-      "size_scale": 0.25,
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
     },
@@ -2213,70 +753,6 @@
         "mae_close_px": 6.015393402645304,
         "scope": "recent"
       },
-      "size_scale": 0.5412674316612698,
-      "data_source": "Yahoo Finance",
-      "universe_source": "S&P 500 · Wikipedia 2026-09-12"
-    },
-    {
-      "ticker": "SMCI",
-      "name": "Information Technology",
-      "sector": "Information Technology",
-      "model_family": "sector",
-      "dvol_rank": 61,
-      "dollar_volume": 1463486530.859375,
-      "action": "做空",
-      "side": -1,
-      "reason": "fade_to_prior_close",
-      "asof": "2026-09-14",
-      "last_bar_date": "2026-09-14",
-      "prior_close": 36.7400016784668,
-      "entry": "盤中觸價",
-      "entry_px": 37.60570734913167,
-      "tp": 36.7400016784668,
-      "sl": 39.86785007548491,
-      "pred": {
-        "high": {
-          "q10": 36.532438323551034,
-          "q50": 37.60570734913167,
-          "q90": 38.69228422818275,
-          "q10_ret": -0.00564951947286979,
-          "q50_ret": 0.023563027520825248,
-          "q90_ret": 0.05313779152220845
-        },
-        "low": {
-          "q10": 34.70456819110056,
-          "q50": 36.061302438750964,
-          "q90": 36.965429319041135,
-          "q10_ret": -0.05540101781103613,
-          "q50_ret": -0.01847303235463967,
-          "q90_ret": 0.006135754770704416
-        },
-        "close": {
-          "q10": 35.46061832866856,
-          "q50": 36.68650419750659,
-          "q90": 38.08349325606495,
-          "q10_ret": -0.03482262632960299,
-          "q50_ret": -0.001456109921506983,
-          "q90_ret": 0.03656754262985155
-        }
-      },
-      "baseline": {
-        "high_q50": 39.00214440482004,
-        "low_q50": 34.47785895211356,
-        "close_q50": 36.7400016784668
-      },
-      "atr": 2.2621427263532365,
-      "high_confidence": false,
-      "beats_baseline": true,
-      "beats_range": true,
-      "strategy": "fade_to_prior_close",
-      "recent_error": {
-        "n": 19,
-        "mae_close_ret": 0.034270708973573066,
-        "mae_close_px": 1.296273826086225,
-        "scope": "recent"
-      },
-      "size_scale": 0.25,
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
     },
@@ -2339,7 +815,6 @@
         "mae_close_px": 3.845360164257079,
         "scope": "recent"
       },
-      "size_scale": 0.860619141396572,
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
     },
@@ -2402,7 +877,6 @@
         "mae_close_px": 1.1868596762745787,
         "scope": "recent"
       },
-      "size_scale": 1.0,
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
     },
@@ -2465,7 +939,6 @@
         "mae_close_px": 3.5434829690966994,
         "scope": "recent"
       },
-      "size_scale": 1.0,
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
     },
@@ -2528,7 +1001,6 @@
         "mae_close_px": 7.6058884227044885,
         "scope": "recent"
       },
-      "size_scale": 0.5496211021409982,
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
     },
@@ -2591,7 +1063,6 @@
         "mae_close_px": 37.00635458135899,
         "scope": "recent"
       },
-      "size_scale": 1.0,
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
     },
@@ -2654,7 +1125,6 @@
         "mae_close_px": 0.6071020866228457,
         "scope": "recent"
       },
-      "size_scale": 1.0,
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
     },
@@ -2717,7 +1187,6 @@
         "mae_close_px": 26.234516397302002,
         "scope": "recent"
       },
-      "size_scale": 0.7356515096873582,
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
     },
@@ -2780,7 +1249,6 @@
         "mae_close_px": 2.2156465869518427,
         "scope": "recent"
       },
-      "size_scale": 1.0,
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
     },
@@ -2843,7 +1311,6 @@
         "mae_close_px": 4.776720210013425,
         "scope": "recent"
       },
-      "size_scale": 0.2820309353070243,
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
     },
@@ -2906,7 +1373,6 @@
         "mae_close_px": 3.8204717780780877,
         "scope": "recent"
       },
-      "size_scale": 1.0,
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
     },
@@ -2969,70 +1435,6 @@
         "mae_close_px": 4.0405301226063965,
         "scope": "recent"
       },
-      "size_scale": 0.5527365506237871,
-      "data_source": "Yahoo Finance",
-      "universe_source": "S&P 500 · Wikipedia 2026-09-12"
-    },
-    {
-      "ticker": "FTNT",
-      "name": "Information Technology",
-      "sector": "Information Technology",
-      "model_family": "sector",
-      "dvol_rank": 85,
-      "dollar_volume": 1009082266.5710449,
-      "action": "做空",
-      "side": -1,
-      "reason": "fade_to_prior_close",
-      "asof": "2026-09-14",
-      "last_bar_date": "2026-09-14",
-      "prior_close": 170.17999267578125,
-      "entry": "盤中觸價",
-      "entry_px": 173.64398500131315,
-      "tp": 170.17999267578125,
-      "sl": 181.50755616830534,
-      "pred": {
-        "high": {
-          "q10": 169.18035305504688,
-          "q50": 173.64398500131315,
-          "q90": 179.85268551589573,
-          "q10_ret": -0.005874013772223155,
-          "q50_ret": 0.020354874101630404,
-          "q90_ret": 0.05683801419913337
-        },
-        "low": {
-          "q10": 160.13533606694466,
-          "q50": 166.85745467491083,
-          "q90": 171.59240444924683,
-          "q10_ret": -0.059023722183213286,
-          "q50_ret": -0.019523669901669226,
-          "q90_ret": 0.00829951718329457
-        },
-        "close": {
-          "q10": 163.22596159440238,
-          "q50": 170.00105253291665,
-          "q90": 176.1211058912548,
-          "q10_ret": -0.04086280045050513,
-          "q50_ret": -0.001051475793664598,
-          "q90_ret": 0.03491076196478791
-        }
-      },
-      "baseline": {
-        "high_q50": 178.04356384277344,
-        "low_q50": 162.31642150878906,
-        "close_q50": 170.17999267578125
-      },
-      "atr": 7.8635711669921875,
-      "high_confidence": false,
-      "beats_baseline": true,
-      "beats_range": true,
-      "strategy": "fade_to_prior_close",
-      "recent_error": {
-        "n": 19,
-        "mae_close_ret": 0.02720744772433172,
-        "mae_close_px": 4.350674381862303,
-        "scope": "recent"
-      },
-      "size_scale": 0.25,
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
     },
@@ -3095,7 +1497,6 @@
         "mae_close_px": 1.8279407819147568,
         "scope": "recent"
       },
-      "size_scale": 0.5181737154465182,
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
     },
@@ -3158,133 +1559,130 @@
         "mae_close_px": 1.577435205249397,
         "scope": "recent"
       },
-      "size_scale": 1.0,
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
     },
     {
-      "ticker": "ON",
+      "ticker": "MU",
       "name": "Information Technology",
       "sector": "Information Technology",
       "model_family": "sector",
-      "dvol_rank": 98,
-      "dollar_volume": 889563428.944397,
-      "action": "做空",
-      "side": -1,
-      "reason": "fade_to_prior_close",
+      "dvol_rank": 2,
+      "dollar_volume": 24974314019.82422,
+      "action": "觀望",
+      "side": 0,
+      "reason": "recent_close_mae_too_high",
       "asof": "2026-09-14",
       "last_bar_date": "2026-09-14",
-      "prior_close": 71.6500015258789,
-      "entry": "盤中觸價",
-      "entry_px": 72.96658030034205,
-      "tp": 71.6500015258789,
-      "sl": 75.73658021314897,
+      "prior_close": 924.030029296875,
+      "entry": "無",
+      "entry_px": null,
+      "tp": null,
+      "sl": null,
       "pred": {
         "high": {
-          "q10": 71.34258089680505,
-          "q50": 72.96658030034205,
-          "q90": 74.59996482125705,
-          "q10_ret": -0.0042905878929090984,
-          "q50_ret": 0.018375139517444464,
-          "q90_ret": 0.04117185251297808
+          "q10": 919.409864683714,
+          "q50": 941.4902537953014,
+          "q90": 967.9066889535042,
+          "q10_ret": -0.00500001565606767,
+          "q50_ret": 0.018895732762832983,
+          "q90_ret": 0.047484019204458605
         },
         "low": {
-          "q10": 68.34045074425934,
-          "q50": 70.43338705946876,
-          "q90": 71.8574175240057,
-          "q10_ret": -0.04619051934596548,
-          "q50_ret": -0.01697996427774982,
-          "q90_ret": 0.002894849877314775
+          "q10": 882.6971418340892,
+          "q50": 907.6199851642069,
+          "q90": 930.9175507967534,
+          "q10_ret": -0.04473110846217566,
+          "q50_ret": -0.01775921086152906,
+          "q90_ret": 0.00745378535491899
         },
         "close": {
-          "q10": 69.53139937401156,
-          "q50": 71.54567124778109,
-          "q90": 73.96772338156563,
-          "q10_ret": -0.029568766318897356,
+          "q10": 895.5635404470113,
+          "q50": 922.6845400034454,
+          "q90": 956.3515399323861,
+          "q10_ret": -0.030806887165263218,
           "q50_ret": -0.001456109921506983,
-          "q90_ret": 0.03234782702481317
+          "q90_ret": 0.03497885307916418
         }
       },
       "baseline": {
-        "high_q50": 74.42000143868583,
-        "low_q50": 68.88000161307198,
-        "close_q50": 71.6500015258789
+        "high_q50": 967.7143205915178,
+        "low_q50": 880.3457380022322,
+        "close_q50": 924.030029296875
       },
-      "atr": 2.7699999128069197,
+      "atr": 43.684291294642854,
       "high_confidence": false,
       "beats_baseline": true,
       "beats_range": true,
       "strategy": "fade_to_prior_close",
       "recent_error": {
         "n": 19,
-        "mae_close_ret": 0.02558172550429236,
-        "mae_close_px": 1.9154794779757989,
+        "mae_close_ret": 0.026666573749624667,
+        "mae_close_px": 25.926014654108286,
         "scope": "recent"
       },
-      "size_scale": 0.25,
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
     },
     {
-      "ticker": "SWKS",
+      "ticker": "SNDK",
       "name": "Information Technology",
       "sector": "Information Technology",
       "model_family": "sector",
-      "dvol_rank": 99,
-      "dollar_volume": 884826959.8480225,
-      "action": "做空",
-      "side": -1,
-      "reason": "fade_to_prior_close",
+      "dvol_rank": 3,
+      "dollar_volume": 14832368336.669922,
+      "action": "觀望",
+      "side": 0,
+      "reason": "recent_close_mae_too_high",
       "asof": "2026-09-14",
       "last_bar_date": "2026-09-14",
-      "prior_close": 79.26000213623047,
-      "entry": "盤中觸價",
-      "entry_px": 81.30443299393228,
-      "tp": 79.26000213623047,
-      "sl": 85.86157634153622,
+      "prior_close": 1551.989990234375,
+      "entry": "無",
+      "entry_px": null,
+      "tp": null,
+      "sl": null,
       "pred": {
         "high": {
-          "q10": 78.82114205518222,
-          "q50": 81.30443299393228,
-          "q90": 83.91615734717799,
-          "q10_ret": -0.005536967817562622,
-          "q50_ret": 0.025793979341407026,
-          "q90_ret": 0.058745332897476084
+          "q10": 1543.221992562847,
+          "q50": 1588.3337919402575,
+          "q90": 1648.4663507924017,
+          "q10_ret": -0.00564951947286979,
+          "q50_ret": 0.023417549039987128,
+          "q90_ret": 0.06216300437830604
         },
         "low": {
-          "q10": 73.96098962508343,
-          "q50": 77.64636798424483,
-          "q90": 79.8078669345508,
-          "q10_ret": -0.06685607328194616,
-          "q50_ret": -0.02035874474507524,
-          "q90_ret": 0.006912248089252787
+          "q10": 1464.3128200032093,
+          "q50": 1521.8635736967037,
+          "q90": 1568.297775004049,
+          "q10_ret": -0.05649338641541434,
+          "q50_ret": -0.01941147605798782,
+          "q90_ret": 0.010507661049548003
         },
         "close": {
-          "q10": 75.70764136199891,
-          "q50": 79.14459086074123,
-          "q90": 82.44966244996782,
-          "q10_ret": -0.04481908501750777,
+          "q10": 1496.9737247825788,
+          "q50": 1549.7301222115152,
+          "q90": 1616.7655522543057,
+          "q10_ret": -0.035448853277390044,
           "q50_ret": -0.001456109921506983,
-          "q90_ret": 0.040243000602687706
+          "q90_ret": 0.04173710038564661
         }
       },
       "baseline": {
-        "high_q50": 83.81714548383441,
-        "low_q50": 74.70285878862654,
-        "close_q50": 79.26000213623047
+        "high_q50": 1649.71626499721,
+        "low_q50": 1454.26371547154,
+        "close_q50": 1551.989990234375
       },
-      "atr": 4.557143347603934,
+      "atr": 97.72627476283482,
       "high_confidence": false,
       "beats_baseline": true,
       "beats_range": true,
       "strategy": "fade_to_prior_close",
       "recent_error": {
         "n": 19,
-        "mae_close_ret": 0.02810417799834596,
-        "mae_close_px": 2.123761584055649,
+        "mae_close_ret": 0.03127488824268093,
+        "mae_close_px": 50.773417991958524,
         "scope": "recent"
       },
-      "size_scale": 0.25,
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
     },
@@ -3347,7 +1745,6 @@
         "mae_close_px": 10.091017519973391,
         "scope": "recent"
       },
-      "size_scale": 1.0,
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
     },
@@ -3410,7 +1807,192 @@
         "mae_close_px": 3.968580949349086,
         "scope": "recent"
       },
-      "size_scale": 1.0,
+      "data_source": "Yahoo Finance",
+      "universe_source": "S&P 500 · Wikipedia 2026-09-12"
+    },
+    {
+      "ticker": "AMD",
+      "name": "Information Technology",
+      "sector": "Information Technology",
+      "model_family": "sector",
+      "dvol_rank": 7,
+      "dollar_volume": 12223542066.723633,
+      "action": "觀望",
+      "side": 0,
+      "reason": "recent_close_mae_too_high",
+      "asof": "2026-09-14",
+      "last_bar_date": "2026-09-14",
+      "prior_close": 493.4100036621094,
+      "entry": "無",
+      "entry_px": null,
+      "tp": null,
+      "sl": null,
+      "pred": {
+        "high": {
+          "q10": 490.65851601071796,
+          "q50": 502.42728456391785,
+          "q90": 517.1563399243427,
+          "q10_ret": -0.00557647317843123,
+          "q50_ret": 0.018275431861700976,
+          "q90_ret": 0.048126985845416435
+        },
+        "low": {
+          "q10": 468.8331541458638,
+          "q50": 485.22833715532914,
+          "q90": 496.5540699594462,
+          "q10_ret": -0.049810197064986954,
+          "q50_ret": -0.01658188209816496,
+          "q90_ret": 0.006372117050731562
+        },
+        "close": {
+          "q10": 478.2767891441255,
+          "q50": 492.69154446040613,
+          "q90": 509.6410310217102,
+          "q10_ret": -0.03067066821844824,
+          "q50_ret": -0.001456109921506983,
+          "q90_ret": 0.03289561873317016
+        }
+      },
+      "baseline": {
+        "high_q50": 513.4171425955635,
+        "low_q50": 473.4028647286551,
+        "close_q50": 493.4100036621094
+      },
+      "atr": 20.00713893345424,
+      "high_confidence": false,
+      "beats_baseline": true,
+      "beats_range": true,
+      "strategy": "fade_to_prior_close",
+      "recent_error": {
+        "n": 19,
+        "mae_close_ret": 0.026116598908249206,
+        "mae_close_px": 12.657149497930709,
+        "scope": "recent"
+      },
+      "data_source": "Yahoo Finance",
+      "universe_source": "S&P 500 · Wikipedia 2026-09-12"
+    },
+    {
+      "ticker": "TSLA",
+      "name": "Consumer Discretionary",
+      "sector": "Consumer Discretionary",
+      "model_family": "sector",
+      "dvol_rank": 9,
+      "dollar_volume": 11631166494.552612,
+      "action": "觀望",
+      "side": 0,
+      "reason": "recent_close_mae_too_high",
+      "asof": "2026-09-14",
+      "last_bar_date": "2026-09-14",
+      "prior_close": 358.9700012207031,
+      "entry": "無",
+      "entry_px": null,
+      "tp": null,
+      "sl": null,
+      "pred": {
+        "high": {
+          "q10": 357.67179737722455,
+          "q50": 363.28734089462597,
+          "q90": 372.29292172059905,
+          "q10_ret": -0.0036164688945147672,
+          "q50_ret": 0.012027020807425222,
+          "q90_ret": 0.037114300511436604
+        },
+        "low": {
+          "q10": 346.4722062913876,
+          "q50": 354.3645875813874,
+          "q90": 359.78592562951656,
+          "q10_ret": -0.03481570851830484,
+          "q50_ret": -0.012829522310094557,
+          "q90_ret": 0.0022729598741923155
+        },
+        "close": {
+          "q10": 348.7850102456521,
+          "q50": 359.34483125302455,
+          "q90": 366.9695410181586,
+          "q10_ret": -0.02837281928967957,
+          "q50_ret": 0.0010441820515552536,
+          "q90_ret": 0.022284702817094656
+        }
+      },
+      "baseline": {
+        "high_q50": 372.9357125418527,
+        "low_q50": 345.00428989955356,
+        "close_q50": 358.9700012207031
+      },
+      "atr": 13.965711321149554,
+      "high_confidence": false,
+      "beats_baseline": true,
+      "beats_range": true,
+      "strategy": "fade_to_prior_close",
+      "recent_error": {
+        "n": 19,
+        "mae_close_ret": 0.026038058799922447,
+        "mae_close_px": 9.262246221889864,
+        "scope": "recent"
+      },
+      "data_source": "Yahoo Finance",
+      "universe_source": "S&P 500 · Wikipedia 2026-09-12"
+    },
+    {
+      "ticker": "INTC",
+      "name": "Information Technology",
+      "sector": "Information Technology",
+      "model_family": "sector",
+      "dvol_rank": 11,
+      "dollar_volume": 9354003189.971924,
+      "action": "觀望",
+      "side": 0,
+      "reason": "recent_close_mae_too_high",
+      "asof": "2026-09-14",
+      "last_bar_date": "2026-09-14",
+      "prior_close": 97.19000244140625,
+      "entry": "無",
+      "entry_px": null,
+      "tp": null,
+      "sl": null,
+      "pred": {
+        "high": {
+          "q10": 96.70405090758597,
+          "q50": 99.11097674121353,
+          "q90": 101.84056637904968,
+          "q10_ret": -0.00500001565606767,
+          "q50_ret": 0.01976514303480347,
+          "q90_ret": 0.04785022966170987
+        },
+        "low": {
+          "q10": 92.55882894740895,
+          "q50": 95.41501298659631,
+          "q90": 97.75336300158115,
+          "q10_ret": -0.04765071897996233,
+          "q50_ret": -0.018263086842497486,
+          "q90_ret": 0.005796486737558688
+        },
+        "close": {
+          "q10": 94.16671064193885,
+          "q50": 97.04848311458002,
+          "q90": 100.47824115303291,
+          "q10_ret": -0.03110702462725094,
+          "q50_ret": -0.001456109921506983,
+          "q90_ret": 0.03383309629618606
+        }
+      },
+      "baseline": {
+        "high_q50": 102.02000263759068,
+        "low_q50": 92.36000224522182,
+        "close_q50": 97.19000244140625
+      },
+      "atr": 4.8300001961844305,
+      "high_confidence": false,
+      "beats_baseline": true,
+      "beats_range": true,
+      "strategy": "fade_to_prior_close",
+      "recent_error": {
+        "n": 19,
+        "mae_close_ret": 0.03053844836375007,
+        "mae_close_px": 2.9562493629842668,
+        "scope": "recent"
+      },
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
     },
@@ -3473,7 +2055,440 @@
         "mae_close_px": 3.6391470909114885,
         "scope": "recent"
       },
-      "size_scale": 1.0,
+      "data_source": "Yahoo Finance",
+      "universe_source": "S&P 500 · Wikipedia 2026-09-12"
+    },
+    {
+      "ticker": "ORCL",
+      "name": "Information Technology",
+      "sector": "Information Technology",
+      "model_family": "sector",
+      "dvol_rank": 14,
+      "dollar_volume": 6088361301.68457,
+      "action": "觀望",
+      "side": 0,
+      "reason": "recent_close_mae_too_high",
+      "asof": "2026-09-14",
+      "last_bar_date": "2026-09-14",
+      "prior_close": 144.7899932861328,
+      "entry": "無",
+      "entry_px": null,
+      "tp": null,
+      "sl": null,
+      "pred": {
+        "high": {
+          "q10": 144.1663108257844,
+          "q50": 148.11069845893994,
+          "q90": 151.96242713125298,
+          "q10_ret": -0.004307496990595882,
+          "q50_ret": 0.022934631720334202,
+          "q90_ret": 0.04953680625529191
+        },
+        "low": {
+          "q10": 137.34996608425544,
+          "q50": 141.97749038709185,
+          "q90": 145.36308589836506,
+          "q10_ret": -0.05138495439511787,
+          "q50_ret": -0.01942470494824128,
+          "q90_ret": 0.003958095440336959
+        },
+        "close": {
+          "q10": 139.28805841000172,
+          "q50": 144.57916314037394,
+          "q90": 149.78548455830966,
+          "q10_ret": -0.03799941384939627,
+          "q50_ret": -0.001456109921506983,
+          "q90_ret": 0.034501633426453585
+        }
+      },
+      "baseline": {
+        "high_q50": 152.57070813860213,
+        "low_q50": 137.0092784336635,
+        "close_q50": 144.7899932861328
+      },
+      "atr": 7.780714852469308,
+      "high_confidence": false,
+      "beats_baseline": true,
+      "beats_range": true,
+      "strategy": "fade_to_prior_close",
+      "recent_error": {
+        "n": 19,
+        "mae_close_ret": 0.02575416938691694,
+        "mae_close_px": 3.847087686493234,
+        "scope": "recent"
+      },
+      "data_source": "Yahoo Finance",
+      "universe_source": "S&P 500 · Wikipedia 2026-09-12"
+    },
+    {
+      "ticker": "CRWD",
+      "name": "Information Technology",
+      "sector": "Information Technology",
+      "model_family": "sector",
+      "dvol_rank": 15,
+      "dollar_volume": 5956691169.567871,
+      "action": "觀望",
+      "side": 0,
+      "reason": "recent_close_mae_too_high",
+      "asof": "2026-09-14",
+      "last_bar_date": "2026-09-14",
+      "prior_close": 235.3800048828125,
+      "entry": "無",
+      "entry_px": null,
+      "tp": null,
+      "sl": null,
+      "pred": {
+        "high": {
+          "q10": 233.47099938306874,
+          "q50": 241.79938213422278,
+          "q90": 252.646726548946,
+          "q10_ret": -0.008110312941382558,
+          "q50_ret": 0.027272398327148843,
+          "q90_ret": 0.0733567903303001
+        },
+        "low": {
+          "q10": 216.3566524908543,
+          "q50": 230.01905686792827,
+          "q90": 238.7696712162239,
+          "q10_ret": -0.08081974678107974,
+          "q50_ret": -0.022775715454476583,
+          "q90_ret": 0.014400825316912585
+        },
+        "close": {
+          "q10": 223.78811615544763,
+          "q50": 235.13250850536556,
+          "q90": 249.60202265375534,
+          "q10_ret": -0.04924755071330752,
+          "q50_ret": -0.001051475793664598,
+          "q90_ret": 0.06042152041769009
+        }
+      },
+      "baseline": {
+        "high_q50": 250.58136313302177,
+        "low_q50": 220.17864663260323,
+        "close_q50": 235.3800048828125
+      },
+      "atr": 15.201358250209264,
+      "high_confidence": false,
+      "beats_baseline": true,
+      "beats_range": true,
+      "strategy": "fade_to_prior_close",
+      "recent_error": {
+        "n": 19,
+        "mae_close_ret": 0.044187054657895006,
+        "mae_close_px": 9.08836815961352,
+        "scope": "recent"
+      },
+      "data_source": "Yahoo Finance",
+      "universe_source": "S&P 500 · Wikipedia 2026-09-12"
+    },
+    {
+      "ticker": "PLTR",
+      "name": "Information Technology",
+      "sector": "Information Technology",
+      "model_family": "sector",
+      "dvol_rank": 16,
+      "dollar_volume": 5045036697.930908,
+      "action": "觀望",
+      "side": 0,
+      "reason": "recent_close_mae_too_high",
+      "asof": "2026-09-14",
+      "last_bar_date": "2026-09-14",
+      "prior_close": 173.30999755859375,
+      "entry": "無",
+      "entry_px": null,
+      "tp": null,
+      "sl": null,
+      "pred": {
+        "high": {
+          "q10": 172.59775826599525,
+          "q50": 176.2898746990067,
+          "q90": 180.01153093966946,
+          "q10_ret": -0.004109626118699235,
+          "q50_ret": 0.017193913694479538,
+          "q90_ret": 0.038667898421786084
+        },
+        "low": {
+          "q10": 166.0793142393979,
+          "q50": 170.21566410774255,
+          "q90": 173.83795930891839,
+          "q10_ret": -0.04172109757690842,
+          "q50_ret": -0.0178543274735494,
+          "q90_ret": 0.003046343302533035
+        },
+        "close": {
+          "q10": 168.208670408855,
+          "q50": 173.1277662913608,
+          "q90": 177.96998027809522,
+          "q10_ret": -0.029434696333741902,
+          "q50_ret": -0.001051475793664598,
+          "q90_ret": 0.02688813562487063
+        }
+      },
+      "baseline": {
+        "high_q50": 180.89571271623882,
+        "low_q50": 165.72428240094865,
+        "close_q50": 173.30999755859375
+      },
+      "atr": 7.585715157645089,
+      "high_confidence": false,
+      "beats_baseline": true,
+      "beats_range": true,
+      "strategy": "fade_to_prior_close",
+      "recent_error": {
+        "n": 19,
+        "mae_close_ret": 0.02533307060438495,
+        "mae_close_px": 4.442123578399823,
+        "scope": "recent"
+      },
+      "data_source": "Yahoo Finance",
+      "universe_source": "S&P 500 · Wikipedia 2026-09-12"
+    },
+    {
+      "ticker": "DELL",
+      "name": "Information Technology",
+      "sector": "Information Technology",
+      "model_family": "sector",
+      "dvol_rank": 17,
+      "dollar_volume": 4886097723.925781,
+      "action": "觀望",
+      "side": 0,
+      "reason": "recent_close_mae_too_high",
+      "asof": "2026-09-14",
+      "last_bar_date": "2026-09-14",
+      "prior_close": 534.280029296875,
+      "entry": "無",
+      "entry_px": null,
+      "tp": null,
+      "sl": null,
+      "pred": {
+        "high": {
+          "q10": 531.0364848778238,
+          "q50": 548.4158505856473,
+          "q90": 570.9339097028067,
+          "q10_ret": -0.0060708696585941085,
+          "q50_ret": 0.026457701043730422,
+          "q90_ret": 0.06860424944980442
+        },
+        "low": {
+          "q10": 499.70917046108366,
+          "q50": 522.3660727655457,
+          "q90": 541.3804572576013,
+          "q10_ret": -0.06470550449225551,
+          "q50_ret": -0.022299086392969392,
+          "q90_ret": 0.013289712456725243
+        },
+        "close": {
+          "q10": 511.90180544675894,
+          "q50": 533.5020588453527,
+          "q90": 560.2394396378595,
+          "q10_ret": -0.04188482185936525,
+          "q50_ret": -0.001456109921506983,
+          "q90_ret": 0.04858764864400358
+        }
+      },
+      "baseline": {
+        "high_q50": 568.1943097795759,
+        "low_q50": 500.3657488141741,
+        "close_q50": 534.280029296875
+      },
+      "atr": 33.914280482700896,
+      "high_confidence": false,
+      "beats_baseline": true,
+      "beats_range": true,
+      "strategy": "fade_to_prior_close",
+      "recent_error": {
+        "n": 19,
+        "mae_close_ret": 0.04203243743473018,
+        "mae_close_px": 20.036544526472245,
+        "scope": "recent"
+      },
+      "data_source": "Yahoo Finance",
+      "universe_source": "S&P 500 · Wikipedia 2026-09-12"
+    },
+    {
+      "ticker": "MRVL",
+      "name": "Information Technology",
+      "sector": "Information Technology",
+      "model_family": "sector",
+      "dvol_rank": 18,
+      "dollar_volume": 4843755918.127441,
+      "action": "觀望",
+      "side": 0,
+      "reason": "recent_close_mae_too_high",
+      "asof": "2026-09-14",
+      "last_bar_date": "2026-09-14",
+      "prior_close": 218.82000732421875,
+      "entry": "無",
+      "entry_px": null,
+      "tp": null,
+      "sl": null,
+      "pred": {
+        "high": {
+          "q10": 217.58377943178706,
+          "q50": 223.5680091161173,
+          "q90": 230.8408425755735,
+          "q10_ret": -0.00564951947286979,
+          "q50_ret": 0.021698206895969806,
+          "q90_ret": 0.05493480874234624
+        },
+        "low": {
+          "q10": 206.8994473306151,
+          "q50": 214.6682653671255,
+          "q90": 220.8069173226887,
+          "q10_ret": -0.05447655422084577,
+          "q50_ret": -0.018973319706281307,
+          "q90_ret": 0.009080111196258279
+        },
+        "close": {
+          "q10": 211.2041788575346,
+          "q50": 218.50138134052972,
+          "q90": 226.72497608642652,
+          "q10_ret": -0.03480407737762303,
+          "q50_ret": -0.001456109921506983,
+          "q90_ret": 0.03612543870586406
+        }
+      },
+      "baseline": {
+        "high_q50": 232.48072160993303,
+        "low_q50": 205.15929303850447,
+        "close_q50": 218.82000732421875
+      },
+      "atr": 13.660714285714286,
+      "high_confidence": false,
+      "beats_baseline": true,
+      "beats_range": true,
+      "strategy": "fade_to_prior_close",
+      "recent_error": {
+        "n": 19,
+        "mae_close_ret": 0.043911454426771725,
+        "mae_close_px": 10.112279821618165,
+        "scope": "recent"
+      },
+      "data_source": "Yahoo Finance",
+      "universe_source": "S&P 500 · Wikipedia 2026-09-12"
+    },
+    {
+      "ticker": "PANW",
+      "name": "Information Technology",
+      "sector": "Information Technology",
+      "model_family": "sector",
+      "dvol_rank": 19,
+      "dollar_volume": 4492365613.330078,
+      "action": "觀望",
+      "side": 0,
+      "reason": "recent_close_mae_too_high",
+      "asof": "2026-09-14",
+      "last_bar_date": "2026-09-14",
+      "prior_close": 373.94000244140625,
+      "entry": "無",
+      "entry_px": null,
+      "tp": null,
+      "sl": null,
+      "pred": {
+        "high": {
+          "q10": 370.7890408208041,
+          "q50": 383.5653817062535,
+          "q90": 401.26431535609044,
+          "q10_ret": -0.008426382842247266,
+          "q50_ret": 0.025740437508702918,
+          "q90_ret": 0.07307138240436223
+        },
+        "low": {
+          "q10": 348.572625201846,
+          "q50": 365.7493088344448,
+          "q90": 378.03920194889406,
+          "q10_ret": -0.06783809454441853,
+          "q50_ret": -0.021903764115862166,
+          "q90_ret": 0.010962185058364021
+        },
+        "close": {
+          "q10": 357.37888263592083,
+          "q50": 373.5468135805562,
+          "q90": 393.75082063509154,
+          "q10_ret": -0.04428817376413327,
+          "q50_ret": -0.001051475793664598,
+          "q90_ret": 0.052978601017123136
+        }
+      },
+      "baseline": {
+        "high_q50": 395.94571576799666,
+        "low_q50": 351.93428911481584,
+        "close_q50": 373.94000244140625
+      },
+      "atr": 22.005713326590403,
+      "high_confidence": false,
+      "beats_baseline": true,
+      "beats_range": true,
+      "strategy": "fade_to_prior_close",
+      "recent_error": {
+        "n": 19,
+        "mae_close_ret": 0.03499613704694262,
+        "mae_close_px": 12.306430860137574,
+        "scope": "recent"
+      },
+      "data_source": "Yahoo Finance",
+      "universe_source": "S&P 500 · Wikipedia 2026-09-12"
+    },
+    {
+      "ticker": "LITE",
+      "name": "Information Technology",
+      "sector": "Information Technology",
+      "model_family": "sector",
+      "dvol_rank": 20,
+      "dollar_volume": 4096239808.7158203,
+      "action": "觀望",
+      "side": 0,
+      "reason": "recent_close_mae_too_high",
+      "asof": "2026-09-14",
+      "last_bar_date": "2026-09-14",
+      "prior_close": 835.030029296875,
+      "entry": "無",
+      "entry_px": null,
+      "tp": null,
+      "sl": null,
+      "pred": {
+        "high": {
+          "q10": 829.9606708280016,
+          "q50": 857.6672282308805,
+          "q90": 887.1530132133752,
+          "q10_ret": -0.0060708696585941085,
+          "q50_ret": 0.027109442941910453,
+          "q90_ret": 0.06242049038690204
+        },
+        "low": {
+          "q10": 782.3997427374032,
+          "q50": 815.9233002500146,
+          "q90": 840.5521318890574,
+          "q10_ret": -0.06302801661371177,
+          "q50_ret": -0.022881487343573727,
+          "q90_ret": 0.006613058690634258
+        },
+        "close": {
+          "q10": 802.972187540441,
+          "q50": 833.8141337864595,
+          "q90": 871.3859750824508,
+          "q10_ret": -0.03839124418486814,
+          "q50_ret": -0.001456109921506983,
+          "q90_ret": 0.043538489048338465
+        }
+      },
+      "baseline": {
+        "high_q50": 896.1303231375559,
+        "low_q50": 773.9297354561942,
+        "close_q50": 835.030029296875
+      },
+      "atr": 61.100293840680806,
+      "high_confidence": false,
+      "beats_baseline": true,
+      "beats_range": true,
+      "strategy": "fade_to_prior_close",
+      "recent_error": {
+        "n": 19,
+        "mae_close_ret": 0.04782084848484604,
+        "mae_close_px": 43.14714443985501,
+        "scope": "recent"
+      },
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
     },
@@ -3536,7 +2551,68 @@
         "mae_close_px": 0.6244837434117089,
         "scope": "recent"
       },
-      "size_scale": 1.0,
+      "data_source": "Yahoo Finance",
+      "universe_source": "S&P 500 · Wikipedia 2026-09-12"
+    },
+    {
+      "ticker": "LRCX",
+      "name": "Information Technology",
+      "sector": "Information Technology",
+      "model_family": "sector",
+      "dvol_rank": 22,
+      "dollar_volume": 3737623602.5390625,
+      "action": "觀望",
+      "side": 0,
+      "reason": "recent_close_mae_too_high",
+      "asof": "2026-09-14",
+      "last_bar_date": "2026-09-14",
+      "prior_close": 273.489990234375,
+      "entry": "無",
+      "entry_px": null,
+      "tp": null,
+      "sl": null,
+      "pred": {
+        "high": {
+          "q10": 272.1393923353181,
+          "q50": 279.4136757220289,
+          "q90": 286.75536172831573,
+          "q10_ret": -0.004938381466537107,
+          "q50_ret": 0.021659606198301557,
+          "q90_ret": 0.048504047561567565
+        },
+        "low": {
+          "q10": 258.90918912401105,
+          "q50": 268.55235463003106,
+          "q90": 274.7065299834373,
+          "q10_ret": -0.053313838279304186,
+          "q50_ret": -0.018054173025171743,
+          "q90_ret": 0.004448205757072617
+        },
+        "close": {
+          "q10": 262.5537677824109,
+          "q50": 273.0917587461619,
+          "q90": 283.2560314761063,
+          "q10_ret": -0.03998765162334465,
+          "q50_ret": -0.001456109921506983,
+          "q90_ret": 0.035708953126079614
+        }
+      },
+      "baseline": {
+        "high_q50": 286.57213047572543,
+        "low_q50": 260.40784999302457,
+        "close_q50": 273.489990234375
+      },
+      "atr": 13.082140241350446,
+      "high_confidence": false,
+      "beats_baseline": true,
+      "beats_range": true,
+      "strategy": "fade_to_prior_close",
+      "recent_error": {
+        "n": 19,
+        "mae_close_ret": 0.028308875215197298,
+        "mae_close_px": 8.830325116153224,
+        "scope": "recent"
+      },
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
     },
@@ -3599,7 +2675,192 @@
         "mae_close_px": 2.749094655901763,
         "scope": "recent"
       },
-      "size_scale": 1.0,
+      "data_source": "Yahoo Finance",
+      "universe_source": "S&P 500 · Wikipedia 2026-09-12"
+    },
+    {
+      "ticker": "CRM",
+      "name": "Information Technology",
+      "sector": "Information Technology",
+      "model_family": "sector",
+      "dvol_rank": 25,
+      "dollar_volume": 3363172596.0510254,
+      "action": "觀望",
+      "side": 0,
+      "reason": "recent_close_mae_too_high",
+      "asof": "2026-09-14",
+      "last_bar_date": "2026-09-14",
+      "prior_close": 259.42999267578125,
+      "entry": "無",
+      "entry_px": null,
+      "tp": null,
+      "sl": null,
+      "pred": {
+        "high": {
+          "q10": 258.1328386507488,
+          "q50": 264.0026006453843,
+          "q90": 270.76079426731525,
+          "q10_ret": -0.00500001565606767,
+          "q50_ret": 0.017625594953153974,
+          "q90_ret": 0.04367575805197872
+        },
+        "low": {
+          "q10": 247.59950574640243,
+          "q50": 254.9058775695192,
+          "q90": 260.9124833320016,
+          "q10_ret": -0.045601847370684755,
+          "q50_ret": -0.017438674147117625,
+          "q90_ret": 0.005714415056369786
+        },
+        "close": {
+          "q10": 250.91843442561495,
+          "q50": 259.1572083183321,
+          "q90": 267.86680573600495,
+          "q10_ret": -0.032808690168694137,
+          "q50_ret": -0.001051475793664598,
+          "q90_ret": 0.03252057702814458
+        }
+      },
+      "baseline": {
+        "high_q50": 271.83856310163225,
+        "low_q50": 247.02142224993023,
+        "close_q50": 259.42999267578125
+      },
+      "atr": 12.408570425851005,
+      "high_confidence": false,
+      "beats_baseline": true,
+      "beats_range": true,
+      "strategy": "fade_to_prior_close",
+      "recent_error": {
+        "n": 19,
+        "mae_close_ret": 0.028323538227141416,
+        "mae_close_px": 6.279341749441331,
+        "scope": "recent"
+      },
+      "data_source": "Yahoo Finance",
+      "universe_source": "S&P 500 · Wikipedia 2026-09-12"
+    },
+    {
+      "ticker": "STX",
+      "name": "Information Technology",
+      "sector": "Information Technology",
+      "model_family": "sector",
+      "dvol_rank": 26,
+      "dollar_volume": 3340776909.375,
+      "action": "觀望",
+      "side": 0,
+      "reason": "recent_close_mae_too_high",
+      "asof": "2026-09-14",
+      "last_bar_date": "2026-09-14",
+      "prior_close": 805.5499877929688,
+      "entry": "無",
+      "entry_px": null,
+      "tp": null,
+      "sl": null,
+      "pred": {
+        "high": {
+          "q10": 801.3628303638179,
+          "q50": 823.2445422333964,
+          "q90": 847.6305507741912,
+          "q10_ret": -0.005197886527964317,
+          "q50_ret": 0.021965805609291716,
+          "q90_ret": 0.052238301308295064
+        },
+        "low": {
+          "q10": 761.4405377822411,
+          "q50": 789.9808174183249,
+          "q90": 813.080950045931,
+          "q10_ret": -0.0547569370978179,
+          "q50_ret": -0.0193273795674679,
+          "q90_ret": 0.009348845344278845
+        },
+        "close": {
+          "q10": 776.7473143059213,
+          "q50": 804.3770184634735,
+          "q90": 834.0830520656159,
+          "q10_ret": -0.03575529007946546,
+          "q50_ret": -0.001456109921506983,
+          "q90_ret": 0.03542060046555464
+        }
+      },
+      "baseline": {
+        "high_q50": 849.5707005092075,
+        "low_q50": 761.52927507673,
+        "close_q50": 805.5499877929688
+      },
+      "atr": 44.02071271623884,
+      "high_confidence": false,
+      "beats_baseline": true,
+      "beats_range": true,
+      "strategy": "fade_to_prior_close",
+      "recent_error": {
+        "n": 19,
+        "mae_close_ret": 0.03284521813032691,
+        "mae_close_px": 28.530501378430543,
+        "scope": "recent"
+      },
+      "data_source": "Yahoo Finance",
+      "universe_source": "S&P 500 · Wikipedia 2026-09-12"
+    },
+    {
+      "ticker": "WDC",
+      "name": "Information Technology",
+      "sector": "Information Technology",
+      "model_family": "sector",
+      "dvol_rank": 27,
+      "dollar_volume": 3114996951.812744,
+      "action": "觀望",
+      "side": 0,
+      "reason": "recent_close_mae_too_high",
+      "asof": "2026-09-14",
+      "last_bar_date": "2026-09-14",
+      "prior_close": 426.94000244140625,
+      "entry": "無",
+      "entry_px": null,
+      "tp": null,
+      "sl": null,
+      "pred": {
+        "high": {
+          "q10": 425.09375509060715,
+          "q50": 436.9615280914958,
+          "q90": 449.52103178316446,
+          "q10_ret": -0.00432437190294073,
+          "q50_ret": 0.023472913273018602,
+          "q90_ret": 0.05289040430184846
+        },
+        "low": {
+          "q10": 405.72926757274445,
+          "q50": 418.7981116145626,
+          "q90": 429.39258814004444,
+          "q10_ret": -0.049680832780649976,
+          "q50_ret": -0.019070339580000026,
+          "q90_ret": 0.005744567584703658
+        },
+        "close": {
+          "q10": 412.20284939573503,
+          "q50": 426.3183308679631,
+          "q90": 443.32254763841917,
+          "q10_ret": -0.03451808910244658,
+          "q50_ret": -0.001456109921506983,
+          "q90_ret": 0.03837200801829592
+        }
+      },
+      "baseline": {
+        "high_q50": 451.4635750906808,
+        "low_q50": 402.41642979213174,
+        "close_q50": 426.94000244140625
+      },
+      "atr": 24.523572649274552,
+      "high_confidence": false,
+      "beats_baseline": true,
+      "beats_range": true,
+      "strategy": "fade_to_prior_close",
+      "recent_error": {
+        "n": 19,
+        "mae_close_ret": 0.03047973869230078,
+        "mae_close_px": 14.370971448307989,
+        "scope": "recent"
+      },
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
     },
@@ -3662,7 +2923,68 @@
         "mae_close_px": 25.035325540660452,
         "scope": "recent"
       },
-      "size_scale": 0.25,
+      "data_source": "Yahoo Finance",
+      "universe_source": "S&P 500 · Wikipedia 2026-09-12"
+    },
+    {
+      "ticker": "COHR",
+      "name": "Information Technology",
+      "sector": "Information Technology",
+      "model_family": "sector",
+      "dvol_rank": 29,
+      "dollar_volume": 2643520100.0,
+      "action": "觀望",
+      "side": 0,
+      "reason": "recent_close_mae_too_high",
+      "asof": "2026-09-14",
+      "last_bar_date": "2026-09-14",
+      "prior_close": 266.5,
+      "entry": "無",
+      "entry_px": null,
+      "tp": null,
+      "sl": null,
+      "pred": {
+        "high": {
+          "q10": 265.13776378633474,
+          "q50": 273.50697539494365,
+          "q90": 282.0290412021365,
+          "q10_ret": -0.005111580539081508,
+          "q50_ret": 0.026292590600163843,
+          "q90_ret": 0.0582703234601744
+        },
+        "low": {
+          "q10": 246.918197726142,
+          "q50": 260.6773788425083,
+          "q90": 268.27053064597663,
+          "q10_ret": -0.07347768207826634,
+          "q50_ret": -0.021848484643496036,
+          "q90_ret": 0.0066436421987865835
+        },
+        "close": {
+          "q10": 254.1861680848229,
+          "q50": 266.1119467059184,
+          "q90": 277.1754361473091,
+          "q10_ret": -0.04620574827458583,
+          "q50_ret": -0.001456109921506983,
+          "q90_ret": 0.040057921753504984
+        }
+      },
+      "baseline": {
+        "high_q50": 284.30928257533486,
+        "low_q50": 248.6907174246652,
+        "close_q50": 266.5
+      },
+      "atr": 17.809282575334823,
+      "high_confidence": false,
+      "beats_baseline": true,
+      "beats_range": true,
+      "strategy": "fade_to_prior_close",
+      "recent_error": {
+        "n": 19,
+        "mae_close_ret": 0.041088073218456075,
+        "mae_close_px": 12.330941128160676,
+        "scope": "recent"
+      },
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
     },
@@ -3725,7 +3047,6 @@
         "mae_close_px": 1.6288190770880073,
         "scope": "recent"
       },
-      "size_scale": 1.0,
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
     },
@@ -3788,7 +3109,130 @@
         "mae_close_px": 9.56512710728578,
         "scope": "recent"
       },
-      "size_scale": 0.25,
+      "data_source": "Yahoo Finance",
+      "universe_source": "S&P 500 · Wikipedia 2026-09-12"
+    },
+    {
+      "ticker": "GLW",
+      "name": "Information Technology",
+      "sector": "Information Technology",
+      "model_family": "sector",
+      "dvol_rank": 32,
+      "dollar_volume": 2542940708.0841064,
+      "action": "觀望",
+      "side": 0,
+      "reason": "recent_close_mae_too_high",
+      "asof": "2026-09-14",
+      "last_bar_date": "2026-09-14",
+      "prior_close": 143.60000610351562,
+      "entry": "無",
+      "entry_px": null,
+      "tp": null,
+      "sl": null,
+      "pred": {
+        "high": {
+          "q10": 142.86463967125917,
+          "q50": 146.9612307601453,
+          "q90": 151.055394392315,
+          "q10_ret": -0.0051209359401166105,
+          "q50_ret": 0.023406855945442628,
+          "q90_ret": 0.05191774353703777
+        },
+        "low": {
+          "q10": 134.92453817992015,
+          "q50": 140.8394949416161,
+          "q90": 144.28898592758804,
+          "q10_ret": -0.06041411946279213,
+          "q50_ret": -0.01922361451648948,
+          "q90_ret": 0.004797909434459027
+        },
+        "close": {
+          "q10": 137.72017176362178,
+          "q50": 143.39090870989983,
+          "q90": 149.86595514549728,
+          "q10_ret": -0.040945919846655854,
+          "q50_ret": -0.001456109921506983,
+          "q90_ret": 0.043634740777551015
+        }
+      },
+      "baseline": {
+        "high_q50": 151.3214340209961,
+        "low_q50": 135.87857818603516,
+        "close_q50": 143.60000610351562
+      },
+      "atr": 7.721427917480469,
+      "high_confidence": false,
+      "beats_baseline": true,
+      "beats_range": true,
+      "strategy": "fade_to_prior_close",
+      "recent_error": {
+        "n": 19,
+        "mae_close_ret": 0.03303446586226838,
+        "mae_close_px": 5.247725931235723,
+        "scope": "recent"
+      },
+      "data_source": "Yahoo Finance",
+      "universe_source": "S&P 500 · Wikipedia 2026-09-12"
+    },
+    {
+      "ticker": "COIN",
+      "name": "Financials",
+      "sector": "Financials",
+      "model_family": "sector",
+      "dvol_rank": 33,
+      "dollar_volume": 2517854634.864807,
+      "action": "觀望",
+      "side": 0,
+      "reason": "recent_close_mae_too_high",
+      "asof": "2026-09-14",
+      "last_bar_date": "2026-09-14",
+      "prior_close": 191.4499969482422,
+      "entry": "無",
+      "entry_px": null,
+      "tp": null,
+      "sl": null,
+      "pred": {
+        "high": {
+          "q10": 191.08496339081157,
+          "q50": 196.1283095098723,
+          "q90": 202.33810595156817,
+          "q10_ret": -0.001906678314177754,
+          "q50_ret": 0.024436211210256076,
+          "q90_ret": 0.056871816019247776
+        },
+        "low": {
+          "q10": 180.67120800016687,
+          "q50": 187.76598709897303,
+          "q90": 191.97974907397412,
+          "q10_ret": -0.05630080501379862,
+          "q50_ret": -0.019242673846921566,
+          "q90_ret": 0.0027670521503070423
+        },
+        "close": {
+          "q10": 182.19806042219724,
+          "q50": 191.1934811183255,
+          "q90": 199.4084812379809,
+          "q10_ret": -0.048325602891214375,
+          "q50_ret": -0.0013398581039728264,
+          "q90_ret": 0.04156951902114821
+        }
+      },
+      "baseline": {
+        "high_q50": 203.10142626081193,
+        "low_q50": 179.79856763567244,
+        "close_q50": 191.4499969482422
+      },
+      "atr": 11.651429312569755,
+      "high_confidence": false,
+      "beats_baseline": true,
+      "beats_range": true,
+      "strategy": "fade_to_prior_close",
+      "recent_error": {
+        "n": 19,
+        "mae_close_ret": 0.049341138878949996,
+        "mae_close_px": 8.612888760482363,
+        "scope": "recent"
+      },
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
     },
@@ -3851,7 +3295,68 @@
         "mae_close_px": 1.3523575488461026,
         "scope": "recent"
       },
-      "size_scale": 1.0,
+      "data_source": "Yahoo Finance",
+      "universe_source": "S&P 500 · Wikipedia 2026-09-12"
+    },
+    {
+      "ticker": "NOW",
+      "name": "Information Technology",
+      "sector": "Information Technology",
+      "model_family": "sector",
+      "dvol_rank": 35,
+      "dollar_volume": 2480320741.3482666,
+      "action": "觀望",
+      "side": 0,
+      "reason": "recent_close_mae_too_high",
+      "asof": "2026-09-14",
+      "last_bar_date": "2026-09-14",
+      "prior_close": 142.35000610351562,
+      "entry": "無",
+      "entry_px": null,
+      "tp": null,
+      "sl": null,
+      "pred": {
+        "high": {
+          "q10": 141.62415536439394,
+          "q50": 145.1813871568135,
+          "q90": 149.1067928149466,
+          "q10_ret": -0.0050990566069512334,
+          "q50_ret": 0.019890277006654442,
+          "q90_ret": 0.04746600928501189
+        },
+        "low": {
+          "q10": 135.63957207405474,
+          "q50": 139.7368618867024,
+          "q90": 142.87740814777237,
+          "q10_ret": -0.047140384557350305,
+          "q50_ret": -0.018357176710712516,
+          "q90_ret": 0.003704966783585812
+        },
+        "close": {
+          "q10": 137.6886060272791,
+          "q50": 142.20032851786976,
+          "q90": 147.0942322318058,
+          "q10_ret": -0.03274604760358629,
+          "q50_ret": -0.001051475793664598,
+          "q90_ret": 0.03332789550314591
+        }
+      },
+      "baseline": {
+        "high_q50": 149.48286165509904,
+        "low_q50": 135.2171505519322,
+        "close_q50": 142.35000610351562
+      },
+      "atr": 7.132855551583426,
+      "high_confidence": false,
+      "beats_baseline": true,
+      "beats_range": true,
+      "strategy": "fade_to_prior_close",
+      "recent_error": {
+        "n": 19,
+        "mae_close_ret": 0.03281670120295683,
+        "mae_close_px": 4.381252871781061,
+        "scope": "recent"
+      },
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
     },
@@ -3914,7 +3419,6 @@
         "mae_close_px": 16.443966217709367,
         "scope": "recent"
       },
-      "size_scale": 1.0,
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
     },
@@ -3977,7 +3481,6 @@
         "mae_close_px": 3.2709314132055676,
         "scope": "recent"
       },
-      "size_scale": 1.0,
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
     },
@@ -4040,7 +3543,6 @@
         "mae_close_px": 1.9272659942072723,
         "scope": "recent"
       },
-      "size_scale": 1.0,
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
     },
@@ -4103,7 +3605,6 @@
         "mae_close_px": 13.677020538188204,
         "scope": "recent"
       },
-      "size_scale": 1.0,
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
     },
@@ -4166,7 +3667,6 @@
         "mae_close_px": 1.3660356512198517,
         "scope": "recent"
       },
-      "size_scale": 1.0,
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
     },
@@ -4229,7 +3729,6 @@
         "mae_close_px": 2.1900426773279684,
         "scope": "recent"
       },
-      "size_scale": 1.0,
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
     },
@@ -4292,7 +3791,68 @@
         "mae_close_px": 1.820094804775501,
         "scope": "recent"
       },
-      "size_scale": 1.0,
+      "data_source": "Yahoo Finance",
+      "universe_source": "S&P 500 · Wikipedia 2026-09-12"
+    },
+    {
+      "ticker": "HOOD",
+      "name": "Financials",
+      "sector": "Financials",
+      "model_family": "sector",
+      "dvol_rank": 45,
+      "dollar_volume": 1946136724.168396,
+      "action": "觀望",
+      "side": 0,
+      "reason": "recent_close_mae_too_high",
+      "asof": "2026-09-14",
+      "last_bar_date": "2026-09-14",
+      "prior_close": 114.33000183105469,
+      "entry": "無",
+      "entry_px": null,
+      "tp": null,
+      "sl": null,
+      "pred": {
+        "high": {
+          "q10": 114.036070957964,
+          "q50": 116.73601956316718,
+          "q90": 120.5951504637185,
+          "q10_ret": -0.0025708988750392475,
+          "q50_ret": 0.02104450007503598,
+          "q90_ret": 0.054798815116978684
+        },
+        "low": {
+          "q10": 107.98344359390109,
+          "q50": 112.39695440468347,
+          "q90": 114.64635890846593,
+          "q10_ret": -0.05551087322234026,
+          "q50_ret": -0.016907613009817638,
+          "q90_ret": 0.0027670521503070423
+        },
+        "close": {
+          "q10": 109.77034308637306,
+          "q50": 114.17681585157412,
+          "q90": 118.70870698303654,
+          "q10_ret": -0.03988155927277452,
+          "q50_ret": -0.0013398581039728264,
+          "q90_ret": 0.038298828670117996
+        }
+      },
+      "baseline": {
+        "high_q50": 120.8067877633231,
+        "low_q50": 107.85321589878627,
+        "close_q50": 114.33000183105469
+      },
+      "atr": 6.476785932268415,
+      "high_confidence": false,
+      "beats_baseline": true,
+      "beats_range": true,
+      "strategy": "fade_to_prior_close",
+      "recent_error": {
+        "n": 19,
+        "mae_close_ret": 0.04082707145768411,
+        "mae_close_px": 4.287220989639287,
+        "scope": "recent"
+      },
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
     },
@@ -4355,7 +3915,6 @@
         "mae_close_px": 13.698398585910459,
         "scope": "recent"
       },
-      "size_scale": 1.0,
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
     },
@@ -4418,7 +3977,6 @@
         "mae_close_px": 4.932100855943711,
         "scope": "recent"
       },
-      "size_scale": 1.0,
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
     },
@@ -4481,7 +4039,68 @@
         "mae_close_px": 9.603521038891158,
         "scope": "recent"
       },
-      "size_scale": 1.0,
+      "data_source": "Yahoo Finance",
+      "universe_source": "S&P 500 · Wikipedia 2026-09-12"
+    },
+    {
+      "ticker": "HPE",
+      "name": "Information Technology",
+      "sector": "Information Technology",
+      "model_family": "sector",
+      "dvol_rank": 51,
+      "dollar_volume": 1726265299.2462158,
+      "action": "觀望",
+      "side": 0,
+      "reason": "recent_close_mae_too_high",
+      "asof": "2026-09-14",
+      "last_bar_date": "2026-09-14",
+      "prior_close": 55.40999984741211,
+      "entry": "無",
+      "entry_px": null,
+      "tp": null,
+      "sl": null,
+      "pred": {
+        "high": {
+          "q10": 55.08269014215223,
+          "q50": 56.88536576493486,
+          "q90": 59.64046556350446,
+          "q10_ret": -0.005907051185006795,
+          "q50_ret": 0.026626347619303617,
+          "q90_ret": 0.0763484159491463
+        },
+        "low": {
+          "q10": 51.76766875914719,
+          "q50": 54.16250431799486,
+          "q90": 56.141090812008485,
+          "q10_ret": -0.0657341833296365,
+          "q50_ret": -0.022513906025132556,
+          "q90_ret": 0.013194206219268161
+        },
+        "close": {
+          "q10": 53.229559777992016,
+          "q50": 55.32931679688359,
+          "q90": 58.31090517473935,
+          "q10_ret": -0.03935102103274839,
+          "q50_ret": -0.001456109921506983,
+          "q90_ret": 0.05235346210640206
+        }
+      },
+      "baseline": {
+        "high_q50": 59.18142809186663,
+        "low_q50": 51.63857160295759,
+        "close_q50": 55.40999984741211
+      },
+      "atr": 3.77142824445452,
+      "high_confidence": false,
+      "beats_baseline": true,
+      "beats_range": true,
+      "strategy": "fade_to_prior_close",
+      "recent_error": {
+        "n": 19,
+        "mae_close_ret": 0.04130216076607868,
+        "mae_close_px": 2.296821032776666,
+        "scope": "recent"
+      },
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
     },
@@ -4544,7 +4163,6 @@
         "mae_close_px": 4.629360429623684,
         "scope": "recent"
       },
-      "size_scale": 1.0,
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
     },
@@ -4607,7 +4225,6 @@
         "mae_close_px": 6.004453914770262,
         "scope": "recent"
       },
-      "size_scale": 0.8645201704911861,
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
     },
@@ -4670,7 +4287,68 @@
         "mae_close_px": 5.898852657016045,
         "scope": "recent"
       },
-      "size_scale": 1.0,
+      "data_source": "Yahoo Finance",
+      "universe_source": "S&P 500 · Wikipedia 2026-09-12"
+    },
+    {
+      "ticker": "TER",
+      "name": "Information Technology",
+      "sector": "Information Technology",
+      "model_family": "sector",
+      "dvol_rank": 56,
+      "dollar_volume": 1608635859.6496582,
+      "action": "觀望",
+      "side": 0,
+      "reason": "recent_close_mae_too_high",
+      "asof": "2026-09-14",
+      "last_bar_date": "2026-09-14",
+      "prior_close": 329.20001220703125,
+      "entry": "無",
+      "entry_px": null,
+      "tp": null,
+      "sl": null,
+      "pred": {
+        "high": {
+          "q10": 327.4699974169259,
+          "q50": 337.18030885534074,
+          "q90": 347.14817385356685,
+          "q10_ret": -0.0052552087665701745,
+          "q50_ret": 0.02424148345198349,
+          "q90_ret": 0.054520537609361146
+        },
+        "low": {
+          "q10": 308.2684620873726,
+          "q50": 322.7600007596447,
+          "q90": 330.8408988462597,
+          "q10_ret": -0.06358307820017624,
+          "q50_ret": -0.019562609989626858,
+          "q90_ret": 0.004984467127530196
+        },
+        "close": {
+          "q10": 315.3491211296726,
+          "q50": 328.72066080309634,
+          "q90": 344.4217728477676,
+          "q10_ret": -0.042074394179086295,
+          "q50_ret": -0.001456109921506983,
+          "q90_ret": 0.04623863935692541
+        }
+      },
+      "baseline": {
+        "high_q50": 348.3778664725167,
+        "low_q50": 310.02215794154574,
+        "close_q50": 329.20001220703125
+      },
+      "atr": 19.17785426548549,
+      "high_confidence": false,
+      "beats_baseline": true,
+      "beats_range": true,
+      "strategy": "fade_to_prior_close",
+      "recent_error": {
+        "n": 19,
+        "mae_close_ret": 0.03709900966458973,
+        "mae_close_px": 14.067009041211625,
+        "scope": "recent"
+      },
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
     },
@@ -4733,7 +4411,6 @@
         "mae_close_px": 13.611317280037046,
         "scope": "recent"
       },
-      "size_scale": 0.25,
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
     },
@@ -4796,7 +4473,6 @@
         "mae_close_px": 2.392954137942983,
         "scope": "recent"
       },
-      "size_scale": 1.0,
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
     },
@@ -4859,7 +4535,68 @@
         "mae_close_px": 1.1355847118970168,
         "scope": "recent"
       },
-      "size_scale": 1.0,
+      "data_source": "Yahoo Finance",
+      "universe_source": "S&P 500 · Wikipedia 2026-09-12"
+    },
+    {
+      "ticker": "SMCI",
+      "name": "Information Technology",
+      "sector": "Information Technology",
+      "model_family": "sector",
+      "dvol_rank": 61,
+      "dollar_volume": 1463486530.859375,
+      "action": "觀望",
+      "side": 0,
+      "reason": "recent_close_mae_too_high",
+      "asof": "2026-09-14",
+      "last_bar_date": "2026-09-14",
+      "prior_close": 36.7400016784668,
+      "entry": "無",
+      "entry_px": null,
+      "tp": null,
+      "sl": null,
+      "pred": {
+        "high": {
+          "q10": 36.532438323551034,
+          "q50": 37.60570734913167,
+          "q90": 38.69228422818275,
+          "q10_ret": -0.00564951947286979,
+          "q50_ret": 0.023563027520825248,
+          "q90_ret": 0.05313779152220845
+        },
+        "low": {
+          "q10": 34.70456819110056,
+          "q50": 36.061302438750964,
+          "q90": 36.965429319041135,
+          "q10_ret": -0.05540101781103613,
+          "q50_ret": -0.01847303235463967,
+          "q90_ret": 0.006135754770704416
+        },
+        "close": {
+          "q10": 35.46061832866856,
+          "q50": 36.68650419750659,
+          "q90": 38.08349325606495,
+          "q10_ret": -0.03482262632960299,
+          "q50_ret": -0.001456109921506983,
+          "q90_ret": 0.03656754262985155
+        }
+      },
+      "baseline": {
+        "high_q50": 39.00214440482004,
+        "low_q50": 34.47785895211356,
+        "close_q50": 36.7400016784668
+      },
+      "atr": 2.2621427263532365,
+      "high_confidence": false,
+      "beats_baseline": true,
+      "beats_range": true,
+      "strategy": "fade_to_prior_close",
+      "recent_error": {
+        "n": 19,
+        "mae_close_ret": 0.034270708973573066,
+        "mae_close_px": 1.296273826086225,
+        "scope": "recent"
+      },
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
     },
@@ -4922,7 +4659,6 @@
         "mae_close_px": 5.1592500497226,
         "scope": "recent"
       },
-      "size_scale": 1.0,
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
     },
@@ -4985,7 +4721,6 @@
         "mae_close_px": 4.193155723316163,
         "scope": "recent"
       },
-      "size_scale": 1.0,
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
     },
@@ -5048,7 +4783,6 @@
         "mae_close_px": 0.9193260084299225,
         "scope": "recent"
       },
-      "size_scale": 1.0,
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
     },
@@ -5111,7 +4845,6 @@
         "mae_close_px": 1.3054167530787946,
         "scope": "recent"
       },
-      "size_scale": 1.0,
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
     },
@@ -5174,7 +4907,6 @@
         "mae_close_px": 1.1941515132458767,
         "scope": "recent"
       },
-      "size_scale": 1.0,
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
     },
@@ -5237,7 +4969,6 @@
         "mae_close_px": 3.1917053020222936,
         "scope": "recent"
       },
-      "size_scale": 1.0,
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
     },
@@ -5300,7 +5031,6 @@
         "mae_close_px": 0.7664385835800045,
         "scope": "recent"
       },
-      "size_scale": 1.0,
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
     },
@@ -5363,7 +5093,6 @@
         "mae_close_px": 9.871831804506805,
         "scope": "recent"
       },
-      "size_scale": 0.4053728595586946,
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
     },
@@ -5426,7 +5155,6 @@
         "mae_close_px": 3.473802767978681,
         "scope": "recent"
       },
-      "size_scale": 1.0,
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
     },
@@ -5489,7 +5217,6 @@
         "mae_close_px": 2.8822821023288085,
         "scope": "recent"
       },
-      "size_scale": 0.8026517364329357,
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
     },
@@ -5552,7 +5279,6 @@
         "mae_close_px": 7.36654398599282,
         "scope": "recent"
       },
-      "size_scale": 1.0,
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
     },
@@ -5615,7 +5341,68 @@
         "mae_close_px": 0.2662326837915112,
         "scope": "recent"
       },
-      "size_scale": 1.0,
+      "data_source": "Yahoo Finance",
+      "universe_source": "S&P 500 · Wikipedia 2026-09-12"
+    },
+    {
+      "ticker": "FTNT",
+      "name": "Information Technology",
+      "sector": "Information Technology",
+      "model_family": "sector",
+      "dvol_rank": 85,
+      "dollar_volume": 1009082266.5710449,
+      "action": "觀望",
+      "side": 0,
+      "reason": "recent_close_mae_too_high",
+      "asof": "2026-09-14",
+      "last_bar_date": "2026-09-14",
+      "prior_close": 170.17999267578125,
+      "entry": "無",
+      "entry_px": null,
+      "tp": null,
+      "sl": null,
+      "pred": {
+        "high": {
+          "q10": 169.18035305504688,
+          "q50": 173.64398500131315,
+          "q90": 179.85268551589573,
+          "q10_ret": -0.005874013772223155,
+          "q50_ret": 0.020354874101630404,
+          "q90_ret": 0.05683801419913337
+        },
+        "low": {
+          "q10": 160.13533606694466,
+          "q50": 166.85745467491083,
+          "q90": 171.59240444924683,
+          "q10_ret": -0.059023722183213286,
+          "q50_ret": -0.019523669901669226,
+          "q90_ret": 0.00829951718329457
+        },
+        "close": {
+          "q10": 163.22596159440238,
+          "q50": 170.00105253291665,
+          "q90": 176.1211058912548,
+          "q10_ret": -0.04086280045050513,
+          "q50_ret": -0.001051475793664598,
+          "q90_ret": 0.03491076196478791
+        }
+      },
+      "baseline": {
+        "high_q50": 178.04356384277344,
+        "low_q50": 162.31642150878906,
+        "close_q50": 170.17999267578125
+      },
+      "atr": 7.8635711669921875,
+      "high_confidence": false,
+      "beats_baseline": true,
+      "beats_range": true,
+      "strategy": "fade_to_prior_close",
+      "recent_error": {
+        "n": 19,
+        "mae_close_ret": 0.02720744772433172,
+        "mae_close_px": 4.350674381862303,
+        "scope": "recent"
+      },
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
     },
@@ -5678,7 +5465,6 @@
         "mae_close_px": 5.59287406467125,
         "scope": "recent"
       },
-      "size_scale": 0.806326853379556,
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
     },
@@ -5741,7 +5527,6 @@
         "mae_close_px": 0.4108050306274442,
         "scope": "recent"
       },
-      "size_scale": 1.0,
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
     },
@@ -5804,7 +5589,6 @@
         "mae_close_px": 0.4001856418264841,
         "scope": "recent"
       },
-      "size_scale": 1.0,
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
     },
@@ -5867,7 +5651,6 @@
         "mae_close_px": 1.1977893085202964,
         "scope": "recent"
       },
-      "size_scale": 0.26327104407833046,
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
     },
@@ -5930,7 +5713,6 @@
         "mae_close_px": 5.994395698756284,
         "scope": "recent"
       },
-      "size_scale": 1.0,
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
     },
@@ -5993,7 +5775,6 @@
         "mae_close_px": 6.926983687686043,
         "scope": "recent"
       },
-      "size_scale": 1.0,
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
     },
@@ -6056,7 +5837,6 @@
         "mae_close_px": 0.5940302751031503,
         "scope": "recent"
       },
-      "size_scale": 1.0,
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
     },
@@ -6119,7 +5899,6 @@
         "mae_close_px": 2.7206687300793404,
         "scope": "recent"
       },
-      "size_scale": 1.0,
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
     },
@@ -6182,7 +5961,6 @@
         "mae_close_px": 1.39569866119548,
         "scope": "recent"
       },
-      "size_scale": 1.0,
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
     },
@@ -6245,7 +6023,130 @@
         "mae_close_px": 6.356811667955222,
         "scope": "recent"
       },
-      "size_scale": 0.901422485664541,
+      "data_source": "Yahoo Finance",
+      "universe_source": "S&P 500 · Wikipedia 2026-09-12"
+    },
+    {
+      "ticker": "ON",
+      "name": "Information Technology",
+      "sector": "Information Technology",
+      "model_family": "sector",
+      "dvol_rank": 98,
+      "dollar_volume": 889563428.944397,
+      "action": "觀望",
+      "side": 0,
+      "reason": "recent_close_mae_too_high",
+      "asof": "2026-09-14",
+      "last_bar_date": "2026-09-14",
+      "prior_close": 71.6500015258789,
+      "entry": "無",
+      "entry_px": null,
+      "tp": null,
+      "sl": null,
+      "pred": {
+        "high": {
+          "q10": 71.34258089680505,
+          "q50": 72.96658030034205,
+          "q90": 74.59996482125705,
+          "q10_ret": -0.0042905878929090984,
+          "q50_ret": 0.018375139517444464,
+          "q90_ret": 0.04117185251297808
+        },
+        "low": {
+          "q10": 68.34045074425934,
+          "q50": 70.43338705946876,
+          "q90": 71.8574175240057,
+          "q10_ret": -0.04619051934596548,
+          "q50_ret": -0.01697996427774982,
+          "q90_ret": 0.002894849877314775
+        },
+        "close": {
+          "q10": 69.53139937401156,
+          "q50": 71.54567124778109,
+          "q90": 73.96772338156563,
+          "q10_ret": -0.029568766318897356,
+          "q50_ret": -0.001456109921506983,
+          "q90_ret": 0.03234782702481317
+        }
+      },
+      "baseline": {
+        "high_q50": 74.42000143868583,
+        "low_q50": 68.88000161307198,
+        "close_q50": 71.6500015258789
+      },
+      "atr": 2.7699999128069197,
+      "high_confidence": false,
+      "beats_baseline": true,
+      "beats_range": true,
+      "strategy": "fade_to_prior_close",
+      "recent_error": {
+        "n": 19,
+        "mae_close_ret": 0.02558172550429236,
+        "mae_close_px": 1.9154794779757989,
+        "scope": "recent"
+      },
+      "data_source": "Yahoo Finance",
+      "universe_source": "S&P 500 · Wikipedia 2026-09-12"
+    },
+    {
+      "ticker": "SWKS",
+      "name": "Information Technology",
+      "sector": "Information Technology",
+      "model_family": "sector",
+      "dvol_rank": 99,
+      "dollar_volume": 884826959.8480225,
+      "action": "觀望",
+      "side": 0,
+      "reason": "recent_close_mae_too_high",
+      "asof": "2026-09-14",
+      "last_bar_date": "2026-09-14",
+      "prior_close": 79.26000213623047,
+      "entry": "無",
+      "entry_px": null,
+      "tp": null,
+      "sl": null,
+      "pred": {
+        "high": {
+          "q10": 78.82114205518222,
+          "q50": 81.30443299393228,
+          "q90": 83.91615734717799,
+          "q10_ret": -0.005536967817562622,
+          "q50_ret": 0.025793979341407026,
+          "q90_ret": 0.058745332897476084
+        },
+        "low": {
+          "q10": 73.96098962508343,
+          "q50": 77.64636798424483,
+          "q90": 79.8078669345508,
+          "q10_ret": -0.06685607328194616,
+          "q50_ret": -0.02035874474507524,
+          "q90_ret": 0.006912248089252787
+        },
+        "close": {
+          "q10": 75.70764136199891,
+          "q50": 79.14459086074123,
+          "q90": 82.44966244996782,
+          "q10_ret": -0.04481908501750777,
+          "q50_ret": -0.001456109921506983,
+          "q90_ret": 0.040243000602687706
+        }
+      },
+      "baseline": {
+        "high_q50": 83.81714548383441,
+        "low_q50": 74.70285878862654,
+        "close_q50": 79.26000213623047
+      },
+      "atr": 4.557143347603934,
+      "high_confidence": false,
+      "beats_baseline": true,
+      "beats_range": true,
+      "strategy": "fade_to_prior_close",
+      "recent_error": {
+        "n": 19,
+        "mae_close_ret": 0.02810417799834596,
+        "mae_close_px": 2.123761584055649,
+        "scope": "recent"
+      },
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
     },
@@ -6308,7 +6209,6 @@
         "mae_close_px": 1.192208435422663,
         "scope": "recent"
       },
-      "size_scale": 1.0,
       "data_source": "Yahoo Finance",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
     }

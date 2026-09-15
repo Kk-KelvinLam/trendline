@@ -15,13 +15,12 @@ from trendline.config import (
     CLOSE_GATE_FAMILIES,
     RECENT_CLOSE_MAE_MAX,
     RECENT_CLOSE_MAE_SOFT,
-    RECENT_MAE_SIZE_MIN,
     RECENT_ERROR_MIN_N,
     RECENT_ERROR_WINDOW,
     SHOW_TOP_N,
     recent_close_error_path,
 )
-from trendline.range_touch import choose_setup
+from trendline.range_touch import FadeSetup, choose_setup
 from trendline.models.baseline import BaselineModel
 from trendline.models.families import SectorBundle, SharedBundle, StockBundle, pred_col
 from trendline.models.lightgbm_quantile import QuantileLGBM
@@ -196,31 +195,20 @@ def _recent_error(
     }
 
 
-def recent_mae_size_scale(err: dict | None) -> float:
-    """Map recent Close MAE → paper size multiplier in [RECENT_MAE_SIZE_MIN, 1].
-
-    Below SOFT: 1.0. At/above MAX: RECENT_MAE_SIZE_MIN. Linear in between.
-    Walk-forward / missing recent → 1.0 (do not shrink on long-run MAE).
-    """
-    if not err:
-        return 1.0
+def _apply_recent_mae_decision(setup: FadeSetup, err: dict) -> FadeSetup:
+    """Hard-flat when trusted recent Close MAE is too high."""
+    if setup.side == 0:
+        return setup
     if err.get("scope") != "recent":
-        return 1.0
+        return setup
     if int(err.get("n") or 0) < int(RECENT_ERROR_MIN_N):
-        return 1.0
+        return setup
     mae = err.get("mae_close_ret")
     if mae is None or not np.isfinite(mae):
-        return 1.0
-    mae = float(mae)
-    soft = float(RECENT_CLOSE_MAE_SOFT)
-    hard = float(RECENT_CLOSE_MAE_MAX)
-    floor = float(RECENT_MAE_SIZE_MIN)
-    if mae <= soft:
-        return 1.0
-    if hard <= soft or mae >= hard:
-        return floor
-    t = (mae - soft) / (hard - soft)
-    return float(1.0 - t * (1.0 - floor))
+        return setup
+    if float(mae) > float(RECENT_CLOSE_MAE_MAX):
+        return FadeSetup(0, float("nan"), float("nan"), float("nan"), 0.0, "recent_close_mae_too_high")
+    return setup
 
 
 class FamilyPredictor:
@@ -372,7 +360,7 @@ def build_cards(
         )
         q50c_gate = q50c if family in CLOSE_GATE_FAMILIES else None
         setup = choose_setup(close, atr, q50h, q50l, q10l, q90h, range_ok, q50c=q50c_gate)
-        size_scale = recent_mae_size_scale(err)
+        setup = _apply_recent_mae_decision(setup, err)
         action = "觀望"
         side = setup.side
         reason = setup.reason
@@ -446,7 +434,6 @@ def build_cards(
                 "beats_range": bool(beat.get(ticker, False)),
                 "strategy": "fade_to_prior_close",
                 "recent_error": err,
-                "size_scale": float(size_scale),
                 "data_source": _ticker_source(ohlcv, ticker, asof),
                 "universe_source": "S&P 500 · Wikipedia 2026-09-12",
             }

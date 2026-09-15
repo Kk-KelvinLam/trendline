@@ -230,14 +230,7 @@ def _size_book(ranked: list, equity_usd: float) -> list[dict]:
         raw = [(s, c, e, d, rf * scale) for s, c, e, d, rf in raw]
     out = []
     for s, c, entry, dist, risk_frac in raw:
-        # Soft recent-MAE shrink: cards may carry size_scale in (0, 1]
-        try:
-            mae_scale = float(c.get("size_scale") if c.get("size_scale") is not None else 1.0)
-        except (TypeError, ValueError):
-            mae_scale = 1.0
-        if not (mae_scale > 0):
-            mae_scale = 1.0
-        risk_usd = equity_usd * risk_frac * min(1.0, mae_scale)
+        risk_usd = equity_usd * risk_frac
         shares = int(math.floor(risk_usd / dist))
         cap_shares = int(math.floor(equity_usd * PAPER_MAX_NAME_FRAC / entry))
         shares = min(shares, cap_shares)
