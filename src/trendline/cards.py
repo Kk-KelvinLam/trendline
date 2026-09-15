@@ -107,6 +107,18 @@ def _naive_midnight(values) -> pd.Series | pd.Timestamp:
     return ts.normalize()
 
 
+def _last_bar_dates(ohlcv: pd.DataFrame) -> dict[str, str]:
+    """Map ticker → max OHLCV date (ISO YYYY-MM-DD), dates normalized like asof."""
+    if ohlcv is None or getattr(ohlcv, "empty", True):
+        return {}
+    if "ticker" not in ohlcv.columns or "date" not in ohlcv.columns:
+        return {}
+    df = ohlcv[["ticker", "date"]].copy()
+    df["date"] = _naive_midnight(df["date"])
+    grouped = df.groupby("ticker", sort=False)["date"].max()
+    return {str(t): str(pd.Timestamp(d).date()) for t, d in grouped.items()}
+
+
 def latest_card_asof(featured: pd.DataFrame) -> pd.Timestamp:
     """Latest session with ready *S&P* features — skip macro-only / thin days.
 
@@ -169,6 +181,7 @@ def build_cards(
     beat = dict(zip(per_ticker["ticker"], per_ticker[beat_col], strict=False))
     rank_map = dict(zip(ranked["ticker"], ranked["dvol_rank"], strict=False))
     dvol_map = dict(zip(ranked["ticker"], ranked["dollar_volume"], strict=False))
+    last_bar_map = _last_bar_dates(ohlcv)
 
     cards = []
     for row in day.itertuples(index=False):
@@ -204,6 +217,7 @@ def build_cards(
                 "side": side,
                 "reason": reason,
                 "asof": str(asof.date()),
+                "last_bar_date": last_bar_map.get(ticker),
                 "prior_close": close,
                 "entry": "盤中觸價" if side else "無",
                 "entry_px": None if entry_px is None else float(entry_px),
