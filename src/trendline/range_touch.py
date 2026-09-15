@@ -1,6 +1,7 @@
 """Intraday fade: touch predicted High/Low, take profit at prior close.
 
-High-win-rate setup. Close direction is not used.
+High-win-rate setup. Close q50 gates fade side: long needs pred close >= prior,
+short needs pred close <= prior (fade room alone is not enough).
 Paper ledger prefers RTH 5-minute bars (``fill_fade_bars``); daily OHLC
 ``fill_fade`` remains the walk-forward / missing-5m fallback.
 Conservative fill: if stop and target both print in the same bar, stop wins.
@@ -86,8 +87,13 @@ def choose_setup(
     q10l: float,
     q90h: float,
     allowed: bool,
+    q50c: float | None = None,
 ) -> FadeSetup:
-    """Pick the fade side with more room back to prior close."""
+    """Pick fade side with more room back to prior close, gated by Close q50.
+
+    Long only if predicted next close is at/above prior close (q50c >= 0).
+    Short only if predicted next close is at/below prior close (q50c <= 0).
+    """
     if not allowed:
         return FadeSetup(0, float("nan"), float("nan"), float("nan"), 0.0, "range_model_does_not_beat_baseline")
     if not np.isfinite(close) or close <= 0 or not np.isfinite(atr) or atr <= 0:
@@ -101,10 +107,18 @@ def choose_setup(
     long_ok = np.isfinite(le) and lroom >= min_room and lsl < le < close
     short_ok = np.isfinite(se) and sroom >= min_room and close < se < ssl
 
+    close_gate = q50c is not None and np.isfinite(q50c)
+    if close_gate:
+        long_ok = long_ok and float(q50c) >= 0.0
+        short_ok = short_ok and float(q50c) <= 0.0
+
     if long_ok and (not short_ok or lroom >= sroom):
         return FadeSetup(1, float(le), float(ltp), float(lsl), float(lroom), "fade_to_prior_close")
     if short_ok:
         return FadeSetup(-1, float(se), float(stp), float(ssl), float(sroom), "fade_to_prior_close")
+    if close_gate and (np.isfinite(le) or np.isfinite(se)):
+        # Had a room-eligible side that Close vetoed (or both sides vetoed).
+        return FadeSetup(0, float("nan"), float("nan"), float("nan"), 0.0, "close_disagrees_with_fade")
     return FadeSetup(0, float("nan"), float("nan"), float("nan"), 0.0, "fade_room_too_small")
 
 
