@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root { color-scheme: dark light; }
+    html, body {
+      margin: 0; padding: 0;
+      background: transparent;
+      font-family: "Source Sans Pro", "Segoe UI", sans-serif;
+    }
+    .row {
+      display: flex;
+      align-items: center;
+      flex-wrap: nowrap;
+      gap: 0.45rem;
+      width: 100%;
+      min-height: 2.4rem;
+      box-sizing: border-box;
+    }
+    .t { font-size: 1.35rem; font-weight: 700; white-space: nowrap; color: inherit; }
+    .a { font-size: 1.35rem; font-weight: 700; white-space: nowrap; }
+    .a.green { color: #2ecc71; }
+    .a.red { color: #e74c3c; }
+    .a.gray { color: #9ca3af; }
+    .conf { font-size: 0.85rem; opacity: 0.75; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .spacer { flex: 1 1 auto; min-width: 0.25rem; }
+    .pin {
+      flex: 0 0 auto;
+      width: 2.25rem;
+      height: 2.25rem;
+      border-radius: 999px;
+      border: 1px solid #4b5563;
+      background: #1f2937;
+      color: #f9fafb;
+      cursor: pointer;
+      font-size: 1rem;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
+      padding: 0;
+    }
+    .pin:hover { filter: brightness(1.15); }
+  </style>
+</head>
+<body>
+  <div class="row">
+    <span class="t" id="t"></span>
+    <span class="a gray" id="a"></span>
+    <span class="conf" id="c"></span>
+    <span class="spacer"></span>
+    <button class="pin" id="pin" type="button" aria-label="pin">📌</button>
+  </div>
+  <script>
+    function sendMessage(type, data) {
+      parent.postMessage(Object.assign({ isStreamlitMessage: true, type: type }, data || {}), "*");
+    }
+    function setHeight(h) { sendMessage("streamlit:setFrameHeight", { height: h }); }
+    function setValue(v) { sendMessage("streamlit:setComponentValue", { value: v }); }
+    function onRender(event) {
+      const msg = event.data;
+      if (!msg || msg.type !== "streamlit:render") return;
+      const d = msg.args || {};
+      document.getElementById("t").textContent = d.ticker || "";
+      const a = document.getElementById("a");
+      const act = d.action || "";
+      a.textContent = act;
+      a.className = "a " + (d.color || "gray");
+      a.style.display = act ? "" : "none";
+      document.getElementById("c").textContent = d.conf || "";
+      const pinned = !!d.pinned;
+      const pin = document.getElementById("pin");
+      pin.textContent = pinned ? "📍" : "📌";
+      pin.title = pinned ? "取消釘選" : "釘選對照";
+      setHeight(Math.max(40, document.body.scrollHeight));
+    }
+    document.getElementById("pin").addEventListener("click", function () {
+      setValue("toggle");
+    });
+    window.addEventListener("message", onRender);
+    sendMessage("streamlit:componentReady", { apiVersion: 1 });
+    setHeight(40);
+  </script>
+</body>
+</html>

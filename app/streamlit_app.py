@@ -7,6 +7,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
+sys.path.insert(0, str(ROOT / "app"))
 
 import pandas as pd
 import streamlit as st
@@ -32,6 +33,7 @@ from trendline.config import (
     LEDGER_PATH,
 )
 from trendline.ledger import ledger_view
+from components.tl_widgets import card_head, search_bar
 
 
 st.set_page_config(page_title="Trendline · 美股翌日預測", page_icon="📈", layout="wide")
@@ -412,33 +414,14 @@ def main() -> None:
     search_key = f"search_{key}"
     if search_key not in st.session_state:
         st.session_state[search_key] = ""
-    # Two columns only — no :has() CSS (that broke the card grid).
-    search_col, clear_col = st.columns([6, 1], gap="small")
-    with search_col:
-        st.markdown('<div class="tl-search-mark"></div>', unsafe_allow_html=True)
-        if st_keyup is not None:
-            search_q = st_keyup(
-                "搜尋",
-                placeholder="搜尋股票代號（例如 NVDA）",
-                key=search_key,
-                debounce=150,
-            )
-        else:
-            search_q = st.text_input(
-                "搜尋",
-                placeholder="搜尋股票代號（例如 NVDA）",
-                key=search_key,
-            )
-    with clear_col:
-        st.caption("")  # optical align with labeled input
-        st.button(
-            "清除",
-            key=f"clear_search_{key}",
-            use_container_width=True,
-            disabled=not bool((st.session_state.get(search_key) or "").strip()),
-            on_click=_clear_text_key,
-            args=(search_key,),
-        )
+    search_q = search_bar(
+        label="搜尋",
+        placeholder="搜尋股票代號（例如 NVDA）",
+        value=st.session_state.get(search_key, ""),
+        debounce=150,
+        key=f"tl_search_{key}",
+    )
+    st.session_state[search_key] = search_q or ""
     filt = st.radio("篩選", ["全部", "做多", "做空", "高信心"], horizontal=True, key=f"filt_{key}")
 
     cards = cards_payload.get("cards", [])
@@ -736,30 +719,21 @@ def _render_card(card: dict, *, family: str = "shared") -> None:
     ticker = str(card.get("ticker", "")).upper()
     pinned = _ensure_pinned_state()
     is_pinned = ticker in pinned
-    pin_key = f"pin_{family}_{ticker}"
-    conf_html = f'<span class="tl-conf">{conf}</span>' if conf else ""
-    pin_label = "📍" if is_pinned else "📌"
-    pin_help = "取消釘選" if is_pinned else "釘選對照"
-    # 2-col row: CSS nowrap only applies when exactly 2 columns (won't crush 3-col grid).
-    head_col, pin_col = st.columns([8, 1], gap="small")
-    with head_col:
-        st.markdown(
-            f'<div class="tl-card-head">'
-            f'<span class="tl-t">{ticker}</span>'
-            f'<span class="tl-a {color}">{action}</span>'
-            f"{conf_html}"
-            f"</div>",
-            unsafe_allow_html=True,
-        )
-    with pin_col:
-        # Key includes pin state so the label remounts (📌→📍) instead of sticking.
-        btn_key = f"{pin_key}_{'1' if is_pinned else '0'}"
-        if st.button(pin_label, key=btn_key, help=pin_help):
-            if is_pinned:
-                _unpin_ticker(ticker)
-            else:
-                _pin_ticker(ticker)
-            st.rerun()
+    conf_txt = conf.strip(" ·") if conf else ""
+    pin_event = card_head(
+        ticker=ticker,
+        action=action,
+        color=color,
+        conf=conf_txt,
+        pinned=is_pinned,
+        key=f"tl_head_{family}_{ticker}",
+    )
+    if pin_event == "toggle":
+        if is_pinned:
+            _unpin_ticker(ticker)
+        else:
+            _pin_ticker(ticker)
+        st.rerun()
     st.caption(
         f"#{card.get('dvol_rank', '—')} 成交額　·　{card.get('sector') or '—'}　·　"
         f"{'High/Low 優於基準' if card.get('beats_range', card.get('beats_baseline')) else 'High/Low 未優於該股基準'}"
@@ -857,25 +831,15 @@ def _render_pinned() -> None:
         st.session_state["pinned_add_input"] = ""
     if st.session_state.pop("_clear_pinned_add", False):
         st.session_state["pinned_add_input"] = ""
-    add_col, btn_col = st.columns([4, 1], gap="small")
-    with add_col:
-        st.markdown('<div class="tl-search-mark"></div>', unsafe_allow_html=True)
-        if st_keyup is not None:
-            add_q = st_keyup(
-                "手動釘選",
-                placeholder="輸入股票代號（例如 AAPL）",
-                key="pinned_add_input",
-                debounce=150,
-            )
-        else:
-            add_q = st.text_input(
-                "手動釘選",
-                placeholder="輸入股票代號（例如 AAPL）",
-                key="pinned_add_input",
-            )
-    with btn_col:
-        st.caption("")
-        add_clicked = st.button("加入", key="pinned_add_btn", use_container_width=True)
+    add_q = search_bar(
+        label="手動釘選",
+        placeholder="輸入股票代號（例如 AAPL）",
+        value=st.session_state.get("pinned_add_input", ""),
+        debounce=150,
+        key="tl_pinned_add",
+    )
+    st.session_state["pinned_add_input"] = add_q or ""
+    add_clicked = st.button("加入釘選", key="pinned_add_btn", use_container_width=True)
     if add_clicked:
         t = (add_q or "").strip().upper()
         if not t:
@@ -894,16 +858,17 @@ def _render_pinned() -> None:
 
     st.caption(f"已釘選 {len(pinned)} 隻")
     for ticker in pinned:
-        header_l, header_r = st.columns([8, 1], gap="small")
-        with header_l:
-            st.markdown(
-                f'<div class="tl-card-head"><span class="tl-t">{ticker}</span></div>',
-                unsafe_allow_html=True,
-            )
-        with header_r:
-            if st.button("📍", key=f"unpin_page_{ticker}_1", help="取消釘選"):
-                _unpin_ticker(ticker)
-                st.rerun()
+        pin_event = card_head(
+            ticker=ticker,
+            action="",
+            color="gray",
+            conf="",
+            pinned=True,
+            key=f"tl_unpin_{ticker}",
+        )
+        if pin_event == "toggle":
+            _unpin_ticker(ticker)
+            st.rerun()
 
         cards_by_fam = {fam: indexes[fam].get(ticker) for fam, _ in FAMILY_LABELS}
         actions = {

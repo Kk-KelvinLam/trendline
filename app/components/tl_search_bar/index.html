@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    html, body { margin: 0; padding: 0; background: transparent; font-family: "Source Sans Pro", "Segoe UI", sans-serif; }
+    .wrap { display: flex; flex-direction: column; gap: 0.25rem; width: 100%; }
+    label { font-size: 0.875rem; opacity: 0.9; }
+    .row { display: flex; align-items: center; flex-wrap: nowrap; gap: 0.5rem; width: 100%; }
+    input {
+      flex: 1 1 auto;
+      min-width: 0;
+      height: 2.4rem;
+      border-radius: 0.4rem;
+      border: 1px solid #4b5563;
+      background: #0e1117;
+      color: #fafafa;
+      padding: 0 0.75rem;
+      font-size: 1rem;
+      box-sizing: border-box;
+    }
+    button {
+      flex: 0 0 auto;
+      height: 2.4rem;
+      padding: 0 0.85rem;
+      border-radius: 0.4rem;
+      border: 1px solid #4b5563;
+      background: #262730;
+      color: #fafafa;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    button:disabled { opacity: 0.45; cursor: default; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <label id="lab">搜尋</label>
+    <div class="row">
+      <input id="q" type="text" autocomplete="off" spellcheck="false" />
+      <button id="clr" type="button">清除</button>
+    </div>
+  </div>
+  <script>
+    let debounceMs = 150;
+    let timer = null;
+    let lastSent = null;
+    function sendMessage(type, data) {
+      parent.postMessage(Object.assign({ isStreamlitMessage: true, type: type }, data || {}), "*");
+    }
+    function setHeight(h) { sendMessage("streamlit:setFrameHeight", { height: h }); }
+    function setValue(v) {
+      if (v === lastSent) return;
+      lastSent = v;
+      sendMessage("streamlit:setComponentValue", { value: v });
+    }
+    function syncClear() {
+      document.getElementById("clr").disabled = !(document.getElementById("q").value || "").trim();
+    }
+    function emitSoon() {
+      const v = document.getElementById("q").value || "";
+      syncClear();
+      clearTimeout(timer);
+      timer = setTimeout(function () { setValue(v); }, debounceMs);
+    }
+    function onRender(event) {
+      const msg = event.data;
+      if (!msg || msg.type !== "streamlit:render") return;
+      const d = msg.args || {};
+      if (d.label) document.getElementById("lab").textContent = d.label;
+      if (d.placeholder != null) document.getElementById("q").placeholder = d.placeholder;
+      if (typeof d.debounce === "number") debounceMs = d.debounce;
+      // Only set input from Python when it differs and user isn't mid-edit with newer local value
+      if (typeof d.value === "string" && d.value !== document.getElementById("q").value && !document.getElementById("q").matches(":focus")) {
+        document.getElementById("q").value = d.value;
+        lastSent = d.value;
+      }
+      syncClear();
+      setHeight(Math.max(72, document.body.scrollHeight));
+    }
+    document.getElementById("q").addEventListener("input", emitSoon);
+    document.getElementById("clr").addEventListener("click", function () {
+      document.getElementById("q").value = "";
+      syncClear();
+      clearTimeout(timer);
+      setValue("");
+    });
+    window.addEventListener("message", onRender);
+    sendMessage("streamlit:componentReady", { apiVersion: 1 });
+    setHeight(72);
+  </script>
+</body>
+</html>
