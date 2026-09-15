@@ -434,28 +434,40 @@ def _render_ledger() -> None:
     if not fills:
         st.info("未有成交。美股下一個完整時段收市後，Nightly 會自動記帳。")
     else:
-        st.caption("出入場時間為 America/New_York（5 分鐘 bar）；日 K 回退則可能空白。")
-        rows_f = []
-        for f in fills[::-1]:
-            rows_f.append(
-                {
-                    "session": f.get("session"),
-                    "asof": f.get("asof"),
-                    "family": f.get("family"),
-                    "ticker": f.get("ticker"),
-                    "side": f.get("side"),
-                    "shares": f.get("shares"),
-                    "entry": f.get("entry"),
-                    "exit": f.get("exit"),
-                    "入場時間": f.get("entry_ts") or "—",
-                    "出場時間": f.get("exit_ts") or "—",
-                    "reason": f.get("reason"),
-                    "fill_source": f.get("fill_source"),
-                    "pnl_hkd": f.get("pnl_hkd"),
-                    "fee_usd": f.get("fee_usd"),
-                }
-            )
-        st.dataframe(pd.DataFrame(rows_f), hide_index=True, use_container_width=True)
+        st.caption("按模型分頁。出入場時間為 America/New_York（5 分鐘 bar）；日 K 回退則可能空白。")
+
+        def _fill_rows(items: list[dict]) -> list[dict]:
+            rows = []
+            for f in items:
+                rows.append(
+                    {
+                        "session": f.get("session"),
+                        "asof": f.get("asof"),
+                        "ticker": f.get("ticker"),
+                        "side": f.get("side"),
+                        "shares": f.get("shares"),
+                        "entry": f.get("entry"),
+                        "exit": f.get("exit"),
+                        "入場時間": f.get("entry_ts") or "—",
+                        "出場時間": f.get("exit_ts") or "—",
+                        "reason": f.get("reason"),
+                        "fill_source": f.get("fill_source"),
+                        "pnl_hkd": f.get("pnl_hkd"),
+                        "fee_usd": f.get("fee_usd"),
+                    }
+                )
+            return rows
+
+        fill_tabs = st.tabs(["共用", "行業", "個股"])
+        for tab, fam in zip(fill_tabs, ("shared", "sector", "stock")):
+            with tab:
+                fam_fills = [f for f in fills if f.get("family") == fam]
+                fam_fills = list(reversed(fam_fills))
+                if not fam_fills:
+                    st.info("呢個模型未有成交。")
+                else:
+                    st.caption(f"{len(fam_fills)} 筆")
+                    st.dataframe(pd.DataFrame(_fill_rows(fam_fills)), hide_index=True, use_container_width=True)
 
     days = ledger.get("days") or []
     if days:
