@@ -12,3 +12,31 @@ def test_walk_forward_fallback_when_oos_missing():
     assert out["n"] == 441
     assert abs(out["mae_close_ret"] - 0.02) < 1e-12
     assert abs(out["mae_close_px"] - 2.0) < 1e-12
+
+from trendline.range_touch import FadeSetup
+from trendline.cards import _apply_recent_mae_decision, _recent_error
+
+
+def test_apply_recent_mae_flattens_when_too_high():
+    setup = FadeSetup(1, 98.0, 100.0, 96.0, 2.0, "fade_to_prior_close")
+    err = {"n": 20, "mae_close_ret": 0.04, "mae_close_px": 4.0, "scope": "recent"}
+    out = _apply_recent_mae_decision(setup, err)
+    assert out.side == 0
+    assert out.reason == "recent_close_mae_too_high"
+
+
+def test_apply_recent_mae_ignores_walk_forward_scope():
+    setup = FadeSetup(1, 98.0, 100.0, 96.0, 2.0, "fade_to_prior_close")
+    err = {"n": 441, "mae_close_ret": 0.04, "mae_close_px": 4.0, "scope": "walk_forward"}
+    out = _apply_recent_mae_decision(setup, err)
+    assert out.side == 1
+
+
+def test_recent_lookup_preferred():
+    err = _recent_error(
+        None,
+        "AAPL",
+        recent_lookup={"AAPL": {"n": 20, "mae_close_ret": 0.01, "mae_close_px": 1.0, "scope": "recent"}},
+    )
+    assert err["scope"] == "recent"
+    assert err["n"] == 20
