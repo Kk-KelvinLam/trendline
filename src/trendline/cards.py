@@ -14,7 +14,7 @@ from trendline.range_touch import choose_setup
 from trendline.models.baseline import BaselineModel
 from trendline.models.families import SectorBundle, SharedBundle, StockBundle, pred_col
 from trendline.models.lightgbm_quantile import QuantileLGBM
-from trendline.universe import rank_by_dollar_volume
+from trendline.universe import load_sp500, rank_by_dollar_volume
 
 SOURCE_LABEL = {
     "yfinance": "Yahoo Finance",
@@ -94,6 +94,36 @@ class FamilyPredictor:
         raise ValueError(f"unknown family {self.family}")
 
 
+def _naive_midnight(values) -> pd.Series | pd.Timestamp:
+    """Normalize dates to tz-naive midnight for reliable equality joins."""
+    if isinstance(values, pd.Series):
+        out = pd.to_datetime(values)
+        if getattr(out.dt, "tz", None) is not None:
+            out = out.dt.tz_convert("UTC").dt.tz_localize(None)
+        return out.dt.normalize()
+    ts = pd.Timestamp(values)
+    if ts.tzinfo is not None:
+        ts = ts.tz_convert("UTC").tz_localize(None)
+    return ts.normalize()
+
+
+def latest_card_asof(featured: pd.DataFrame) -> pd.Timestamp:
+    """Latest session with ready *S&P* features — skip macro-only / thin days.
+
+    yfinance often publishes ^VIX on holidays or partial-fetch days when no
+    equity bars landed. Taking max(ready date) then intersects empty with the
+    S&P dollar-volume shortlist.
+    """
+    feat = featured.copy()
+    feat["date"] = _naive_midnight(feat["date"])
+    ready = feat.dropna(subset=["ret_20d", "atr", "dist_ma50"])
+    members = set(load_sp500()["ticker"])
+    ready_sp = ready[ready["ticker"].isin(members)]
+    if ready_sp.empty:
+        raise RuntimeError("no S&P names with ready features for card asof")
+    return pd.Timestamp(ready_sp["date"].max())
+
+
 def build_cards(
     featured: pd.DataFrame,
     ohlcv: pd.DataFrame,
@@ -106,11 +136,10 @@ def build_cards(
 ) -> dict:
     """Score the latest completed session and emit dashboard cards for one family."""
     feat = featured.copy()
-    feat["date"] = pd.to_datetime(feat["date"])
+    feat["date"] = _naive_midnight(feat["date"])
     if asof is None:
-        ready = feat.dropna(subset=["ret_20d", "atr", "dist_ma50"])
-        asof = ready["date"].max()
-    asof = pd.Timestamp(asof)
+        asof = latest_card_asof(feat)
+    asof = _naive_midnight(asof)
     day = feat[feat["date"] == asof].copy()
     if day.empty:
         raise RuntimeError(f"no feature rows on {asof.date()}")
@@ -119,7 +148,10 @@ def build_cards(
     show = set(ranked["ticker"])
     day = day[day["ticker"].isin(show)].copy()
     if day.empty:
-        raise RuntimeError("no S&P names in the top dollar-volume set for this session")
+        raise RuntimeError(
+            f"no S&P names in the top dollar-volume set for session {asof.date()} "
+            f"(ranked={len(ranked)}; macro-only/thin session?)"
+        )
 
     if model is None:
         shared = SharedBundle().load()

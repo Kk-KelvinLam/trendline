@@ -83,13 +83,20 @@ def rank_by_dollar_volume(ohlcv: pd.DataFrame, asof: pd.Timestamp | None = None,
     """Rank S&P names by prior-session dollar volume (close × volume)."""
     df = ohlcv.copy()
     df["date"] = pd.to_datetime(df["date"])
+    if getattr(df["date"].dt, "tz", None) is not None:
+        df["date"] = df["date"].dt.tz_convert("UTC").dt.tz_localize(None)
+    df["date"] = df["date"].dt.normalize()
     members = set(load_sp500()["ticker"])
     df = df[df["ticker"].isin(members)]
     if df.empty:
         return df
     if asof is None:
         asof = df["date"].max()
-    day = df[df["date"] == pd.Timestamp(asof)].copy()
+    asof_ts = pd.Timestamp(asof)
+    if asof_ts.tzinfo is not None:
+        asof_ts = asof_ts.tz_convert("UTC").tz_localize(None)
+    asof_ts = asof_ts.normalize()
+    day = df[df["date"] == asof_ts].copy()
     day["dollar_volume"] = day["close"] * day["volume"]
     day = day.sort_values("dollar_volume", ascending=False)
     day["dvol_rank"] = range(1, len(day) + 1)
