@@ -8,6 +8,7 @@ import numpy as np
 import pandas as pd
 
 from trendline.config import (
+    CLOSE_GATE_FAMILIES,
     FEATURE_COLS,
     MAX_POSITIONS,
     MODEL_FAMILIES,
@@ -367,8 +368,9 @@ def simulate_trades(
             q10l = float(getattr(row, _col("low", 0.10)))
             q90h = float(getattr(row, _col("high", 0.90)))
             q50c = float(getattr(row, _col("close", 0.50)))
+            q50c_gate = q50c if family in CLOSE_GATE_FAMILIES else None
             setup = choose_setup(
-                float(row.close), float(row.atr), q50h, q50l, q10l, q90h, allowed, q50c=q50c
+                float(row.close), float(row.atr), q50h, q50l, q10l, q90h, allowed, q50c=q50c_gate
             )
             scored.append((setup.room, setup, row))
 
