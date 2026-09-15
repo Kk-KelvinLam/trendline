@@ -144,15 +144,7 @@ try {{
 """,
         height=0,
     )
-    if LocalStorage is None:
-        return
-    try:
-        ls = LocalStorage(key="tl_ls")
-        # unique component key so Streamlit remounts the setter
-        token = abs(hash(payload)) % (10**8)
-        ls.setItem(PIN_STORAGE_KEY, payload, key=f"tl_pin_set_{token}")
-    except Exception:
-        pass
+    # Prefer the JS write above. Avoid LocalStorage.setItem remounts (can feel like extra reloads).
 
 
 def _pin_ticker(ticker: str) -> None:
@@ -171,6 +163,26 @@ def _unpin_ticker(ticker: str) -> None:
     st.session_state["pinned_tickers"] = [x for x in pinned if x != t]
     _persist_pins()
 
+
+
+
+def _consume_pin_toggle(event, *, state_key: str) -> bool:
+    """Return True once per pin click. Ignores sticky component values that would loop reruns."""
+    if event is None:
+        return False
+    event_id = None
+    if isinstance(event, dict) and event.get("action") == "toggle":
+        event_id = str(event.get("id") or "")
+    elif event == "toggle":
+        # legacy string value — treat as already consumed sticky signal
+        return False
+    if not event_id:
+        return False
+    prev = st.session_state.get(state_key)
+    if prev == event_id:
+        return False
+    st.session_state[state_key] = event_id
+    return True
 
 
 def _clear_text_key(key: str) -> None:
@@ -728,12 +740,12 @@ def _render_card(card: dict, *, family: str = "shared") -> None:
         pinned=is_pinned,
         key=f"tl_head_{family}_{ticker}",
     )
-    if pin_event == "toggle":
+    if _consume_pin_toggle(pin_event, state_key=f"_pin_evt_{family}_{ticker}"):
         if is_pinned:
             _unpin_ticker(ticker)
         else:
             _pin_ticker(ticker)
-        st.rerun()
+        # No st.rerun(): click already triggered a run; another rerun + sticky value = reload loop.
     st.caption(
         f"#{card.get('dvol_rank', '—')} 成交額　·　{card.get('sector') or '—'}　·　"
         f"{'High/Low 優於基準' if card.get('beats_range', card.get('beats_baseline')) else 'High/Low 未優於該股基準'}"
@@ -866,9 +878,8 @@ def _render_pinned() -> None:
             pinned=True,
             key=f"tl_unpin_{ticker}",
         )
-        if pin_event == "toggle":
+        if _consume_pin_toggle(pin_event, state_key=f"_pin_evt_unpin_{ticker}"):
             _unpin_ticker(ticker)
-            st.rerun()
 
         cards_by_fam = {fam: indexes[fam].get(ticker) for fam, _ in FAMILY_LABELS}
         actions = {
