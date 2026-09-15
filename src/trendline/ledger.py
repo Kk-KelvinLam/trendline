@@ -33,7 +33,7 @@ from trendline.config import (
 from trendline.data.intraday import fetch_rth_5m
 from trendline.data.store import load_ohlcv
 from trendline.ibkr_fees import roundtrip_fees
-from trendline.range_touch import fill_fade, fill_fade_bars
+from trendline.range_touch import FillResult, fill_fade, fill_fade_bars
 
 FAMILY_PATHS = {
     "shared": CARDS_SHARED_PATH,
@@ -350,12 +350,18 @@ def _score_card(card: dict, bar: pd.Series, bars=None) -> dict:
         rec["fill_source"] = fill_source
         if filled is None:
             rec["fill"] = "miss"
+            rec["entry_ts"] = None
+            rec["exit_ts"] = None
         else:
-            ret, exit_px, reason = filled
-            rec["fill"] = reason
-            rec["ret"] = float(ret)
-            rec["exit"] = float(exit_px)
+            if not isinstance(filled, FillResult):
+                ret, exit_px, reason = filled
+                filled = FillResult(float(ret), float(exit_px), str(reason))
+            rec["fill"] = filled.reason
+            rec["ret"] = float(filled.ret)
+            rec["exit"] = float(filled.exit_px)
             rec["entry"] = entry
+            rec["entry_ts"] = filled.entry_ts
+            rec["exit_ts"] = filled.exit_ts
     return rec
 
 
@@ -467,6 +473,8 @@ def realize_once(
                         "shares": shares,
                         "entry": entry,
                         "exit": exit_px,
+                        "entry_ts": scored.get("entry_ts"),
+                        "exit_ts": scored.get("exit_ts"),
                         "reason": scored["fill"],
                         "fill_source": scored.get("fill_source") or "daily",
                         "ret": scored.get("ret"),

@@ -56,7 +56,7 @@ def test_fill_fee_math():
     from trendline.ibkr_fees import roundtrip_fees
     filled = fill_fade(-1, 102.0, 100.0, 104.0, 101.0, 102.5, 99.5, 100.5)
     assert filled is not None
-    ret, exit_px, reason = filled
+    ret, exit_px, reason = filled.ret, filled.exit_px, filled.reason
     assert reason == "tp"
     shares = 40
     fee = roundtrip_fees(-1, shares, 102.0, exit_px)["total"]

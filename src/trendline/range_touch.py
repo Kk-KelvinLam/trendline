@@ -14,6 +14,8 @@ from dataclasses import dataclass
 
 import numpy as np
 
+import pandas as pd
+
 from trendline.config import ATR_SL_MULT, FADE_MIN_ATR, RANGE_ATR_MIN
 
 
@@ -25,6 +27,30 @@ class FadeSetup:
     sl: float
     room: float
     reason: str
+
+@dataclass(frozen=True)
+class FillResult:
+    ret: float
+    exit_px: float
+    reason: str
+    entry_ts: str | None = None  # America/New_York ISO when known (5m)
+    exit_ts: str | None = None
+
+
+def _fmt_ts(ts) -> str | None:
+    if ts is None:
+        return None
+    try:
+        t = pd.Timestamp(ts)
+    except Exception:
+        return str(ts)
+    if pd.isna(t):
+        return None
+    if t.tzinfo is not None:
+        t = t.tz_convert("America/New_York")
+        return t.isoformat()
+    return t.isoformat()
+
 
 
 def predicted_range(close: float, q90h: float, q10l: float) -> float:
@@ -101,11 +127,8 @@ def fill_fade(
     next_high: float,
     next_low: float,
     next_close: float,
-) -> tuple[float, float, str] | None:
-    """Return (ret, exit, reason) or None if no fill / gapped through.
-
-    reason is sl, tp, or close (same-session flatten at the official close).
-    """
+) -> FillResult | None:
+    """Daily OHLC fade fill. No intraday timestamps (entry_ts/exit_ts left None)."""
     if side == 0 or gapped_through(side, next_open, entry):
         return None
     if side == 1:
@@ -114,19 +137,19 @@ def fill_fade(
         hit_sl = next_low <= sl
         hit_tp = next_high >= tp
         if hit_sl:
-            return sl / entry - 1.0, sl, "sl"
+            return FillResult(sl / entry - 1.0, sl, "sl")
         if hit_tp:
-            return tp / entry - 1.0, tp, "tp"
-        return next_close / entry - 1.0, next_close, "close"
+            return FillResult(tp / entry - 1.0, tp, "tp")
+        return FillResult(next_close / entry - 1.0, next_close, "close")
     if next_high < entry:
         return None
     hit_sl = next_high >= sl
     hit_tp = next_low <= tp
     if hit_sl:
-        return (entry - sl) / entry, sl, "sl"
+        return FillResult((entry - sl) / entry, sl, "sl")
     if hit_tp:
-        return (entry - tp) / entry, tp, "tp"
-    return (entry - next_close) / entry, next_close, "close"
+        return FillResult((entry - tp) / entry, tp, "tp")
+    return FillResult((entry - next_close) / entry, next_close, "close")
 
 
 def _ohlc(bar) -> tuple[float, float, float, float]:
@@ -135,15 +158,27 @@ def _ohlc(bar) -> tuple[float, float, float, float]:
     return float(bar["open"]), float(bar["high"]), float(bar["low"]), float(bar["close"])
 
 
-def _as_bar_seq(bars) -> list:
-    """Normalize DataFrame / list / tuple of OHLC rows (avoid list(df)=columns)."""
+
+def _as_bar_seq(bars) -> list[tuple]:
+    """Normalize to list of (timestamp|None, OHLC row). Avoid list(df)=columns."""
     if bars is None:
         return []
     if hasattr(bars, "iterrows"):
-        return [row for _, row in bars.iterrows()]
+        return [(idx, row) for idx, row in bars.iterrows()]
     if hasattr(bars, "iloc") and not isinstance(bars, (list, tuple, dict)):
-        return [bars.iloc[i] for i in range(len(bars))]
-    return list(bars)
+        out = []
+        for i in range(len(bars)):
+            row = bars.iloc[i]
+            idx = bars.index[i] if hasattr(bars, "index") else None
+            out.append((idx, row))
+        return out
+    seq = []
+    for item in list(bars):
+        if isinstance(item, (tuple, list)) and len(item) == 2 and not isinstance(item[0], (int, float)):
+            seq.append((item[0], item[1]))
+        else:
+            seq.append((None, item))
+    return seq
 
 
 def fill_fade_bars(
@@ -152,7 +187,7 @@ def fill_fade_bars(
     tp: float,
     sl: float,
     bars,
-) -> tuple[float, float, str] | None:
+) -> FillResult | None:
     """Walk RTH (or any ordered) OHLC bars for a same-session fade fill.
 
     Gap-through uses the *first* bar open (session open). Until filled, long
@@ -160,6 +195,9 @@ def fill_fade_bars(
     (including the fill bar): SL if hit else TP; both in the same bar → SL.
     Still open on the last bar → flatten at that close (reason=close).
     Prints of TP/SL *before* the entry fill are ignored.
+
+    Returns ``FillResult`` with America/New_York ``entry_ts`` / ``exit_ts`` when
+    the bar index carries timestamps (Yahoo 5m).
     """
     if side == 0:
         return None
@@ -167,12 +205,17 @@ def fill_fade_bars(
     if not seq:
         return None
 
-    first_open, _, _, _ = _ohlc(seq[0])
+    first_ts, first_bar = seq[0]
+    first_open, _, _, _ = _ohlc(first_bar)
     if gapped_through(side, first_open, entry):
         return None
 
+    def _done(ret: float, exit_px: float, reason: str, entry_ts, exit_ts) -> FillResult:
+        return FillResult(ret, exit_px, reason, _fmt_ts(entry_ts), _fmt_ts(exit_ts))
+
     filled = False
-    for bar in seq:
+    entry_ts = None
+    for ts, bar in seq:
         _o, h, l, _c = _ohlc(bar)
         if not filled:
             if side == 1:
@@ -183,7 +226,7 @@ def fill_fade_bars(
                 if h < entry:
                     continue
                 filled = True
-            # same-bar SL/TP after fill
+            entry_ts = ts
             if side == 1:
                 hit_sl = l <= sl
                 hit_tp = h >= tp
@@ -191,34 +234,32 @@ def fill_fade_bars(
                 hit_sl = h >= sl
                 hit_tp = l <= tp
             if hit_sl:
-                if side == 1:
-                    return sl / entry - 1.0, sl, "sl"
-                return (entry - sl) / entry, sl, "sl"
+                ret = (sl / entry - 1.0) if side == 1 else (entry - sl) / entry
+                return _done(ret, sl, "sl", entry_ts, ts)
             if hit_tp:
-                if side == 1:
-                    return tp / entry - 1.0, tp, "tp"
-                return (entry - tp) / entry, tp, "tp"
+                ret = (tp / entry - 1.0) if side == 1 else (entry - tp) / entry
+                return _done(ret, tp, "tp", entry_ts, ts)
             continue
 
-        # already filled — later bars
         if side == 1:
             hit_sl = l <= sl
             hit_tp = h >= tp
             if hit_sl:
-                return sl / entry - 1.0, sl, "sl"
+                return _done(sl / entry - 1.0, sl, "sl", entry_ts, ts)
             if hit_tp:
-                return tp / entry - 1.0, tp, "tp"
+                return _done(tp / entry - 1.0, tp, "tp", entry_ts, ts)
         else:
             hit_sl = h >= sl
             hit_tp = l <= tp
             if hit_sl:
-                return (entry - sl) / entry, sl, "sl"
+                return _done((entry - sl) / entry, sl, "sl", entry_ts, ts)
             if hit_tp:
-                return (entry - tp) / entry, tp, "tp"
+                return _done((entry - tp) / entry, tp, "tp", entry_ts, ts)
 
     if not filled:
         return None
-    last_close = _ohlc(seq[-1])[3]
+    last_ts, last_bar = seq[-1]
+    last_close = _ohlc(last_bar)[3]
     if side == 1:
-        return last_close / entry - 1.0, last_close, "close"
-    return (entry - last_close) / entry, last_close, "close"
+        return _done(last_close / entry - 1.0, last_close, "close", entry_ts, last_ts)
+    return _done((entry - last_close) / entry, last_close, "close", entry_ts, last_ts)
