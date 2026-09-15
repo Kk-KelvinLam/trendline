@@ -260,12 +260,21 @@ def main() -> None:
     c4.metric("做空 / 觀望", f"{cards_payload.get('n_short', 0)} / {cards_payload.get('n_flat', 0)}")
     st.caption(f"模型家族：{cards_payload.get('model_family_zh') or page}")
 
-    search_q = st.text_input(
-        "搜尋",
-        value="",
-        placeholder="搜尋股票代號（例如 NVDA）",
-        key=f"search_{key}",
-    )
+    search_key = f"search_{key}"
+    if search_key not in st.session_state:
+        st.session_state[search_key] = ""
+    search_col, clear_col = st.columns([5, 1])
+    with search_col:
+        search_q = st.text_input(
+            "搜尋",
+            placeholder="搜尋股票代號（例如 NVDA）",
+            key=search_key,
+        )
+    with clear_col:
+        st.markdown("<div style='height:1.7rem'></div>", unsafe_allow_html=True)
+        if st.button("清除", key=f"clear_search_{key}", use_container_width=True, disabled=not bool((st.session_state.get(search_key) or "").strip())):
+            st.session_state[search_key] = ""
+            st.rerun()
     filt = st.radio("篩選", ["全部", "做多", "做空", "高信心"], horizontal=True, key=f"filt_{key}")
 
     cards = cards_payload.get("cards", [])
@@ -561,21 +570,25 @@ def _render_card(card: dict, *, family: str = "shared") -> None:
     color = {"做多": "green", "做空": "red", "觀望": "gray"}.get(action, "gray")
     conf = " · 高信心" if card.get("high_confidence") else ""
     ticker = str(card.get("ticker", "")).upper()
-    title_col, pin_col = st.columns([4, 1])
-    with title_col:
-        st.markdown(f"### {ticker}  :{color}[{action}]{conf}")
+    pinned = _ensure_pinned_state()
+    is_pinned = ticker in pinned
+    pin_key = f"pin_{family}_{ticker}"
+    # Ticker · direction · pin icon (icon sits next to predicted direction)
+    t_col, a_col, pin_col = st.columns([2.2, 2.6, 0.7])
+    with t_col:
+        st.markdown(f"### {ticker}")
+    with a_col:
+        st.markdown(f"### :{color}[{action}]{conf}")
     with pin_col:
-        pinned = _ensure_pinned_state()
-        is_pinned = ticker in pinned
-        pin_key = f"pin_{family}_{ticker}"
-        if is_pinned:
-            if st.button("Unpin", key=pin_key, use_container_width=True):
+        st.markdown("<div style='height:0.35rem'></div>", unsafe_allow_html=True)
+        pin_label = "📍" if is_pinned else "📌"
+        pin_help = "取消釘選" if is_pinned else "釘選對照"
+        if st.button(pin_label, key=pin_key, help=pin_help):
+            if is_pinned:
                 _unpin_ticker(ticker)
-                st.rerun()
-        else:
-            if st.button("📌 Pin", key=pin_key, use_container_width=True):
+            else:
                 _pin_ticker(ticker)
-                st.rerun()
+            st.rerun()
     st.caption(
         f"#{card.get('dvol_rank', '—')} 成交額　·　{card.get('sector') or '—'}　·　"
         f"{'High/Low 優於基準' if card.get('beats_range', card.get('beats_baseline')) else 'High/Low 未優於該股基準'}"
