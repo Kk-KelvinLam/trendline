@@ -2,7 +2,7 @@ from trendline.range_touch import choose_setup, fill_fade, gapped_through
 
 
 def test_picks_side_with_more_room():
-    s = choose_setup(100.0, 2.0, q50h=0.01, q50l=-0.02, q10l=-0.035, q90h=0.03, allowed=True)
+    s = choose_setup(100.0, 2.0, q50h=0.01, q50l=-0.02, q10l=-0.035, q90h=0.03, allowed=True, q50c=0.001)
     assert s.side == 1
     assert s.entry == 98.0
     assert s.tp == 100.0
@@ -39,3 +39,16 @@ def test_flatten_at_session_close():
     assert filled is not None
     assert filled.reason == "close"
     assert filled.exit_px == 101.4
+
+
+def test_close_gate_blocks_long_when_close_bearish():
+    # Larger long room; short room below min; Close bearish → flat
+    s = choose_setup(100.0, 2.0, q50h=0.005, q50l=-0.02, q10l=-0.035, q90h=0.03, allowed=True, q50c=-0.005)
+    assert s.side == 0
+    assert s.reason == "close_disagrees_with_fade"
+
+
+def test_close_gate_allows_short_when_close_bearish():
+    # Short has more room and Close agrees
+    s = choose_setup(100.0, 2.0, q50h=0.025, q50l=-0.01, q10l=-0.02, q90h=0.04, allowed=True, q50c=-0.004)
+    assert s.side == -1

@@ -219,7 +219,7 @@ def build_cards(
         q10l = float(row.pred_low_q10)
         q90h = float(row.pred_high_q90)
         range_ok = bool(beat.get(ticker, False) or overall_beats)
-        setup = choose_setup(close, atr, q50h, q50l, q10l, q90h, range_ok)
+        setup = choose_setup(close, atr, q50h, q50l, q10l, q90h, range_ok, q50c=q50c)
         action = "觀望"
         side = setup.side
         reason = setup.reason

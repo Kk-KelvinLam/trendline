@@ -366,7 +366,10 @@ def simulate_trades(
             q50l = float(getattr(row, _col("low", 0.50)))
             q10l = float(getattr(row, _col("low", 0.10)))
             q90h = float(getattr(row, _col("high", 0.90)))
-            setup = choose_setup(float(row.close), float(row.atr), q50h, q50l, q10l, q90h, allowed)
+            q50c = float(getattr(row, _col("close", 0.50)))
+            setup = choose_setup(
+                float(row.close), float(row.atr), q50h, q50l, q10l, q90h, allowed, q50c=q50c
+            )
             scored.append((setup.room, setup, row))
 
         scored.sort(key=lambda x: x[0], reverse=True)
