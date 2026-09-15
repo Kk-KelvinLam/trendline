@@ -17,7 +17,7 @@ import numpy as np
 
 import pandas as pd
 
-from trendline.config import ATR_SL_MULT, FADE_MIN_ATR, RANGE_ATR_MIN
+from trendline.config import ATR_SL_MULT, CLOSE_GATE_MIN_RET, FADE_MIN_ATR, RANGE_ATR_MIN
 
 
 @dataclass(frozen=True)
@@ -91,8 +91,9 @@ def choose_setup(
 ) -> FadeSetup:
     """Pick fade side with more room back to prior close, gated by Close q50.
 
-    Long only if predicted next close is at/above prior close (q50c >= 0).
-    Short only if predicted next close is at/below prior close (q50c <= 0).
+    Long only if Close q50 is at least +CLOSE_GATE_MIN_RET above prior.
+    Short only if Close q50 is at least CLOSE_GATE_MIN_RET below prior.
+    Near-zero Close predictions are treated as no edge (cannot open either side via Close gate).
     """
     if not allowed:
         return FadeSetup(0, float("nan"), float("nan"), float("nan"), 0.0, "range_model_does_not_beat_baseline")
@@ -109,8 +110,9 @@ def choose_setup(
 
     close_gate = q50c is not None and np.isfinite(q50c)
     if close_gate:
-        long_ok = long_ok and float(q50c) >= 0.0
-        short_ok = short_ok and float(q50c) <= 0.0
+        # Require meaningful |Close| edge — tiny q50c is noise, not permission to fade.
+        long_ok = long_ok and float(q50c) >= float(CLOSE_GATE_MIN_RET)
+        short_ok = short_ok and float(q50c) <= -float(CLOSE_GATE_MIN_RET)
 
     if long_ok and (not short_ok or lroom >= sroom):
         return FadeSetup(1, float(le), float(ltp), float(lsl), float(lroom), "fade_to_prior_close")

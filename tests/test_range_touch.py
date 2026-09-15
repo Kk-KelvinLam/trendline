@@ -52,3 +52,19 @@ def test_close_gate_allows_short_when_close_bearish():
     # Short has more room and Close agrees
     s = choose_setup(100.0, 2.0, q50h=0.025, q50l=-0.01, q10l=-0.02, q90h=0.04, allowed=True, q50c=-0.004)
     assert s.side == -1
+
+
+def test_close_gate_rejects_near_zero_close():
+    # Long has room, Close only +4bps (< 10bps min) → flat
+    s = choose_setup(
+        100.0, 2.0, q50h=0.005, q50l=-0.02, q10l=-0.035, q90h=0.03, allowed=True, q50c=0.0004
+    )
+    assert s.side == 0
+    assert s.reason == "close_disagrees_with_fade"
+
+
+def test_close_gate_long_needs_min_positive_close():
+    s = choose_setup(
+        100.0, 2.0, q50h=0.005, q50l=-0.02, q10l=-0.035, q90h=0.03, allowed=True, q50c=0.001
+    )
+    assert s.side == 1

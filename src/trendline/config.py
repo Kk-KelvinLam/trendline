@@ -81,6 +81,7 @@ WF_PURGE_DAYS = 5
 DIR_RET_MIN = 0.0015  # unused for entries; kept for reference
 RANGE_ATR_MIN = 0.45  # stand-aside if (q90h-q10l)*close < this * ATR
 FADE_MIN_ATR = 0.30  # need this much room from High/Low trigger back to prior close
+CLOSE_GATE_MIN_RET = 0.001  # |Close q50| must be at least 10bps to trust the Close gate
 MAX_POSITIONS = 10
 PAPER_STARTING_HKD = 500_000.0
 PAPER_FX_HKD_PER_USD = 7.80
