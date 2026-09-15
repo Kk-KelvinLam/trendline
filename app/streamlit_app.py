@@ -462,6 +462,16 @@ def _render_card(card: dict) -> None:
         f"數據來源：{card.get('data_source') or '未知'}　·　"
         f"{card.get('universe_source') or 'S&P 500'}"
     )
+    asof = card.get("asof")
+    last_bar = card.get("last_bar_date")
+    stale = bool(last_bar and asof and str(last_bar) < str(asof))
+    if last_bar:
+        if stale:
+            st.caption(f"最後有 bar：:orange[{last_bar}]　·　⚠️ 滯後於 asof {asof}")
+        else:
+            st.caption(f"最後有 bar：{last_bar}")
+    else:
+        st.caption("最後有 bar：—")
     p = card.get("pred", {})
     st.write(
         f"前收 **{_fmt_px(card.get('prior_close'))}**　·　"
