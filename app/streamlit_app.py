@@ -16,6 +16,11 @@ try:
 except ImportError:  # pragma: no cover
     st_keyup = None
 
+try:
+    from streamlit_local_storage import LocalStorage
+except ImportError:  # pragma: no cover
+    LocalStorage = None
+
 from trendline.config import (
     ARTIFACT_DIR,
     CARDS_PATH,
@@ -74,10 +79,78 @@ def _fmt_num(x, digits=4) -> str:
 
 
 
+PIN_STORAGE_KEY = "trendline_pinned"
+
+
 def _ensure_pinned_state() -> list[str]:
     if "pinned_tickers" not in st.session_state:
         st.session_state["pinned_tickers"] = []
     return st.session_state["pinned_tickers"]
+
+
+def _hydrate_pins_from_local_storage() -> None:
+    """Load pinned tickers from browser localStorage once per session."""
+    if st.session_state.get("_pins_hydrated"):
+        return
+    st.session_state["_pins_hydrated"] = True
+    if LocalStorage is None:
+        return
+    try:
+        ls = LocalStorage(key="tl_ls")
+        raw = ls.getItem(PIN_STORAGE_KEY)
+    except Exception:
+        return
+    if not raw:
+        return
+    import json
+
+    try:
+        if isinstance(raw, str):
+            data = json.loads(raw)
+        else:
+            data = raw
+        if isinstance(data, list):
+            pins = [str(x).strip().upper() for x in data if str(x).strip()]
+            # preserve order, dedupe
+            seen = set()
+            ordered = []
+            for t in pins:
+                if t not in seen:
+                    seen.add(t)
+                    ordered.append(t)
+            st.session_state["pinned_tickers"] = ordered
+    except Exception:
+        return
+
+
+def _persist_pins() -> None:
+    """Write pinned tickers to browser localStorage."""
+    pins = list(_ensure_pinned_state())
+    import json
+
+    payload = json.dumps(pins, ensure_ascii=False)
+    # JS write (works even if LocalStorage helper flakes)
+    import streamlit.components.v1 as components
+
+    components.html(
+        f"""
+<script>
+try {{
+  localStorage.setItem({json.dumps(PIN_STORAGE_KEY)}, {json.dumps(payload)});
+}} catch (e) {{}}
+</script>
+""",
+        height=0,
+    )
+    if LocalStorage is None:
+        return
+    try:
+        ls = LocalStorage(key="tl_ls")
+        # unique component key so Streamlit remounts the setter
+        token = abs(hash(payload)) % (10**8)
+        ls.setItem(PIN_STORAGE_KEY, payload, key=f"tl_pin_set_{token}")
+    except Exception:
+        pass
 
 
 def _pin_ticker(ticker: str) -> None:
@@ -87,12 +160,14 @@ def _pin_ticker(ticker: str) -> None:
     pinned = _ensure_pinned_state()
     if t not in pinned:
         pinned.append(t)
+        _persist_pins()
 
 
 def _unpin_ticker(ticker: str) -> None:
     t = (ticker or "").strip().upper()
     pinned = _ensure_pinned_state()
     st.session_state["pinned_tickers"] = [x for x in pinned if x != t]
+    _persist_pins()
 
 
 
@@ -192,9 +267,20 @@ def _inject_back_to_top(*, jump: bool) -> None:
   opacity: 0.75;
   white-space: nowrap;
 }
-/* Pin/search row helpers — NEVER target ancestor stHorizontalBlock with :has(),
-   or the outer 3-column card grid also matches and collapses. */
-.tl-pin-btn button {
+/* Exactly-2-column rows only (nth-child(2):last-child). Outer card grid has 3 cols — excluded. */
+div[data-testid="stHorizontalBlock"]:has(> div[data-testid="column"]:nth-child(2):last-child):has(.tl-card-head) {
+  flex-wrap: nowrap !important;
+  align-items: center !important;
+  gap: 0.35rem !important;
+}
+div[data-testid="stHorizontalBlock"]:has(> div[data-testid="column"]:nth-child(2):last-child):has(.tl-card-head)
+  > div[data-testid="column"]:last-child {
+  flex: 0 0 2.5rem !important;
+  width: 2.5rem !important;
+  min-width: 2.5rem !important;
+  max-width: 2.5rem !important;
+}
+div[data-testid="stHorizontalBlock"]:has(> div[data-testid="column"]:nth-child(2):last-child):has(.tl-card-head) button {
   border-radius: 999px !important;
   width: 2.25rem !important;
   height: 2.25rem !important;
@@ -202,14 +288,18 @@ def _inject_back_to_top(*, jump: bool) -> None:
   padding: 0 !important;
   line-height: 1 !important;
 }
-.tl-search-row {
-  display: flex;
-  align-items: flex-end;
-  gap: 0.5rem;
-  width: 100%;
+div[data-testid="stHorizontalBlock"]:has(> div[data-testid="column"]:nth-child(2):last-child):has(.tl-search-mark) {
+  flex-wrap: nowrap !important;
+  align-items: flex-end !important;
+  gap: 0.5rem !important;
 }
-.tl-search-row .tl-search-grow { flex: 1 1 auto; min-width: 0; }
-.tl-search-row .tl-search-clear { flex: 0 0 auto; padding-bottom: 0.1rem; }
+div[data-testid="stHorizontalBlock"]:has(> div[data-testid="column"]:nth-child(2):last-child):has(.tl-search-mark)
+  > div[data-testid="column"]:last-child {
+  flex: 0 0 4.5rem !important;
+  width: 4.5rem !important;
+  min-width: 4.5rem !important;
+  max-width: 4.5rem !important;
+}
 
 </style>
 <div id="tl-top"></div>
@@ -278,6 +368,7 @@ def _inject_back_to_top(*, jump: bool) -> None:
 
 
 def main() -> None:
+    _hydrate_pins_from_local_storage()
     _ensure_pinned_state()
     st.title("Trendline")
     st.caption("美股收市後 · 盤中觸價淡區間（止盈前收）。S&P 500 全數訓練 / 顯示前 100 成交額")
@@ -324,6 +415,7 @@ def main() -> None:
     # Two columns only — no :has() CSS (that broke the card grid).
     search_col, clear_col = st.columns([6, 1], gap="small")
     with search_col:
+        st.markdown('<div class="tl-search-mark"></div>', unsafe_allow_html=True)
         if st_keyup is not None:
             search_q = st_keyup(
                 "搜尋",
@@ -648,7 +740,7 @@ def _render_card(card: dict, *, family: str = "shared") -> None:
     conf_html = f'<span class="tl-conf">{conf}</span>' if conf else ""
     pin_label = "📍" if is_pinned else "📌"
     pin_help = "取消釘選" if is_pinned else "釘選對照"
-    # Nested 2-col only inside each card — safe without ancestor :has() CSS.
+    # 2-col row: CSS nowrap only applies when exactly 2 columns (won't crush 3-col grid).
     head_col, pin_col = st.columns([8, 1], gap="small")
     with head_col:
         st.markdown(
@@ -660,11 +752,14 @@ def _render_card(card: dict, *, family: str = "shared") -> None:
             unsafe_allow_html=True,
         )
     with pin_col:
-        if st.button(pin_label, key=pin_key, help=pin_help):
+        # Key includes pin state so the label remounts (📌→📍) instead of sticking.
+        btn_key = f"{pin_key}_{'1' if is_pinned else '0'}"
+        if st.button(pin_label, key=btn_key, help=pin_help):
             if is_pinned:
                 _unpin_ticker(ticker)
             else:
                 _pin_ticker(ticker)
+            st.rerun()
     st.caption(
         f"#{card.get('dvol_rank', '—')} 成交額　·　{card.get('sector') or '—'}　·　"
         f"{'High/Low 優於基準' if card.get('beats_range', card.get('beats_baseline')) else 'High/Low 未優於該股基準'}"
@@ -764,6 +859,7 @@ def _render_pinned() -> None:
         st.session_state["pinned_add_input"] = ""
     add_col, btn_col = st.columns([4, 1], gap="small")
     with add_col:
+        st.markdown('<div class="tl-search-mark"></div>', unsafe_allow_html=True)
         if st_keyup is not None:
             add_q = st_keyup(
                 "手動釘選",
@@ -805,8 +901,9 @@ def _render_pinned() -> None:
                 unsafe_allow_html=True,
             )
         with header_r:
-            if st.button("📍", key=f"unpin_page_{ticker}", help="取消釘選"):
+            if st.button("📍", key=f"unpin_page_{ticker}_1", help="取消釘選"):
                 _unpin_ticker(ticker)
+                st.rerun()
 
         cards_by_fam = {fam: indexes[fam].get(ticker) for fam, _ in FAMILY_LABELS}
         actions = {
