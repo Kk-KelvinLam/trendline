@@ -16,23 +16,21 @@ def test_walk_forward_fallback_when_oos_missing(monkeypatch):
     assert abs(out["mae_close_ret"] - 0.02) < 1e-12
     assert abs(out["mae_close_px"] - 2.0) < 1e-12
 
-from trendline.range_touch import FadeSetup
-from trendline.cards import _apply_recent_mae_decision, _recent_error
+from trendline.cards import _recent_error, recent_mae_size_scale
 
 
-def test_apply_recent_mae_flattens_when_too_high():
-    setup = FadeSetup(1, 98.0, 100.0, 96.0, 2.0, "fade_to_prior_close")
-    err = {"n": 20, "mae_close_ret": 0.04, "mae_close_px": 4.0, "scope": "recent"}
-    out = _apply_recent_mae_decision(setup, err)
-    assert out.side == 0
-    assert out.reason == "recent_close_mae_too_high"
+def test_recent_mae_size_scale_shrinks_when_high():
+    err = {"n": 20, "mae_close_ret": 0.025, "mae_close_px": 4.0, "scope": "recent"}
+    assert recent_mae_size_scale(err) == 0.25
+    err2 = {"n": 20, "mae_close_ret": 0.01, "mae_close_px": 1.0, "scope": "recent"}
+    assert recent_mae_size_scale(err2) == 1.0
 
 
-def test_apply_recent_mae_ignores_walk_forward_scope():
-    setup = FadeSetup(1, 98.0, 100.0, 96.0, 2.0, "fade_to_prior_close")
+
+def test_recent_mae_size_scale_ignores_walk_forward():
     err = {"n": 441, "mae_close_ret": 0.04, "mae_close_px": 4.0, "scope": "walk_forward"}
-    out = _apply_recent_mae_decision(setup, err)
-    assert out.side == 1
+    assert recent_mae_size_scale(err) == 1.0
+
 
 
 def test_recent_lookup_preferred():
