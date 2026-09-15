@@ -9,8 +9,17 @@ from datetime import datetime, timezone
 import numpy as np
 import pandas as pd
 
-from trendline.config import FADE_MIN_ATR, SHOW_TOP_N
-from trendline.range_touch import choose_setup
+from trendline.config import (
+    ARTIFACT_DIR,
+    FADE_MIN_ATR,
+    RECENT_CLOSE_MAE_MAX,
+    RECENT_CLOSE_MAE_SOFT,
+    RECENT_ERROR_MIN_N,
+    RECENT_ERROR_WINDOW,
+    SHOW_TOP_N,
+    recent_close_error_path,
+)
+from trendline.range_touch import FadeSetup, choose_setup
 from trendline.models.baseline import BaselineModel
 from trendline.models.families import SectorBundle, SharedBundle, StockBundle, pred_col
 from trendline.models.lightgbm_quantile import QuantileLGBM
@@ -44,20 +53,112 @@ def _ticker_source(ohlcv: pd.DataFrame, ticker: str, asof: pd.Timestamp) -> str:
     return _source_label(str(g.iloc[-1]["source"]))
 
 
+def _load_recent_error_artifact(family: str) -> dict[str, dict]:
+    path = recent_close_error_path(family)
+    if not path.exists():
+        return {}
+    try:
+        import json
+
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except Exception:
+        return {}
+    tickers = payload.get("tickers") or {}
+    return {str(k): dict(v) for k, v in tickers.items() if isinstance(v, dict)}
+
+
+def _write_recent_error_artifact(family: str, mapping: dict[str, dict], asof: pd.Timestamp) -> Path:
+    import json
+    from datetime import datetime, timezone
+
+    path = recent_close_error_path(family)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    payload = {
+        "generated_at_utc": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "asof": str(pd.Timestamp(asof).date()),
+        "n_window": int(RECENT_ERROR_WINDOW),
+        "family": family,
+        "tickers": mapping,
+    }
+    path.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
+    return path
+
+
+def compute_recent_close_errors(
+    featured: pd.DataFrame,
+    model: "Predictor | FamilyPredictor",
+    family: str = "shared",
+    n: int = RECENT_ERROR_WINDOW,
+    asof: pd.Timestamp | None = None,
+) -> dict[str, dict]:
+    """Score last-n labeled sessions with the *current* saved models (true recent MAE).
+
+    Does not need ``oos_predictions.parquet``. Uses realized ``y_close`` before ``asof``.
+    """
+    if featured is None or getattr(featured, "empty", True):
+        return {}
+    df = featured.copy()
+    df["date"] = _naive_midnight(df["date"])
+    need = ["y_close", "close", "ticker", "date"]
+    for col in need:
+        if col not in df.columns:
+            return {}
+    ready = df.dropna(subset=["y_close", "close"]).copy()
+    if asof is not None:
+        ready = ready[ready["date"] < _naive_midnight(asof)]
+    if ready.empty:
+        return {}
+    dates = sorted(ready["date"].unique())
+    use_dates = dates[-int(n) :]
+    window = ready[ready["date"].isin(use_dates)].copy()
+    if window.empty:
+        return {}
+    try:
+        preds = model.predict(window)
+    except Exception:
+        return {}
+    pred_frame = preds.reset_index(drop=True) if hasattr(preds, "reset_index") else preds
+    base = window[["date", "ticker", "close", "y_close"]].reset_index(drop=True)
+    # FamilyPredictor returns unsuffixed pred_* aligned to input rows
+    col = "pred_close_q50"
+    alt = pred_col("close", 0.50, family)
+    if col not in pred_frame.columns and alt in pred_frame.columns:
+        col = alt
+    if col not in pred_frame.columns:
+        bare = pred_col("close", 0.50)
+        if bare in pred_frame.columns:
+            col = bare
+        else:
+            return {}
+    merged = pd.concat([base, pred_frame[[col]]], axis=1)
+    out: dict[str, dict] = {}
+    for ticker, g in merged.groupby("ticker", sort=False):
+        err = (g["y_close"] - g[col]).abs()
+        px_err = (g["close"] * err).abs()
+        out[str(ticker)] = {
+            "n": int(len(g)),
+            "mae_close_ret": float(err.mean()),
+            "mae_close_px": float(px_err.mean()),
+            "scope": "recent",
+        }
+    return out
+
+
 def _recent_error(
     oos: pd.DataFrame | None,
     ticker: str,
     family: str = "shared",
-    n: int = 20,
+    n: int = RECENT_ERROR_WINDOW,
     *,
     per_ticker_row: dict | None = None,
     prior_close: float | None = None,
+    recent_lookup: dict | None = None,
 ) -> dict:
-    """Prefer last-n OOS rows from ``oos_predictions.parquet``.
-
-    That parquet is gitignored (large), so weekday Nightly often has no file.
-    Fall back to walk-forward per-ticker Close MAE from ``per_ticker_*.json``.
-    """
+    """Resolve Close MAE for a card: live recent → artifact → OOS parquet → walk-forward."""
+    if recent_lookup and ticker in recent_lookup:
+        row = dict(recent_lookup[ticker])
+        row.setdefault("scope", "recent")
+        return row
     if oos is not None and not getattr(oos, "empty", True):
         g = oos.loc[oos["ticker"] == ticker].sort_values("date").tail(n)
         if not g.empty:
@@ -73,6 +174,11 @@ def _recent_error(
                     "mae_close_px": float(px_err.mean()),
                     "scope": "recent",
                 }
+    artifact = _load_recent_error_artifact(family).get(ticker)
+    if artifact and artifact.get("mae_close_ret") is not None:
+        out = dict(artifact)
+        out.setdefault("scope", "recent")
+        return out
     row = per_ticker_row or {}
     mae_ret = row.get("model_mae_close")
     if mae_ret is None:
@@ -86,6 +192,22 @@ def _recent_error(
         "mae_close_px": px,
         "scope": "walk_forward",
     }
+
+
+def _apply_recent_mae_decision(setup: FadeSetup, err: dict) -> FadeSetup:
+    """Hard-flat when trusted recent Close MAE is too high."""
+    if setup.side == 0:
+        return setup
+    if err.get("scope") != "recent":
+        return setup
+    if int(err.get("n") or 0) < int(RECENT_ERROR_MIN_N):
+        return setup
+    mae = err.get("mae_close_ret")
+    if mae is None or not np.isfinite(mae):
+        return setup
+    if float(mae) > float(RECENT_CLOSE_MAE_MAX):
+        return FadeSetup(0, float("nan"), float("nan"), float("nan"), 0.0, "recent_close_mae_too_high")
+    return setup
 
 
 class FamilyPredictor:
@@ -208,6 +330,14 @@ def build_cards(
     dvol_map = dict(zip(ranked["ticker"], ranked["dollar_volume"], strict=False))
     last_bar_map = _last_bar_dates(ohlcv)
 
+    recent_map = compute_recent_close_errors(
+        feat, model, family=family, n=RECENT_ERROR_WINDOW, asof=asof
+    )
+    if not recent_map:
+        recent_map = _load_recent_error_artifact(family)
+    else:
+        _write_recent_error_artifact(family, recent_map, asof)
+
     cards = []
     for row in day.itertuples(index=False):
         ticker = row.ticker
@@ -219,7 +349,16 @@ def build_cards(
         q10l = float(row.pred_low_q10)
         q90h = float(row.pred_high_q90)
         range_ok = bool(beat.get(ticker, False) or overall_beats)
+        err = _recent_error(
+            oos,
+            ticker,
+            family=family,
+            per_ticker_row=per_map.get(ticker),
+            prior_close=close,
+            recent_lookup=recent_map,
+        )
         setup = choose_setup(close, atr, q50h, q50l, q10l, q90h, range_ok, q50c=q50c)
+        setup = _apply_recent_mae_decision(setup, err)
         action = "觀望"
         side = setup.side
         reason = setup.reason
@@ -280,15 +419,19 @@ def build_cards(
                     "close_q50": float(close * (1 + row.base_close_q50)),
                 },
                 "atr": float(atr) if np.isfinite(atr) else None,
-                "high_confidence": bool(setup.side != 0 and setup.room >= 2 * FADE_MIN_ATR * atr),
+                "high_confidence": bool(
+                    setup.side != 0
+                    and setup.room >= 2 * FADE_MIN_ATR * atr
+                    and not (
+                        err.get("scope") == "recent"
+                        and err.get("mae_close_ret") is not None
+                        and float(err["mae_close_ret"]) > float(RECENT_CLOSE_MAE_SOFT)
+                    )
+                ),
                 "beats_baseline": bool(beat.get(ticker, False)),
                 "beats_range": bool(beat.get(ticker, False)),
                 "strategy": "fade_to_prior_close",
-                "recent_error": _recent_error(
-                    oos, ticker, family=family,
-                    per_ticker_row=per_map.get(ticker),
-                    prior_close=close,
-                ),
+                "recent_error": err,
                 "data_source": _ticker_source(ohlcv, ticker, asof),
                 "universe_source": "S&P 500 · Wikipedia 2026-09-12",
             }

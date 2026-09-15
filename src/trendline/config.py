@@ -82,6 +82,10 @@ DIR_RET_MIN = 0.0015  # unused for entries; kept for reference
 RANGE_ATR_MIN = 0.45  # stand-aside if (q90h-q10l)*close < this * ATR
 FADE_MIN_ATR = 0.30  # need this much room from High/Low trigger back to prior close
 CLOSE_GATE_MIN_RET = 0.001  # |Close q50| must be at least 10bps to trust the Close gate
+RECENT_ERROR_WINDOW = 20  # trading days for card recent Close MAE
+RECENT_ERROR_MIN_N = 10  # need this many labeled days to trust recent MAE
+RECENT_CLOSE_MAE_MAX = 0.025  # hard flat if recent Close MAE (ret) above this
+RECENT_CLOSE_MAE_SOFT = 0.018  # strip high_confidence above this
 MAX_POSITIONS = 10
 PAPER_STARTING_HKD = 500_000.0
 PAPER_FX_HKD_PER_USD = 7.80
@@ -161,3 +165,8 @@ FEATURE_COLS = [
     "sector_ret_1d",
     "sector_ret_5d",
 ]
+
+
+def recent_close_error_path(family: str = "shared") -> Path:
+    """Compact per-ticker recent Close MAE JSON (committed; not full OOS parquet)."""
+    return ARTIFACT_DIR / f"recent_close_error_{family}.json"
