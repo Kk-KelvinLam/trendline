@@ -59,8 +59,8 @@ class YahooFinanceProvider:
             return _empty()
 
         frames: list[pd.DataFrame] = []
-        # Batch to reduce Yahoo rate-limit pain.
-        batch_size = 20
+        # Small batches + pause: Actions IPs hit Yahoo 429 hard on wide pulls.
+        batch_size = 8
         for i in range(0, len(tickers), batch_size):
             batch = [_yf_symbol(t) for t in tickers[i : i + batch_size]]
             raw = yf.download(
@@ -69,13 +69,13 @@ class YahooFinanceProvider:
                 end=end,
                 auto_adjust=False,
                 group_by="ticker",
-                threads=True,
+                threads=False,
                 progress=False,
                 timeout=30,
             )
             frames.append(self._flatten(raw, batch))
             if i + batch_size < len(tickers):
-                time.sleep(0.8)
+                time.sleep(1.5)
         if not frames:
             return _empty()
         out = pd.concat(frames, ignore_index=True)
@@ -148,6 +148,12 @@ def _normalize_yf_frame(part: pd.DataFrame, ticker: str) -> pd.DataFrame:
             "source": "yfinance",
         }
     )
+    # Yahoo often publishes next-session rows with OHLC volume but Close still NaN
+    # for a while; dropping those left only ^VIX on the newest day after 429/partial pulls.
+    out["close"] = out["close"].fillna(out["adj_close"])
+    mid = (out["high"] + out["low"]) / 2.0
+    out["close"] = out["close"].fillna(mid).fillna(out["open"])
+    out["adj_close"] = out["adj_close"].fillna(out["close"])
     return out.dropna(subset=["open", "high", "low", "close"])
 
 
@@ -211,25 +217,75 @@ class CombinedProvider:
     stooq: StooqProvider = field(default_factory=StooqProvider)
 
     def download(self, tickers: list[str], start: str, end: str | None = None) -> pd.DataFrame:
+        """Yahoo first; Stooq for tickers missing entirely *or* missing the end session.
+
+        Yahoo rate limits often return a partial panel (e.g. only ^VIX on the
+        newest day). Treating any historical rows as success skipped Stooq and
+        left equities stuck on an older asof.
+        """
         frames: list[pd.DataFrame] = []
-        got: set[str] = set()
+        y = _empty()
         try:
             y = self.yahoo.download(tickers, start=start, end=end)
             if not y.empty:
                 frames.append(y)
-                got = set(y["ticker"].unique())
         except Exception as exc:
             print(f"[combined] yfinance failed: {exc}")
 
-        missing = [t for t in tickers if t not in got]
+        end_ts = pd.Timestamp(end).normalize() if end else pd.Timestamp.today().normalize()
+        # yfinance end is exclusive-ish; treat "as of end-1 calendar day" as OK when end is tomorrow
+        # Callers pass end=None or next-day ISO; require max(date) >= start and cover latest requested day when end set.
+        covered: set[str] = set()
+        if not y.empty:
+            y2 = y.copy()
+            y2["date"] = pd.to_datetime(y2["date"]).dt.tz_localize(None).dt.normalize()
+            # When end is given as exclusive next day (fetch.py), last session is end-1 trading day;
+            # use max date across download and require each ticker to reach the panel max.
+            panel_max = y2["date"].max()
+            for t, g in y2.groupby("ticker"):
+                if g["date"].max() >= panel_max:
+                    covered.add(t)
+
+        missing = [t for t in tickers if t not in covered]
         if missing:
-            print(f"[combined] stooq fallback for {len(missing)} tickers")
-            try:
-                s = self.stooq.download(missing, start=start, end=end)
-                if not s.empty:
-                    frames.append(s)
-            except Exception as exc:
-                print(f"[combined] stooq failed: {exc}")
+            target_max = None
+            if not y.empty:
+                target_max = (
+                    pd.to_datetime(y["date"]).dt.tz_localize(None).dt.normalize().max()
+                )
+            print(
+                f"[combined] single-ticker Yahoo retry for {len(missing)} "
+                f"(missing or behind panel max={target_max.date() if target_max is not None else 'n/a'})"
+            )
+            retry_frames: list[pd.DataFrame] = []
+            still: list[str] = []
+            for t in missing:
+                try:
+                    one = self.yahoo.download([t], start=start, end=end)
+                except Exception:
+                    one = _empty()
+                if one is None or one.empty:
+                    still.append(t)
+                    time.sleep(0.35)
+                    continue
+                one = one.copy()
+                one["date"] = pd.to_datetime(one["date"]).dt.tz_localize(None).dt.normalize()
+                tmax = one["date"].max()
+                if target_max is not None and tmax < target_max:
+                    still.append(t)
+                else:
+                    retry_frames.append(one)
+                time.sleep(0.35)
+            if retry_frames:
+                frames.append(pd.concat(retry_frames, ignore_index=True))
+            if still:
+                print(f"[combined] stooq fallback for {len(still)} tickers")
+                try:
+                    s = self.stooq.download(still, start=start, end=end)
+                    if not s.empty:
+                        frames.append(s)
+                except Exception as exc:
+                    print(f"[combined] stooq failed: {exc}")
 
         if not frames:
             return _empty()
