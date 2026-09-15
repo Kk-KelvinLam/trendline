@@ -192,41 +192,25 @@ def _inject_back_to_top(*, jump: bool) -> None:
   opacity: 0.75;
   white-space: nowrap;
 }
-/* mark lives inside a column → horizontal block can :has it (keeps one row on mobile) */
-div[data-testid="stHorizontalBlock"]:has(.tl-pin-mark) {
-  flex-wrap: nowrap !important;
-  gap: 0.35rem !important;
-  align-items: center !important;
-  margin: 0 0 0.2rem 0;
-}
-div[data-testid="stHorizontalBlock"]:has(.tl-pin-mark) > div[data-testid="column"]:last-child {
-  flex: 0 0 2.4rem !important;
-  width: 2.4rem !important;
-  min-width: 2.4rem !important;
-  max-width: 2.4rem !important;
-}
-div[data-testid="stHorizontalBlock"]:has(.tl-pin-mark) button {
+/* Pin/search row helpers — NEVER target ancestor stHorizontalBlock with :has(),
+   or the outer 3-column card grid also matches and collapses. */
+.tl-pin-btn button {
   border-radius: 999px !important;
   width: 2.25rem !important;
   height: 2.25rem !important;
   min-height: 2.25rem !important;
   padding: 0 !important;
-  display: inline-flex !important;
-  align-items: center !important;
-  justify-content: center !important;
   line-height: 1 !important;
 }
-div[data-testid="stHorizontalBlock"]:has(.tl-align-mark) {
-  flex-wrap: nowrap !important;
-  align-items: flex-end !important;
-  gap: 0.5rem !important;
+.tl-search-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.5rem;
+  width: 100%;
 }
-div[data-testid="stHorizontalBlock"]:has(.tl-align-mark) > div[data-testid="column"]:last-child {
-  flex: 0 0 4.5rem !important;
-  width: 4.5rem !important;
-  min-width: 4.5rem !important;
-  padding-bottom: 0.05rem;
-}
+.tl-search-row .tl-search-grow { flex: 1 1 auto; min-width: 0; }
+.tl-search-row .tl-search-clear { flex: 0 0 auto; padding-bottom: 0.1rem; }
+
 </style>
 <div id="tl-top"></div>
 <a id="tl-arrow" href="#tl-top" aria-label="回到頁頂">↑</a>
@@ -337,9 +321,9 @@ def main() -> None:
     search_key = f"search_{key}"
     if search_key not in st.session_state:
         st.session_state[search_key] = ""
-    search_col, clear_col = st.columns([5, 1], gap="small")
+    # Two columns only — no :has() CSS (that broke the card grid).
+    search_col, clear_col = st.columns([6, 1], gap="small")
     with search_col:
-        st.markdown('<div class="tl-align-mark"></div>', unsafe_allow_html=True)
         if st_keyup is not None:
             search_q = st_keyup(
                 "搜尋",
@@ -354,6 +338,7 @@ def main() -> None:
                 key=search_key,
             )
     with clear_col:
+        st.caption("")  # optical align with labeled input
         st.button(
             "清除",
             key=f"clear_search_{key}",
@@ -661,11 +646,12 @@ def _render_card(card: dict, *, family: str = "shared") -> None:
     is_pinned = ticker in pinned
     pin_key = f"pin_{family}_{ticker}"
     conf_html = f'<span class="tl-conf">{conf}</span>' if conf else ""
-    # One row: ticker + direction | circular pin (mark inside columns so nowrap CSS applies)
-    head_col, pin_col = st.columns([10, 1], gap="small")
+    pin_label = "📍" if is_pinned else "📌"
+    pin_help = "取消釘選" if is_pinned else "釘選對照"
+    # Nested 2-col only inside each card — safe without ancestor :has() CSS.
+    head_col, pin_col = st.columns([8, 1], gap="small")
     with head_col:
         st.markdown(
-            f'<div class="tl-pin-mark"></div>'
             f'<div class="tl-card-head">'
             f'<span class="tl-t">{ticker}</span>'
             f'<span class="tl-a {color}">{action}</span>'
@@ -674,8 +660,6 @@ def _render_card(card: dict, *, family: str = "shared") -> None:
             unsafe_allow_html=True,
         )
     with pin_col:
-        pin_label = "📍" if is_pinned else "📌"
-        pin_help = "取消釘選" if is_pinned else "釘選對照"
         if st.button(pin_label, key=pin_key, help=pin_help):
             if is_pinned:
                 _unpin_ticker(ticker)
@@ -780,7 +764,6 @@ def _render_pinned() -> None:
         st.session_state["pinned_add_input"] = ""
     add_col, btn_col = st.columns([4, 1], gap="small")
     with add_col:
-        st.markdown('<div class="tl-align-mark"></div>', unsafe_allow_html=True)
         if st_keyup is not None:
             add_q = st_keyup(
                 "手動釘選",
@@ -795,6 +778,7 @@ def _render_pinned() -> None:
                 key="pinned_add_input",
             )
     with btn_col:
+        st.caption("")
         add_clicked = st.button("加入", key="pinned_add_btn", use_container_width=True)
     if add_clicked:
         t = (add_q or "").strip().upper()
@@ -814,10 +798,9 @@ def _render_pinned() -> None:
 
     st.caption(f"已釘選 {len(pinned)} 隻")
     for ticker in pinned:
-        header_l, header_r = st.columns([12, 1], gap="small")
+        header_l, header_r = st.columns([8, 1], gap="small")
         with header_l:
             st.markdown(
-                f'<div class="tl-pin-mark"></div>'
                 f'<div class="tl-card-head"><span class="tl-t">{ticker}</span></div>',
                 unsafe_allow_html=True,
             )
