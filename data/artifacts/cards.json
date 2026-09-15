@@ -1,5 +1,5 @@
 {
-  "generated_at_utc": "2026-09-15T01:02:31Z",
+  "generated_at_utc": "2026-09-15T01:29:10Z",
   "asof": "2026-09-11",
   "next_session": "下一常規交易時段",
   "model_family": "shared",
@@ -18,7 +18,7 @@
       "sector": "Information Technology",
       "model_family": "shared",
       "dvol_rank": 1,
-      "dollar_volume": 21157973333.862305,
+      "dollar_volume": 21202445190.307617,
       "action": "做空",
       "side": -1,
       "reason": "fade_to_prior_close",
@@ -79,7 +79,7 @@
       "sector": "Information Technology",
       "model_family": "shared",
       "dvol_rank": 2,
-      "dollar_volume": 19385046392.781067,
+      "dollar_volume": 19440928631.062317,
       "action": "做空",
       "side": -1,
       "reason": "fade_to_prior_close",
@@ -140,7 +140,7 @@
       "sector": "Information Technology",
       "model_family": "shared",
       "dvol_rank": 3,
-      "dollar_volume": 16832465373.443604,
+      "dollar_volume": 16851703805.807495,
       "action": "做空",
       "side": -1,
       "reason": "fade_to_prior_close",
@@ -201,7 +201,7 @@
       "sector": "Information Technology",
       "model_family": "shared",
       "dvol_rank": 4,
-      "dollar_volume": 15255488771.972656,
+      "dollar_volume": 15306775961.206055,
       "action": "做空",
       "side": -1,
       "reason": "fade_to_prior_close",
@@ -262,7 +262,7 @@
       "sector": "Information Technology",
       "model_family": "shared",
       "dvol_rank": 5,
-      "dollar_volume": 11950701314.926147,
+      "dollar_volume": 12088312709.80835,
       "action": "做空",
       "side": -1,
       "reason": "fade_to_prior_close",
@@ -323,7 +323,7 @@
       "sector": "Consumer Discretionary",
       "model_family": "shared",
       "dvol_rank": 6,
-      "dollar_volume": 10996564745.465088,
+      "dollar_volume": 11019112393.615723,
       "action": "做空",
       "side": -1,
       "reason": "fade_to_prior_close",
@@ -384,7 +384,7 @@
       "sector": "Communication Services",
       "model_family": "shared",
       "dvol_rank": 7,
-      "dollar_volume": 10957150947.363281,
+      "dollar_volume": 10967908245.84961,
       "action": "做空",
       "side": -1,
       "reason": "fade_to_prior_close",
@@ -445,7 +445,7 @@
       "sector": "Information Technology",
       "model_family": "shared",
       "dvol_rank": 8,
-      "dollar_volume": 9806986222.77832,
+      "dollar_volume": 9819992698.901367,
       "action": "做空",
       "side": -1,
       "reason": "fade_to_prior_close",
@@ -506,7 +506,7 @@
       "sector": "Information Technology",
       "model_family": "shared",
       "dvol_rank": 9,
-      "dollar_volume": 8939402458.013916,
+      "dollar_volume": 8954791988.378906,
       "action": "做空",
       "side": -1,
       "reason": "fade_to_prior_close",
@@ -521,18 +521,18 @@
         "high": {
           "q10": 102.7969141953355,
           "q50": 104.89959842249071,
-          "q90": 107.6174213985045,
+          "q90": 107.64026604695574,
           "q10_ret": -0.0013900159576175652,
           "q50_ret": 0.019036292350972917,
-          "q90_ret": 0.045438302371914756
+          "q90_ret": 0.045660224345000375
         },
         "low": {
           "q10": 98.2688260622107,
           "q50": 101.55414477700093,
-          "q90": 103.39135924587319,
+          "q90": 103.40290083552252,
           "q10_ret": -0.04537765949495093,
           "q50_ret": -0.013462770852314301,
-          "q90_ret": 0.004384658964078082
+          "q90_ret": 0.004496778542236182
         },
         "close": {
           "q10": 99.92131307693305,
@@ -567,7 +567,7 @@
       "sector": "Communication Services",
       "model_family": "shared",
       "dvol_rank": 10,
-      "dollar_volume": 8353333750.0,
+      "dollar_volume": 8363759550.0,
       "action": "做空",
       "side": -1,
       "reason": "fade_to_prior_close",
@@ -628,7 +628,7 @@
       "sector": "Information Technology",
       "model_family": "shared",
       "dvol_rank": 11,
-      "dollar_volume": 8160863436.907959,
+      "dollar_volume": 8210671496.97876,
       "action": "做空",
       "side": -1,
       "reason": "fade_to_prior_close",
@@ -689,7 +689,7 @@
       "sector": "Information Technology",
       "model_family": "shared",
       "dvol_rank": 12,
-      "dollar_volume": 7653518164.526367,
+      "dollar_volume": 7662205924.291992,
       "action": "做空",
       "side": -1,
       "reason": "fade_to_prior_close",
@@ -811,7 +811,7 @@
       "sector": "Consumer Discretionary",
       "model_family": "shared",
       "dvol_rank": 14,
-      "dollar_volume": 6851609351.428223,
+      "dollar_volume": 6862214365.377808,
       "action": "做空",
       "side": -1,
       "reason": "fade_to_prior_close",
@@ -872,7 +872,7 @@
       "sector": "Communication Services",
       "model_family": "shared",
       "dvol_rank": 15,
-      "dollar_volume": 5297694952.783203,
+      "dollar_volume": 5307054008.123779,
       "action": "做空",
       "side": -1,
       "reason": "fade_to_prior_close",
@@ -933,7 +933,7 @@
       "sector": "Information Technology",
       "model_family": "shared",
       "dvol_rank": 16,
-      "dollar_volume": 4078179015.4266357,
+      "dollar_volume": 4086938325.653076,
       "action": "做空",
       "side": -1,
       "reason": "fade_to_prior_close",
@@ -1299,7 +1299,7 @@
       "sector": "Information Technology",
       "model_family": "shared",
       "dvol_rank": 22,
-      "dollar_volume": 2716567499.984741,
+      "dollar_volume": 2719140245.941162,
       "action": "做空",
       "side": -1,
       "reason": "fade_to_prior_close",
@@ -1360,7 +1360,7 @@
       "sector": "Information Technology",
       "model_family": "shared",
       "dvol_rank": 23,
-      "dollar_volume": 2572532470.275879,
+      "dollar_volume": 2577081126.159668,
       "action": "做空",
       "side": -1,
       "reason": "fade_to_prior_close",
@@ -1421,7 +1421,7 @@
       "sector": "Information Technology",
       "model_family": "shared",
       "dvol_rank": 24,
-      "dollar_volume": 2421019494.9497223,
+      "dollar_volume": 2424484116.9582367,
       "action": "做空",
       "side": -1,
       "reason": "fade_to_prior_close",
@@ -1660,73 +1660,12 @@
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
     },
     {
-      "ticker": "MRNA",
-      "name": "Health Care",
-      "sector": "Health Care",
-      "model_family": "shared",
-      "dvol_rank": 28,
-      "dollar_volume": 2215194423.7823486,
-      "action": "做空",
-      "side": -1,
-      "reason": "fade_to_prior_close",
-      "asof": "2026-09-11",
-      "last_bar_date": "2026-09-11",
-      "prior_close": 143.97000122070312,
-      "entry": "盤中觸價",
-      "entry_px": 148.13966815450846,
-      "tp": 143.97000122070312,
-      "sl": 160.1392398185012,
-      "pred": {
-        "high": {
-          "q10": 143.5129779944529,
-          "q50": 148.13966815450846,
-          "q90": 157.0486551581778,
-          "q10_ret": -0.0031744337179633866,
-          "q50_ret": 0.02896205388936065,
-          "q90_ret": 0.0908429105131797
-        },
-        "low": {
-          "q10": 133.31641429807001,
-          "q50": 140.84275154118777,
-          "q90": 144.94751121808224,
-          "q10_ret": -0.07399865827813239,
-          "q50_ret": -0.021721536799331958,
-          "q90_ret": 0.006789678329450065
-        },
-        "close": {
-          "q10": 136.96251425824548,
-          "q50": 144.098245032816,
-          "q90": 152.54820052933408,
-          "q10_ret": -0.04867324375246285,
-          "q50_ret": 0.0008907675975933671,
-          "q90_ret": 0.05958324120231647
-        }
-      },
-      "baseline": {
-        "high_q50": 155.96957288469585,
-        "low_q50": 131.9704295567104,
-        "close_q50": 143.97000122070312
-      },
-      "atr": 11.999571663992745,
-      "high_confidence": false,
-      "beats_baseline": true,
-      "beats_range": true,
-      "strategy": "fade_to_prior_close",
-      "recent_error": {
-        "n": 0,
-        "mae_close_ret": null,
-        "mae_close_px": null
-      },
-      "data_source": "Yahoo Finance",
-      "universe_source": "S&P 500 · Wikipedia 2026-09-12"
-    },
-    {
       "ticker": "HOOD",
       "name": "Financials",
       "sector": "Financials",
       "model_family": "shared",
-      "dvol_rank": 29,
-      "dollar_volume": 2212597115.0016785,
+      "dvol_rank": 28,
+      "dollar_volume": 2221129920.978546,
       "action": "做空",
       "side": -1,
       "reason": "fade_to_prior_close",
@@ -1769,6 +1708,67 @@
         "close_q50": 112.56999969482422
       },
       "atr": 6.591071537562779,
+      "high_confidence": false,
+      "beats_baseline": true,
+      "beats_range": true,
+      "strategy": "fade_to_prior_close",
+      "recent_error": {
+        "n": 0,
+        "mae_close_ret": null,
+        "mae_close_px": null
+      },
+      "data_source": "Yahoo Finance",
+      "universe_source": "S&P 500 · Wikipedia 2026-09-12"
+    },
+    {
+      "ticker": "MRNA",
+      "name": "Health Care",
+      "sector": "Health Care",
+      "model_family": "shared",
+      "dvol_rank": 29,
+      "dollar_volume": 2218476939.8101807,
+      "action": "做空",
+      "side": -1,
+      "reason": "fade_to_prior_close",
+      "asof": "2026-09-11",
+      "last_bar_date": "2026-09-11",
+      "prior_close": 143.97000122070312,
+      "entry": "盤中觸價",
+      "entry_px": 148.13966815450846,
+      "tp": 143.97000122070312,
+      "sl": 160.1392398185012,
+      "pred": {
+        "high": {
+          "q10": 143.5129779944529,
+          "q50": 148.13966815450846,
+          "q90": 157.0486551581778,
+          "q10_ret": -0.0031744337179633866,
+          "q50_ret": 0.02896205388936065,
+          "q90_ret": 0.0908429105131797
+        },
+        "low": {
+          "q10": 133.31641429807001,
+          "q50": 140.84275154118777,
+          "q90": 144.94751121808224,
+          "q10_ret": -0.07399865827813239,
+          "q50_ret": -0.021721536799331958,
+          "q90_ret": 0.006789678329450065
+        },
+        "close": {
+          "q10": 136.96251425824548,
+          "q50": 144.098245032816,
+          "q90": 152.54820052933408,
+          "q10_ret": -0.04867324375246285,
+          "q50_ret": 0.0008907675975933671,
+          "q90_ret": 0.05958324120231647
+        }
+      },
+      "baseline": {
+        "high_q50": 155.96957288469585,
+        "low_q50": 131.9704295567104,
+        "close_q50": 143.97000122070312
+      },
+      "atr": 11.999571663992745,
       "high_confidence": false,
       "beats_baseline": true,
       "beats_range": true,
@@ -2092,7 +2092,7 @@
       "sector": "Information Technology",
       "model_family": "shared",
       "dvol_rank": 35,
-      "dollar_volume": 1860756219.1947937,
+      "dollar_volume": 1864357199.0577698,
       "action": "做空",
       "side": -1,
       "reason": "fade_to_prior_close",
@@ -2113,18 +2113,18 @@
           "q90_ret": 0.06339178685342597
         },
         "low": {
-          "q10": 37.94669501668058,
+          "q10": 37.93659365068133,
           "q50": 39.47141070459482,
           "q90": 40.34980172945388,
-          "q10_ret": -0.053698342627872285,
+          "q10_ret": -0.05395024702646661,
           "q50_ret": -0.015675506070952742,
           "q90_ret": 0.006229507851328207
         },
         "close": {
-          "q10": 38.675158841240986,
+          "q10": 38.676510227603984,
           "q50": 40.13571825342538,
           "q90": 41.80505820917726,
-          "q10_ret": -0.035532161773014555,
+          "q10_ret": -0.03549846136367739,
           "q50_ret": 0.0008907675975933671,
           "q90_ret": 0.042520194512140556
         }
@@ -2214,7 +2214,7 @@
       "sector": "Consumer Staples",
       "model_family": "shared",
       "dvol_rank": 37,
-      "dollar_volume": 1827796871.0289001,
+      "dollar_volume": 1828900516.0446167,
       "action": "做空",
       "side": -1,
       "reason": "fade_to_prior_close",
@@ -2245,10 +2245,10 @@
         "close": {
           "q10": 105.94247048826344,
           "q50": 107.24544727532023,
-          "q90": 108.63346607108211,
+          "q90": 108.64336906511329,
           "q10_ret": -0.011269538221367418,
           "q50_ret": 0.0008907675975933671,
-          "q90_ret": 0.013844745908332104
+          "q90_ret": 0.013937167689855062
         }
       },
       "baseline": {
@@ -2270,11 +2270,72 @@
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
     },
     {
+      "ticker": "UBER",
+      "name": "Industrials",
+      "sector": "Industrials",
+      "model_family": "shared",
+      "dvol_rank": 38,
+      "dollar_volume": 1813903150.6576538,
+      "action": "做空",
+      "side": -1,
+      "reason": "fade_to_prior_close",
+      "asof": "2026-09-11",
+      "last_bar_date": "2026-09-11",
+      "prior_close": 71.66999816894531,
+      "entry": "盤中觸價",
+      "entry_px": 72.81374175866443,
+      "tp": 71.66999816894531,
+      "sl": 75.32617004235584,
+      "pred": {
+        "high": {
+          "q10": 71.58974084250977,
+          "q50": 72.81374175866443,
+          "q90": 74.71242566431982,
+          "q10_ret": -0.00111981761526422,
+          "q50_ret": 0.015958471033067603,
+          "q90_ret": 0.042450503322222645
+        },
+        "low": {
+          "q10": 68.82836761715045,
+          "q50": 70.82682143756412,
+          "q90": 71.94234731303581,
+          "q10_ret": -0.03964881574430045,
+          "q50_ret": -0.01176470982172481,
+          "q90_ret": 0.0038000439660747683
+        },
+        "close": {
+          "q10": 69.63678734467426,
+          "q50": 71.73383948103378,
+          "q90": 73.76981544159494,
+          "q10_ret": -0.02836906482791079,
+          "q50_ret": 0.0008907675975933671,
+          "q90_ret": 0.029298413929072575
+        }
+      },
+      "baseline": {
+        "high_q50": 74.18242645263672,
+        "low_q50": 69.1575698852539,
+        "close_q50": 71.66999816894531
+      },
+      "atr": 2.5124282836914062,
+      "high_confidence": false,
+      "beats_baseline": true,
+      "beats_range": true,
+      "strategy": "fade_to_prior_close",
+      "recent_error": {
+        "n": 0,
+        "mae_close_ret": null,
+        "mae_close_px": null
+      },
+      "data_source": "Yahoo Finance",
+      "universe_source": "S&P 500 · Wikipedia 2026-09-12"
+    },
+    {
       "ticker": "BAC",
       "name": "Financials",
       "sector": "Financials",
       "model_family": "shared",
-      "dvol_rank": 38,
+      "dvol_rank": 39,
       "dollar_volume": 1810092213.3480072,
       "action": "做空",
       "side": -1,
@@ -2331,73 +2392,12 @@
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
     },
     {
-      "ticker": "UBER",
-      "name": "Industrials",
-      "sector": "Industrials",
-      "model_family": "shared",
-      "dvol_rank": 39,
-      "dollar_volume": 1809667453.7658691,
-      "action": "做空",
-      "side": -1,
-      "reason": "fade_to_prior_close",
-      "asof": "2026-09-11",
-      "last_bar_date": "2026-09-11",
-      "prior_close": 71.66999816894531,
-      "entry": "盤中觸價",
-      "entry_px": 72.81374175866443,
-      "tp": 71.66999816894531,
-      "sl": 75.32617004235584,
-      "pred": {
-        "high": {
-          "q10": 71.58974084250977,
-          "q50": 72.81374175866443,
-          "q90": 74.71242566431982,
-          "q10_ret": -0.00111981761526422,
-          "q50_ret": 0.015958471033067603,
-          "q90_ret": 0.042450503322222645
-        },
-        "low": {
-          "q10": 68.82836761715045,
-          "q50": 70.82682143756412,
-          "q90": 71.94234731303581,
-          "q10_ret": -0.03964881574430045,
-          "q50_ret": -0.01176470982172481,
-          "q90_ret": 0.0038000439660747683
-        },
-        "close": {
-          "q10": 69.63678734467426,
-          "q50": 71.73383948103378,
-          "q90": 73.76981544159494,
-          "q10_ret": -0.02836906482791079,
-          "q50_ret": 0.0008907675975933671,
-          "q90_ret": 0.029298413929072575
-        }
-      },
-      "baseline": {
-        "high_q50": 74.18242645263672,
-        "low_q50": 69.1575698852539,
-        "close_q50": 71.66999816894531
-      },
-      "atr": 2.5124282836914062,
-      "high_confidence": false,
-      "beats_baseline": true,
-      "beats_range": true,
-      "strategy": "fade_to_prior_close",
-      "recent_error": {
-        "n": 0,
-        "mae_close_ret": null,
-        "mae_close_px": null
-      },
-      "data_source": "Yahoo Finance",
-      "universe_source": "S&P 500 · Wikipedia 2026-09-12"
-    },
-    {
       "ticker": "NFLX",
       "name": "Communication Services",
       "sector": "Communication Services",
       "model_family": "shared",
       "dvol_rank": 40,
-      "dollar_volume": 1718883753.8864136,
+      "dollar_volume": 1721205753.93219,
       "action": "做空",
       "side": -1,
       "reason": "fade_to_prior_close",
@@ -2763,7 +2763,7 @@
       "sector": "Information Technology",
       "model_family": "shared",
       "dvol_rank": 46,
-      "dollar_volume": 1418799901.9317627,
+      "dollar_volume": 1422046886.9018555,
       "action": "做空",
       "side": -1,
       "reason": "fade_to_prior_close",
@@ -2946,7 +2946,7 @@
       "sector": "Information Technology",
       "model_family": "shared",
       "dvol_rank": 49,
-      "dollar_volume": 1372546896.4691162,
+      "dollar_volume": 1374717666.5267944,
       "action": "做空",
       "side": -1,
       "reason": "fade_to_prior_close",
@@ -3007,7 +3007,7 @@
       "sector": "Financials",
       "model_family": "shared",
       "dvol_rank": 50,
-      "dollar_volume": 1367904257.1258545,
+      "dollar_volume": 1370796047.0352173,
       "action": "做空",
       "side": -1,
       "reason": "fade_to_prior_close",
@@ -3036,10 +3036,10 @@
           "q90_ret": 0.005894806465944691
         },
         "close": {
-          "q10": 169.40670041488713,
+          "q10": 169.39752445147064,
           "q50": 175.41611043109702,
           "q90": 182.36763320323664,
-          "q10_ret": -0.03339777630610681,
+          "q10_ret": -0.03345013259792514,
           "q50_ret": 0.0008907675975933671,
           "q90_ret": 0.04055482665283013
         }
@@ -3861,7 +3861,7 @@
       "sector": "Health Care",
       "model_family": "shared",
       "dvol_rank": 64,
-      "dollar_volume": 1159363997.6520538,
+      "dollar_volume": 1159892651.6464233,
       "action": "做空",
       "side": -1,
       "reason": "fade_to_prior_close",
@@ -5747,11 +5747,72 @@
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
     },
     {
+      "ticker": "GLW",
+      "name": "Information Technology",
+      "sector": "Information Technology",
+      "model_family": "shared",
+      "dvol_rank": 95,
+      "dollar_volume": 814344930.1300049,
+      "action": "做空",
+      "side": -1,
+      "reason": "fade_to_prior_close",
+      "asof": "2026-09-11",
+      "last_bar_date": "2026-09-11",
+      "prior_close": 166.39999389648438,
+      "entry": "盤中觸價",
+      "entry_px": 169.11421811271092,
+      "tp": 166.39999389648438,
+      "sl": 175.73421758955243,
+      "pred": {
+        "high": {
+          "q10": 166.19846954427456,
+          "q50": 169.11421811271092,
+          "q90": 173.12257340884565,
+          "q10_ret": -0.0012110838918370796,
+          "q50_ret": 0.016311444205430924,
+          "q90_ret": 0.040400118743653936
+        },
+        "low": {
+          "q10": 160.08596910063386,
+          "q50": 164.2956923875699,
+          "q90": 166.98895780489312,
+          "q10_ret": -0.03794486194379538,
+          "q50_ret": -0.012646043185695998,
+          "q90_ret": 0.003539446694782362
+        },
+        "close": {
+          "q10": 162.49961458880668,
+          "q50": 166.5482176192871,
+          "q90": 171.06473687806053,
+          "q10_ret": -0.023439780353021373,
+          "q50_ret": 0.0008907675975933671,
+          "q90_ret": 0.028033312215612435
+        }
+      },
+      "baseline": {
+        "high_q50": 173.01999337332592,
+        "low_q50": 159.77999441964286,
+        "close_q50": 166.39999389648438
+      },
+      "atr": 6.619999476841518,
+      "high_confidence": false,
+      "beats_baseline": true,
+      "beats_range": true,
+      "strategy": "fade_to_prior_close",
+      "recent_error": {
+        "n": 0,
+        "mae_close_ret": null,
+        "mae_close_px": null
+      },
+      "data_source": "Yahoo Finance",
+      "universe_source": "S&P 500 · Wikipedia 2026-09-12"
+    },
+    {
       "ticker": "NEE",
       "name": "Utilities",
       "sector": "Utilities",
       "model_family": "shared",
-      "dvol_rank": 95,
+      "dvol_rank": 96,
       "dollar_volume": 813436781.8725586,
       "action": "做空",
       "side": -1,
@@ -5795,67 +5856,6 @@
         "close_q50": 82.30999755859375
       },
       "atr": 1.2321428571428572,
-      "high_confidence": false,
-      "beats_baseline": true,
-      "beats_range": true,
-      "strategy": "fade_to_prior_close",
-      "recent_error": {
-        "n": 0,
-        "mae_close_ret": null,
-        "mae_close_px": null
-      },
-      "data_source": "Yahoo Finance",
-      "universe_source": "S&P 500 · Wikipedia 2026-09-12"
-    },
-    {
-      "ticker": "GLW",
-      "name": "Information Technology",
-      "sector": "Information Technology",
-      "model_family": "shared",
-      "dvol_rank": 96,
-      "dollar_volume": 806590690.4144287,
-      "action": "做空",
-      "side": -1,
-      "reason": "fade_to_prior_close",
-      "asof": "2026-09-11",
-      "last_bar_date": "2026-09-11",
-      "prior_close": 166.39999389648438,
-      "entry": "盤中觸價",
-      "entry_px": 169.11421811271092,
-      "tp": 166.39999389648438,
-      "sl": 175.73421758955243,
-      "pred": {
-        "high": {
-          "q10": 166.19846954427456,
-          "q50": 169.11421811271092,
-          "q90": 173.12257340884565,
-          "q10_ret": -0.0012110838918370796,
-          "q50_ret": 0.016311444205430924,
-          "q90_ret": 0.040400118743653936
-        },
-        "low": {
-          "q10": 160.08596910063386,
-          "q50": 164.2956923875699,
-          "q90": 166.98895780489312,
-          "q10_ret": -0.03794486194379538,
-          "q50_ret": -0.012646043185695998,
-          "q90_ret": 0.003539446694782362
-        },
-        "close": {
-          "q10": 162.49961458880668,
-          "q50": 166.5482176192871,
-          "q90": 171.06473687806053,
-          "q10_ret": -0.023439780353021373,
-          "q50_ret": 0.0008907675975933671,
-          "q90_ret": 0.028033312215612435
-        }
-      },
-      "baseline": {
-        "high_q50": 173.01999337332592,
-        "low_q50": 159.77999441964286,
-        "close_q50": 166.39999389648438
-      },
-      "atr": 6.619999476841518,
       "high_confidence": false,
       "beats_baseline": true,
       "beats_range": true,
