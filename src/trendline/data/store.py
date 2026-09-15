@@ -80,3 +80,33 @@ def merge_ohlcv(existing: pd.DataFrame, incoming: pd.DataFrame) -> pd.DataFrame:
     if not frames:
         return _normalize(pd.DataFrame(columns=OHLCV_COLS))
     return _normalize(pd.concat(frames, ignore_index=True))
+
+
+def equity_session_coverage(ohlcv: pd.DataFrame, session: pd.Timestamp | str | None = None) -> dict:
+    """How many S&P names have a finite close on ``session`` (default: max date).
+
+    Used to refuse cards/ledger when Yahoo only published macros / NaN-close stubs.
+    """
+    from trendline.universe import load_sp500
+
+    df = ohlcv.copy()
+    df["date"] = pd.to_datetime(df["date"]).dt.tz_localize(None).dt.normalize()
+    members = set(load_sp500()["ticker"])
+    if session is None:
+        # Prefer latest date that has any S&P row; else overall max
+        sp = df[df["ticker"].isin(members)]
+        session_ts = sp["date"].max() if not sp.empty else df["date"].max()
+    else:
+        session_ts = pd.Timestamp(session).tz_localize(None).normalize()
+    day = df[(df["date"] == session_ts) & (df["ticker"].isin(members))]
+    n_members = len(members)
+    n_have = int(day["ticker"].nunique()) if not day.empty else 0
+    frac = (n_have / n_members) if n_members else 0.0
+    return {
+        "session": str(session_ts.date()) if pd.notna(session_ts) else None,
+        "n_members": n_members,
+        "n_have": n_have,
+        "frac": frac,
+        "complete": frac >= 0.90,
+    }
+

@@ -75,6 +75,23 @@ def main() -> int:
     rc = _run("fetch.py", fetch_args)
     if rc != 0:
         return rc
+
+    from trendline.data.store import equity_session_coverage, load_ohlcv
+
+    cov = equity_session_coverage(load_ohlcv())
+    print(
+        f"equity session coverage {cov['session']}: "
+        f"{cov['n_have']}/{cov['n_members']} ({cov['frac']:.1%})",
+        flush=True,
+    )
+    if not cov["complete"]:
+        print(
+            "incomplete equity session (need ≥90% S&P with real Close); "
+            "skip ledger + cards — retry fetch later",
+            flush=True,
+        )
+        return 0
+
     try:
         from trendline.ledger import update_ledger
 
