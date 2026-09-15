@@ -11,6 +11,11 @@ sys.path.insert(0, str(ROOT / "src"))
 import pandas as pd
 import streamlit as st
 
+try:
+    from st_keyup import st_keyup
+except ImportError:  # pragma: no cover
+    st_keyup = None
+
 from trendline.config import (
     ARTIFACT_DIR,
     CARDS_PATH,
@@ -88,6 +93,12 @@ def _unpin_ticker(ticker: str) -> None:
     t = (ticker or "").strip().upper()
     pinned = _ensure_pinned_state()
     st.session_state["pinned_tickers"] = [x for x in pinned if x != t]
+
+
+
+def _clear_text_key(key: str) -> None:
+    """on_click callback: safe to clear a keyed text widget before next render."""
+    st.session_state[key] = ""
 
 
 def _filter_cards_by_query(cards: list[dict], query: str) -> list[dict]:
@@ -181,29 +192,40 @@ def _inject_back_to_top(*, jump: bool) -> None:
   opacity: 0.75;
   white-space: nowrap;
 }
-/* marker is in the element-container *before* the columns row */
-div.element-container:has(.tl-pin-mark) + div.element-container div[data-testid="stHorizontalBlock"] {
+/* mark lives inside a column → horizontal block can :has it (keeps one row on mobile) */
+div[data-testid="stHorizontalBlock"]:has(.tl-pin-mark) {
   flex-wrap: nowrap !important;
-  gap: 0.25rem !important;
+  gap: 0.35rem !important;
   align-items: center !important;
-  margin-top: -0.15rem;
-  margin-bottom: 0.15rem;
+  margin: 0 0 0.2rem 0;
 }
-div.element-container:has(.tl-pin-mark) + div.element-container div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:last-child {
-  flex: 0 0 2.6rem !important;
-  width: 2.6rem !important;
-  min-width: 2.6rem !important;
+div[data-testid="stHorizontalBlock"]:has(.tl-pin-mark) > div[data-testid="column"]:last-child {
+  flex: 0 0 2.4rem !important;
+  width: 2.4rem !important;
+  min-width: 2.4rem !important;
+  max-width: 2.4rem !important;
 }
-div.element-container:has(.tl-pin-mark) + div.element-container div[data-testid="stHorizontalBlock"] button {
-  padding: 0.15rem 0.35rem !important;
-  min-height: 2rem !important;
+div[data-testid="stHorizontalBlock"]:has(.tl-pin-mark) button {
+  border-radius: 999px !important;
+  width: 2.25rem !important;
+  height: 2.25rem !important;
+  min-height: 2.25rem !important;
+  padding: 0 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  line-height: 1 !important;
 }
-div.element-container:has(.tl-align-mark) + div.element-container div[data-testid="stHorizontalBlock"] {
+div[data-testid="stHorizontalBlock"]:has(.tl-align-mark) {
+  flex-wrap: nowrap !important;
   align-items: flex-end !important;
   gap: 0.5rem !important;
 }
-div.element-container:has(.tl-align-mark) + div.element-container div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:last-child {
-  padding-bottom: 0.15rem;
+div[data-testid="stHorizontalBlock"]:has(.tl-align-mark) > div[data-testid="column"]:last-child {
+  flex: 0 0 4.5rem !important;
+  width: 4.5rem !important;
+  min-width: 4.5rem !important;
+  padding-bottom: 0.05rem;
 }
 </style>
 <div id="tl-top"></div>
@@ -315,22 +337,31 @@ def main() -> None:
     search_key = f"search_{key}"
     if search_key not in st.session_state:
         st.session_state[search_key] = ""
-    st.markdown('<div class="tl-align-mark"></div>', unsafe_allow_html=True)
-    search_col, clear_col = st.columns([5, 1])
+    search_col, clear_col = st.columns([5, 1], gap="small")
     with search_col:
-        search_q = st.text_input(
-            "搜尋",
-            placeholder="搜尋股票代號（例如 NVDA）",
-            key=search_key,
-        )
+        st.markdown('<div class="tl-align-mark"></div>', unsafe_allow_html=True)
+        if st_keyup is not None:
+            search_q = st_keyup(
+                "搜尋",
+                placeholder="搜尋股票代號（例如 NVDA）",
+                key=search_key,
+                debounce=150,
+            )
+        else:
+            search_q = st.text_input(
+                "搜尋",
+                placeholder="搜尋股票代號（例如 NVDA）",
+                key=search_key,
+            )
     with clear_col:
-        if st.button(
+        st.button(
             "清除",
             key=f"clear_search_{key}",
             use_container_width=True,
             disabled=not bool((st.session_state.get(search_key) or "").strip()),
-        ):
-            st.session_state[search_key] = ""
+            on_click=_clear_text_key,
+            args=(search_key,),
+        )
     filt = st.radio("篩選", ["全部", "做多", "做空", "高信心"], horizontal=True, key=f"filt_{key}")
 
     cards = cards_payload.get("cards", [])
@@ -630,11 +661,11 @@ def _render_card(card: dict, *, family: str = "shared") -> None:
     is_pinned = ticker in pinned
     pin_key = f"pin_{family}_{ticker}"
     conf_html = f'<span class="tl-conf">{conf}</span>' if conf else ""
-    # One tight row: ticker + direction + pin. Marker+CSS stop Streamlit stacking on mobile.
-    st.markdown('<div class="tl-pin-mark"></div>', unsafe_allow_html=True)
+    # One row: ticker + direction | circular pin (mark inside columns so nowrap CSS applies)
     head_col, pin_col = st.columns([10, 1], gap="small")
     with head_col:
         st.markdown(
+            f'<div class="tl-pin-mark"></div>'
             f'<div class="tl-card-head">'
             f'<span class="tl-t">{ticker}</span>'
             f'<span class="tl-a {color}">{action}</span>'
@@ -745,16 +776,26 @@ def _render_pinned() -> None:
 
     if "pinned_add_input" not in st.session_state:
         st.session_state["pinned_add_input"] = ""
-    st.markdown('<div class="tl-align-mark"></div>', unsafe_allow_html=True)
-    add_col, btn_col = st.columns([4, 1])
+    if st.session_state.pop("_clear_pinned_add", False):
+        st.session_state["pinned_add_input"] = ""
+    add_col, btn_col = st.columns([4, 1], gap="small")
     with add_col:
-        add_q = st.text_input(
-            "手動釘選",
-            placeholder="輸入股票代號（例如 AAPL）",
-            key="pinned_add_input",
-        )
+        st.markdown('<div class="tl-align-mark"></div>', unsafe_allow_html=True)
+        if st_keyup is not None:
+            add_q = st_keyup(
+                "手動釘選",
+                placeholder="輸入股票代號（例如 AAPL）",
+                key="pinned_add_input",
+                debounce=150,
+            )
+        else:
+            add_q = st.text_input(
+                "手動釘選",
+                placeholder="輸入股票代號（例如 AAPL）",
+                key="pinned_add_input",
+            )
     with btn_col:
-        add_clicked = st.button("加入釘選", key="pinned_add_btn", use_container_width=True)
+        add_clicked = st.button("加入", key="pinned_add_btn", use_container_width=True)
     if add_clicked:
         t = (add_q or "").strip().upper()
         if not t:
@@ -763,7 +804,8 @@ def _render_pinned() -> None:
             st.warning(f"三族卡片都搵唔到 {t}。")
         else:
             _pin_ticker(t)
-            st.session_state["pinned_add_input"] = ""
+            st.session_state["_clear_pinned_add"] = True
+            st.rerun()
 
     pinned = list(_ensure_pinned_state())
     if not pinned:
@@ -772,10 +814,10 @@ def _render_pinned() -> None:
 
     st.caption(f"已釘選 {len(pinned)} 隻")
     for ticker in pinned:
-        st.markdown('<div class="tl-pin-mark"></div>', unsafe_allow_html=True)
-        header_l, header_r = st.columns([12, 1])
+        header_l, header_r = st.columns([12, 1], gap="small")
         with header_l:
             st.markdown(
+                f'<div class="tl-pin-mark"></div>'
                 f'<div class="tl-card-head"><span class="tl-t">{ticker}</span></div>',
                 unsafe_allow_html=True,
             )
