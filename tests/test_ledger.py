@@ -70,7 +70,43 @@ def test_three_books_same_start():
     v = ledger_view(new_ledger())
     eqs = [v["headlines"][f]["equity_hkd"] for f in ("shared", "sector", "stock")]
     assert eqs == [500_000.0, 500_000.0, 500_000.0]
+    assert v["headlines"]["voo"]["equity_hkd"] == 500_000.0
     assert set(v["planned"]) == {"shared", "sector", "stock"}
+
+
+def test_realize_marks_voo_buy_and_hold(monkeypatch):
+    import trendline.ledger as ledger_mod
+    from trendline.ledger import new_ledger, realize_once
+
+    cards = {
+        "asof": "2026-09-11",
+        "cards": [
+            {
+                "ticker": "AAA",
+                "side": 0,
+                "action": "觀望",
+                "prior_close": 100.0,
+                "pred": {"high": {"q50": 101}, "low": {"q50": 99}, "close": {"q50": 100}},
+            }
+        ],
+    }
+    monkeypatch.setattr(ledger_mod, "_read_cards", lambda path: cards)
+    monkeypatch.setattr(ledger_mod, "_refresh_fx", lambda default: 7.8)
+
+    ohlcv = pd.DataFrame(
+        [
+            {"date": "2026-09-11", "ticker": "AAA", "open": 100, "high": 101, "low": 99, "close": 100, "adj_close": 100, "volume": 1, "source": "yfinance"},
+            {"date": "2026-09-12", "ticker": "AAA", "open": 100, "high": 101, "low": 99, "close": 100, "adj_close": 100, "volume": 1, "source": "yfinance"},
+            {"date": "2026-09-12", "ticker": "VOO", "open": 500, "high": 505, "low": 499, "close": 500, "adj_close": 500, "volume": 1, "source": "yfinance"},
+        ]
+    )
+    ohlcv["date"] = pd.to_datetime(ohlcv["date"])
+    out = realize_once(new_ledger(), ohlcv, bars_by_ticker={})
+    b = out["benchmark"]
+    assert b["shares"] == int((500_000 / 7.8) // 500)
+    assert b["entry_px"] == 500.0
+    assert abs(b["equity_hkd"] - 500_000) < 8.0  # leftover cash after whole shares
+    assert out["days"][-1]["equity_hkd"]["voo"] == b["equity_hkd"]
 
 
 def test_spend_uses_current_equity_not_start():

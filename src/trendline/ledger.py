@@ -1,6 +1,7 @@
 """Paper ledger: realize last night's cards against the next session's bar.
 
-Not a broker. Three HKD books (shared / sector / stock), each starts at the same capital.
+Not a broker. Three HKD books (shared / sector / stock) plus a buy-and-hold
+VOO book, each starting at the same capital.
 """
 
 from __future__ import annotations
@@ -27,6 +28,7 @@ from trendline.config import (
     PAPER_MAX_NAME_FRAC,
     PAPER_MAX_NAME_RISK,
     PAPER_MAX_POSITIONS,
+    PAPER_BENCHMARK_TICKER,
     PAPER_MIN_NOTIONAL_USD,
     PAPER_STARTING_HKD,
 )
@@ -59,6 +61,22 @@ def _empty_family() -> dict:
     }
 
 
+def _empty_benchmark() -> dict:
+    return {
+        "ticker": PAPER_BENCHMARK_TICKER,
+        "starting_equity_hkd": PAPER_STARTING_HKD,
+        "equity_hkd": PAPER_STARTING_HKD,
+        "pnl_hkd": 0.0,
+        "shares": 0,
+        "cash_usd": 0.0,
+        "entry_px": None,
+        "entry_session": None,
+        "last_px": None,
+        "last_session": None,
+        "missing_sessions": 0,
+    }
+
+
 def new_ledger() -> dict:
     return {
         "account": {
@@ -77,6 +95,7 @@ def new_ledger() -> dict:
         },
         "realized_asofs": [],
         "families": {fam: _empty_family() for fam in FAMILY_PATHS},
+        "benchmark": _empty_benchmark(),
         "fills": [],
         "days": [],
         "updated_at_utc": None,
@@ -108,6 +127,14 @@ def _ensure_books(ledger: dict) -> dict:
     acct.pop("cash_hkd", None)
     acct.pop("fee_usd_per_order", None)
     acct.pop("orders_per_roundtrip", None)
+    bench = ledger.setdefault("benchmark", _empty_benchmark())
+    for k, v in _empty_benchmark().items():
+        bench.setdefault(k, v)
+    bench["ticker"] = PAPER_BENCHMARK_TICKER
+    if not bench.get("shares") and not ledger.get("fills"):
+        bench["starting_equity_hkd"] = PAPER_STARTING_HKD
+        bench["equity_hkd"] = PAPER_STARTING_HKD
+        bench["pnl_hkd"] = 0.0
     return ledger
 
 
@@ -129,6 +156,53 @@ def _read_cards(path: Path) -> dict | None:
     if not path.exists():
         return None
     return json.loads(path.read_text(encoding="utf-8"))
+
+
+def _session_close(ohlcv: pd.DataFrame, ticker: str, session: str) -> float | None:
+    sess = pd.Timestamp(session).tz_localize(None).normalize()
+    g = ohlcv[(ohlcv["ticker"] == ticker) & (pd.to_datetime(ohlcv["date"]).dt.tz_localize(None).dt.normalize() == sess)]
+    if g.empty:
+        return None
+    px = g.sort_values("date").iloc[-1].get("close")
+    if px is None or (isinstance(px, float) and pd.isna(px)):
+        return None
+    return float(px)
+
+
+def _mark_benchmark(ledger: dict, ohlcv: pd.DataFrame, session: str, fx: float) -> dict:
+    """Buy-and-hold VOO: whole shares at first available close, then mark to close. No fee."""
+    b = ledger.setdefault("benchmark", _empty_benchmark())
+    px = _session_close(ohlcv, b.get("ticker") or PAPER_BENCHMARK_TICKER, session)
+    if px is None or px <= 0:
+        b["missing_sessions"] = int(b.get("missing_sessions") or 0) + 1
+        return b
+    if not b.get("shares"):
+        usd = float(b.get("starting_equity_hkd") or PAPER_STARTING_HKD) / fx
+        shares = math.floor(usd / px)
+        b["shares"] = int(shares)
+        b["cash_usd"] = usd - shares * px
+        b["entry_px"] = px
+        b["entry_session"] = session
+    nav_usd = float(b["shares"]) * px + float(b.get("cash_usd") or 0)
+    b["last_px"] = px
+    b["last_session"] = session
+    b["equity_hkd"] = nav_usd * fx
+    b["pnl_hkd"] = float(b["equity_hkd"]) - float(b.get("starting_equity_hkd") or PAPER_STARTING_HKD)
+    return b
+
+
+def _benchmark_headline(b: dict) -> dict:
+    start = float(b.get("starting_equity_hkd") or PAPER_STARTING_HKD)
+    eq = float(b.get("equity_hkd") or start)
+    return {
+        "ticker": b.get("ticker") or PAPER_BENCHMARK_TICKER,
+        "equity_hkd": eq,
+        "pnl_hkd": float(b.get("pnl_hkd") or (eq - start)),
+        "ret": (eq / start - 1.0) if start else None,
+        "shares": int(b.get("shares") or 0),
+        "entry_px": b.get("entry_px"),
+        "last_px": b.get("last_px"),
+    }
 
 
 def _next_bar(ohlcv: pd.DataFrame, ticker: str, asof: pd.Timestamp) -> pd.Series | None:
@@ -504,10 +578,21 @@ def realize_once(
         }
         day["equity_hkd"][fam] = fam_state["equity_hkd"]
 
+    bench = _mark_benchmark(ledger, ohlcv, session, fx)
+    day["benchmark"] = {
+        "ticker": bench.get("ticker"),
+        "equity_hkd": bench.get("equity_hkd"),
+        "pnl_hkd": bench.get("pnl_hkd"),
+        "shares": bench.get("shares"),
+        "px": bench.get("last_px"),
+    }
+    day["equity_hkd"]["voo"] = bench.get("equity_hkd")
+
     ledger["days"].append(day)
     ledger["realized_asofs"].append(asof_s)
     ledger["updated_at_utc"] = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
     ledger["headlines"] = {fam: _family_headline(ledger["families"][fam]) for fam in FAMILY_PATHS}
+    ledger["headlines"]["voo"] = _benchmark_headline(bench)
     return ledger
 
 
@@ -515,7 +600,8 @@ def update_ledger() -> dict:
     ledger = realize_once()
     save_ledger(ledger)
     eq = {fam: ledger["families"][fam]["equity_hkd"] for fam in FAMILY_PATHS}
-    print(f"ledger equities={eq} asofs={ledger.get('realized_asofs')} fills={len(ledger.get('fills') or [])}")
+    voo = (ledger.get("benchmark") or {}).get("equity_hkd")
+    print(f"ledger equities={eq} voo={voo} asofs={ledger.get('realized_asofs')} fills={len(ledger.get('fills') or [])}")
     return ledger
 
 
@@ -529,9 +615,11 @@ def ledger_view(ledger: dict | None = None) -> dict:
         asofs[fam] = cards.get("asof") if cards else None
         eq = float(ledger["families"][fam]["equity_hkd"])
         planned[fam] = planned_orders(cards, eq, fx)
+    headlines = {fam: _family_headline(ledger["families"][fam]) for fam in FAMILY_PATHS}
+    headlines["voo"] = _benchmark_headline(ledger.get("benchmark") or _empty_benchmark())
     return {
         "ledger": ledger,
-        "headlines": {fam: _family_headline(ledger["families"][fam]) for fam in FAMILY_PATHS},
+        "headlines": headlines,
         "planned": planned,
         "cards_asof": asofs,
     }

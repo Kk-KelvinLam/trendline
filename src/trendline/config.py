@@ -122,8 +122,11 @@ SECTOR_ETF = {
     "Communication Services": "XLC",
 }
 
+PAPER_BENCHMARK_TICKER = "VOO"  # buy-and-hold mark-to-close vs the three fade books
+
 MACRO_TICKERS = (
     "SPY",
+    "VOO",
     "^VIX",
     "XLK",
     "XLF",
