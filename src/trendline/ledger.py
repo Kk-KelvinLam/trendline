@@ -72,6 +72,7 @@ def _empty_benchmark() -> dict:
         "cash_usd": 0.0,
         "entry_px": None,
         "entry_session": None,
+        "entry_kind": "open",
         "start_session": PAPER_BENCHMARK_START,
         "last_px": None,
         "last_session": None,
@@ -160,47 +161,67 @@ def _read_cards(path: Path) -> dict | None:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
-def _session_close(ohlcv: pd.DataFrame, ticker: str, session: str) -> float | None:
+def _session_px(ohlcv: pd.DataFrame, ticker: str, session: str, field: str = "close") -> float | None:
     sess = pd.Timestamp(session).tz_localize(None).normalize()
     g = ohlcv[(ohlcv["ticker"] == ticker) & (pd.to_datetime(ohlcv["date"]).dt.tz_localize(None).dt.normalize() == sess)]
     if g.empty:
         return None
-    px = g.sort_values("date").iloc[-1].get("close")
+    px = g.sort_values("date").iloc[-1].get(field)
     if px is None or (isinstance(px, float) and pd.isna(px)):
         return None
-    return float(px)
+    px = float(px)
+    return px if px > 0 else None
 
 
-def _close_on_or_after(ohlcv: pd.DataFrame, ticker: str, start: str) -> tuple[str, float] | None:
-    """First daily close on or after ``start`` (inclusive)."""
+def _session_close(ohlcv: pd.DataFrame, ticker: str, session: str) -> float | None:
+    return _session_px(ohlcv, ticker, session, "close")
+
+
+def _px_on_or_after(ohlcv: pd.DataFrame, ticker: str, start: str, field: str) -> tuple[str, float] | None:
+    """First daily ``field`` on or after ``start`` (inclusive)."""
     start_ts = pd.Timestamp(start).tz_localize(None).normalize()
     g = ohlcv[ohlcv["ticker"] == ticker].copy()
     if g.empty:
         return None
     g["date"] = pd.to_datetime(g["date"]).dt.tz_localize(None).dt.normalize()
-    g = g[g["date"] >= start_ts].dropna(subset=["close"])
+    g = g[g["date"] >= start_ts]
+    if field not in g.columns:
+        return None
+    g = g.dropna(subset=[field])
     if g.empty:
         return None
     row = g.sort_values("date").iloc[0]
-    px = float(row["close"])
+    px = float(row[field])
     if px <= 0:
         return None
     return str(pd.Timestamp(row["date"]).date()), px
 
 
+def _latest_session(ohlcv: pd.DataFrame, ticker: str, start: str) -> str | None:
+    start_ts = pd.Timestamp(start).tz_localize(None).normalize()
+    g = ohlcv[ohlcv["ticker"] == ticker].copy()
+    if g.empty:
+        return None
+    g["date"] = pd.to_datetime(g["date"]).dt.tz_localize(None).dt.normalize()
+    g = g[(g["date"] >= start_ts) & g["close"].notna()]
+    if g.empty:
+        return None
+    return str(g["date"].max().date())
+
+
 def _mark_benchmark(ledger: dict, ohlcv: pd.DataFrame, session: str, fx: float) -> dict:
-    """One VOO buy at PAPER_BENCHMARK_START close; later sessions only mark to close."""
+    """One VOO buy at PAPER_BENCHMARK_START open; later sessions only mark to close."""
     b = ledger.setdefault("benchmark", _empty_benchmark())
     ticker = b.get("ticker") or PAPER_BENCHMARK_TICKER
     start = b.get("start_session") or PAPER_BENCHMARK_START
     if pd.Timestamp(session) < pd.Timestamp(start):
         return b
     mark_px = _session_close(ohlcv, ticker, session)
-    if mark_px is None or mark_px <= 0:
+    if mark_px is None:
         b["missing_sessions"] = int(b.get("missing_sessions") or 0) + 1
         return b
     if not b.get("shares"):
-        bought = _close_on_or_after(ohlcv, ticker, start)
+        bought = _px_on_or_after(ohlcv, ticker, start, "open") or _px_on_or_after(ohlcv, ticker, start, "close")
         if bought is None:
             b["missing_sessions"] = int(b.get("missing_sessions") or 0) + 1
             return b
@@ -213,6 +234,7 @@ def _mark_benchmark(ledger: dict, ohlcv: pd.DataFrame, session: str, fx: float) 
         b["cash_usd"] = usd - shares * entry_px
         b["entry_px"] = entry_px
         b["entry_session"] = entry_session
+        b["entry_kind"] = "open"
         b["start_session"] = start
     nav_usd = float(b["shares"]) * mark_px + float(b.get("cash_usd") or 0)
     b["last_px"] = mark_px
@@ -220,6 +242,45 @@ def _mark_benchmark(ledger: dict, ohlcv: pd.DataFrame, session: str, fx: float) 
     b["equity_hkd"] = nav_usd * fx
     b["pnl_hkd"] = float(b["equity_hkd"]) - float(b.get("starting_equity_hkd") or PAPER_STARTING_HKD)
     return b
+
+
+def sync_benchmark(ledger: dict, ohlcv: pd.DataFrame | None = None, fx: float | None = None) -> dict:
+    """Fill VOO even when fade realize is skipped (already-realized asof / no next bar)."""
+    ledger = _ensure_books(ledger)
+    ohlcv = load_ohlcv() if ohlcv is None else ohlcv
+    if ohlcv is None or ohlcv.empty:
+        return ledger
+    ohlcv = ohlcv.copy()
+    ohlcv["date"] = pd.to_datetime(ohlcv["date"])
+    fx = float(fx if fx is not None else ledger["account"].get("fx_hkd_per_usd") or PAPER_FX_HKD_PER_USD)
+    ticker = (ledger.get("benchmark") or {}).get("ticker") or PAPER_BENCHMARK_TICKER
+    start = (ledger.get("benchmark") or {}).get("start_session") or PAPER_BENCHMARK_START
+    latest = _latest_session(ohlcv, ticker, start)
+    if latest is None:
+        return ledger
+    _mark_benchmark(ledger, ohlcv, latest, fx)
+    b = ledger["benchmark"]
+    if b.get("shares"):
+        for day in ledger.get("days") or []:
+            sess = day.get("session")
+            if not sess:
+                continue
+            px = _session_close(ohlcv, ticker, sess)
+            if px is None:
+                continue
+            nav = float(b["shares"]) * px + float(b.get("cash_usd") or 0)
+            eq = nav * fx
+            day.setdefault("equity_hkd", {})["voo"] = eq
+            day["benchmark"] = {
+                "ticker": ticker,
+                "equity_hkd": eq,
+                "pnl_hkd": eq - float(b.get("starting_equity_hkd") or PAPER_STARTING_HKD),
+                "shares": b.get("shares"),
+                "px": px,
+            }
+    ledger.setdefault("headlines", {})
+    ledger["headlines"]["voo"] = _benchmark_headline(b)
+    return ledger
 
 
 def _benchmark_headline(b: dict) -> dict:
@@ -628,11 +689,18 @@ def realize_once(
 
 
 def update_ledger() -> dict:
-    ledger = realize_once()
+    ohlcv = load_ohlcv()
+    ledger = realize_once(ohlcv=ohlcv)
+    ledger = sync_benchmark(ledger, ohlcv)
     save_ledger(ledger)
     eq = {fam: ledger["families"][fam]["equity_hkd"] for fam in FAMILY_PATHS}
-    voo = (ledger.get("benchmark") or {}).get("equity_hkd")
-    print(f"ledger equities={eq} voo={voo} asofs={ledger.get('realized_asofs')} fills={len(ledger.get('fills') or [])}")
+    voo = ledger.get("benchmark") or {}
+    print(
+        f"ledger equities={eq} voo={voo.get('equity_hkd')} "
+        f"voo_shares={voo.get('shares')} voo_entry={voo.get('entry_px')} "
+        f"voo_last={voo.get('last_session')} asofs={ledger.get('realized_asofs')} "
+        f"fills={len(ledger.get('fills') or [])}"
+    )
     return ledger
 
 

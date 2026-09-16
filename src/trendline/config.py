@@ -123,7 +123,7 @@ SECTOR_ETF = {
 }
 
 PAPER_BENCHMARK_TICKER = "VOO"  # buy-and-hold mark-to-close vs the three fade books
-PAPER_BENCHMARK_START = "2026-09-14"  # one cash buy at this session close; never trade again
+PAPER_BENCHMARK_START = "2026-09-14"  # one cash buy at this session open; never trade again
 
 MACRO_TICKERS = (
     "SPY",
