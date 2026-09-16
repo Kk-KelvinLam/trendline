@@ -28,6 +28,7 @@ from trendline.config import (
     PAPER_MAX_NAME_FRAC,
     PAPER_MAX_NAME_RISK,
     PAPER_MAX_POSITIONS,
+    PAPER_BENCHMARK_START,
     PAPER_BENCHMARK_TICKER,
     PAPER_MIN_NOTIONAL_USD,
     PAPER_STARTING_HKD,
@@ -71,6 +72,7 @@ def _empty_benchmark() -> dict:
         "cash_usd": 0.0,
         "entry_px": None,
         "entry_session": None,
+        "start_session": PAPER_BENCHMARK_START,
         "last_px": None,
         "last_session": None,
         "missing_sessions": 0,
@@ -169,22 +171,51 @@ def _session_close(ohlcv: pd.DataFrame, ticker: str, session: str) -> float | No
     return float(px)
 
 
+def _close_on_or_after(ohlcv: pd.DataFrame, ticker: str, start: str) -> tuple[str, float] | None:
+    """First daily close on or after ``start`` (inclusive)."""
+    start_ts = pd.Timestamp(start).tz_localize(None).normalize()
+    g = ohlcv[ohlcv["ticker"] == ticker].copy()
+    if g.empty:
+        return None
+    g["date"] = pd.to_datetime(g["date"]).dt.tz_localize(None).dt.normalize()
+    g = g[g["date"] >= start_ts].dropna(subset=["close"])
+    if g.empty:
+        return None
+    row = g.sort_values("date").iloc[0]
+    px = float(row["close"])
+    if px <= 0:
+        return None
+    return str(pd.Timestamp(row["date"]).date()), px
+
+
 def _mark_benchmark(ledger: dict, ohlcv: pd.DataFrame, session: str, fx: float) -> dict:
-    """Buy-and-hold VOO: whole shares at first available close, then mark to close. No fee."""
+    """One VOO buy at PAPER_BENCHMARK_START close; later sessions only mark to close."""
     b = ledger.setdefault("benchmark", _empty_benchmark())
-    px = _session_close(ohlcv, b.get("ticker") or PAPER_BENCHMARK_TICKER, session)
-    if px is None or px <= 0:
+    ticker = b.get("ticker") or PAPER_BENCHMARK_TICKER
+    start = b.get("start_session") or PAPER_BENCHMARK_START
+    if pd.Timestamp(session) < pd.Timestamp(start):
+        return b
+    mark_px = _session_close(ohlcv, ticker, session)
+    if mark_px is None or mark_px <= 0:
         b["missing_sessions"] = int(b.get("missing_sessions") or 0) + 1
         return b
     if not b.get("shares"):
+        bought = _close_on_or_after(ohlcv, ticker, start)
+        if bought is None:
+            b["missing_sessions"] = int(b.get("missing_sessions") or 0) + 1
+            return b
+        entry_session, entry_px = bought
         usd = float(b.get("starting_equity_hkd") or PAPER_STARTING_HKD) / fx
-        shares = math.floor(usd / px)
+        shares = math.floor(usd / entry_px)
+        if shares < 1:
+            return b
         b["shares"] = int(shares)
-        b["cash_usd"] = usd - shares * px
-        b["entry_px"] = px
-        b["entry_session"] = session
-    nav_usd = float(b["shares"]) * px + float(b.get("cash_usd") or 0)
-    b["last_px"] = px
+        b["cash_usd"] = usd - shares * entry_px
+        b["entry_px"] = entry_px
+        b["entry_session"] = entry_session
+        b["start_session"] = start
+    nav_usd = float(b["shares"]) * mark_px + float(b.get("cash_usd") or 0)
+    b["last_px"] = mark_px
     b["last_session"] = session
     b["equity_hkd"] = nav_usd * fx
     b["pnl_hkd"] = float(b["equity_hkd"]) - float(b.get("starting_equity_hkd") or PAPER_STARTING_HKD)

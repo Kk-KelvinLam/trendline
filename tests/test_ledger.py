@@ -95,17 +95,23 @@ def test_realize_marks_voo_buy_and_hold(monkeypatch):
 
     ohlcv = pd.DataFrame(
         [
-            {"date": "2026-09-11", "ticker": "AAA", "open": 100, "high": 101, "low": 99, "close": 100, "adj_close": 100, "volume": 1, "source": "yfinance"},
-            {"date": "2026-09-12", "ticker": "AAA", "open": 100, "high": 101, "low": 99, "close": 100, "adj_close": 100, "volume": 1, "source": "yfinance"},
-            {"date": "2026-09-12", "ticker": "VOO", "open": 500, "high": 505, "low": 499, "close": 500, "adj_close": 500, "volume": 1, "source": "yfinance"},
+            {"date": "2026-09-14", "ticker": "AAA", "open": 100, "high": 101, "low": 99, "close": 100, "adj_close": 100, "volume": 1, "source": "yfinance"},
+            {"date": "2026-09-15", "ticker": "AAA", "open": 100, "high": 101, "low": 99, "close": 100, "adj_close": 100, "volume": 1, "source": "yfinance"},
+            {"date": "2026-09-14", "ticker": "VOO", "open": 500, "high": 505, "low": 499, "close": 500, "adj_close": 500, "volume": 1, "source": "yfinance"},
+            {"date": "2026-09-15", "ticker": "VOO", "open": 508, "high": 512, "low": 507, "close": 510, "adj_close": 510, "volume": 1, "source": "yfinance"},
         ]
     )
     ohlcv["date"] = pd.to_datetime(ohlcv["date"])
+    cards["asof"] = "2026-09-14"
     out = realize_once(new_ledger(), ohlcv, bars_by_ticker={})
     b = out["benchmark"]
-    assert b["shares"] == int((500_000 / 7.8) // 500)
+    assert b["entry_session"] == "2026-09-14"
     assert b["entry_px"] == 500.0
-    assert abs(b["equity_hkd"] - 500_000) < 8.0  # leftover cash after whole shares
+    assert b["last_px"] == 510.0
+    assert b["shares"] == int((500_000 / 7.8) // 500)
+    usd = 500_000 / 7.8
+    cash = usd - b["shares"] * 500.0
+    assert abs(b["equity_hkd"] - (b["shares"] * 510.0 + cash) * 7.8) < 1e-6
     assert out["days"][-1]["equity_hkd"]["voo"] == b["equity_hkd"]
 
 
