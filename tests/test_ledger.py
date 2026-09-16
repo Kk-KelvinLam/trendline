@@ -70,7 +70,49 @@ def test_three_books_same_start():
     v = ledger_view(new_ledger())
     eqs = [v["headlines"][f]["equity_hkd"] for f in ("shared", "sector", "stock")]
     assert eqs == [500_000.0, 500_000.0, 500_000.0]
+    assert v["headlines"]["voo"]["equity_hkd"] == 500_000.0
     assert set(v["planned"]) == {"shared", "sector", "stock"}
+
+
+def test_realize_marks_voo_buy_and_hold(monkeypatch):
+    import trendline.ledger as ledger_mod
+    from trendline.ledger import new_ledger, realize_once
+
+    cards = {
+        "asof": "2026-09-11",
+        "cards": [
+            {
+                "ticker": "AAA",
+                "side": 0,
+                "action": "觀望",
+                "prior_close": 100.0,
+                "pred": {"high": {"q50": 101}, "low": {"q50": 99}, "close": {"q50": 100}},
+            }
+        ],
+    }
+    monkeypatch.setattr(ledger_mod, "_read_cards", lambda path: cards)
+    monkeypatch.setattr(ledger_mod, "_refresh_fx", lambda default: 7.8)
+
+    ohlcv = pd.DataFrame(
+        [
+            {"date": "2026-09-14", "ticker": "AAA", "open": 100, "high": 101, "low": 99, "close": 100, "adj_close": 100, "volume": 1, "source": "yfinance"},
+            {"date": "2026-09-15", "ticker": "AAA", "open": 100, "high": 101, "low": 99, "close": 100, "adj_close": 100, "volume": 1, "source": "yfinance"},
+            {"date": "2026-09-14", "ticker": "VOO", "open": 500, "high": 505, "low": 499, "close": 500, "adj_close": 500, "volume": 1, "source": "yfinance"},
+            {"date": "2026-09-15", "ticker": "VOO", "open": 508, "high": 512, "low": 507, "close": 510, "adj_close": 510, "volume": 1, "source": "yfinance"},
+        ]
+    )
+    ohlcv["date"] = pd.to_datetime(ohlcv["date"])
+    cards["asof"] = "2026-09-14"
+    out = realize_once(new_ledger(), ohlcv, bars_by_ticker={})
+    b = out["benchmark"]
+    assert b["entry_session"] == "2026-09-14"
+    assert b["entry_px"] == 500.0
+    assert b["last_px"] == 510.0
+    assert b["shares"] == int((500_000 / 7.8) // 500)
+    usd = 500_000 / 7.8
+    cash = usd - b["shares"] * 500.0
+    assert abs(b["equity_hkd"] - (b["shares"] * 510.0 + cash) * 7.8) < 1e-6
+    assert out["days"][-1]["equity_hkd"]["voo"] == b["equity_hkd"]
 
 
 def test_spend_uses_current_equity_not_start():
@@ -143,7 +185,7 @@ def test_realize_uses_5m_when_bars_injected(monkeypatch):
     assert fills[0]["exit"] == 98.8
 
 
-def test_realize_falls_back_to_daily_when_5m_missing(monkeypatch):
+def test_realize_misses_when_5m_missing(monkeypatch):
     import trendline.ledger as ledger_mod
     from trendline.ledger import new_ledger, realize_once
 
@@ -174,8 +216,10 @@ def test_realize_falls_back_to_daily_when_5m_missing(monkeypatch):
     )
     ohlcv["date"] = pd.to_datetime(ohlcv["date"])
     led = new_ledger()
-    out = realize_once(led, ohlcv, bars_by_ticker={})  # inject empty → daily fallback
+    out = realize_once(led, ohlcv, bars_by_ticker={})  # empty 5m → miss, no daily fill
     fills = [f for f in out["fills"] if f["ticker"] == "BBB"]
-    assert fills
-    assert fills[0]["fill_source"] == "daily"
-    assert fills[0]["reason"] == "tp"
+    assert fills == []
+    day = out["days"][-1]["families"]["shared"]
+    assert day["n_signals"] == 1
+    assert day["n_miss"] == 1
+    assert day["paper_fills"] == 0

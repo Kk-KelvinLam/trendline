@@ -102,6 +102,9 @@ PAPER_DAILY_RISK_FRAC = 0.05
 PAPER_MAX_NAME_RISK = 0.006
 PAPER_FAMILY = "shared"
 ATR_SL_MULT = 1.0
+# Paper ledger: only open if the trigger prints before this NY time (bar start).
+# Management (TP/SL/close) after fill can continue through the RTH close.
+PAPER_ENTRY_CUTOFF_ET = (12, 30)
 
 SHOW_TOP_N = 100
 
@@ -119,8 +122,12 @@ SECTOR_ETF = {
     "Communication Services": "XLC",
 }
 
+PAPER_BENCHMARK_TICKER = "VOO"  # buy-and-hold mark-to-close vs the three fade books
+PAPER_BENCHMARK_START = "2026-09-14"  # one cash buy at this session close; never trade again
+
 MACRO_TICKERS = (
     "SPY",
+    "VOO",
     "^VIX",
     "XLK",
     "XLF",

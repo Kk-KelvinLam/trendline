@@ -1,6 +1,7 @@
 """Paper ledger: realize last night's cards against the next session's bar.
 
-Not a broker. Three HKD books (shared / sector / stock), each starts at the same capital.
+Not a broker. Three HKD books (shared / sector / stock) plus a buy-and-hold
+VOO book, each starting at the same capital.
 """
 
 from __future__ import annotations
@@ -27,13 +28,15 @@ from trendline.config import (
     PAPER_MAX_NAME_FRAC,
     PAPER_MAX_NAME_RISK,
     PAPER_MAX_POSITIONS,
+    PAPER_BENCHMARK_START,
+    PAPER_BENCHMARK_TICKER,
     PAPER_MIN_NOTIONAL_USD,
     PAPER_STARTING_HKD,
 )
 from trendline.data.intraday import fetch_rth_5m
 from trendline.data.store import load_ohlcv
 from trendline.ibkr_fees import roundtrip_fees
-from trendline.range_touch import FillResult, fill_fade, fill_fade_bars
+from trendline.range_touch import FillResult, fill_fade_bars
 
 FAMILY_PATHS = {
     "shared": CARDS_SHARED_PATH,
@@ -59,6 +62,23 @@ def _empty_family() -> dict:
     }
 
 
+def _empty_benchmark() -> dict:
+    return {
+        "ticker": PAPER_BENCHMARK_TICKER,
+        "starting_equity_hkd": PAPER_STARTING_HKD,
+        "equity_hkd": PAPER_STARTING_HKD,
+        "pnl_hkd": 0.0,
+        "shares": 0,
+        "cash_usd": 0.0,
+        "entry_px": None,
+        "entry_session": None,
+        "start_session": PAPER_BENCHMARK_START,
+        "last_px": None,
+        "last_session": None,
+        "missing_sessions": 0,
+    }
+
+
 def new_ledger() -> dict:
     return {
         "account": {
@@ -77,6 +97,7 @@ def new_ledger() -> dict:
         },
         "realized_asofs": [],
         "families": {fam: _empty_family() for fam in FAMILY_PATHS},
+        "benchmark": _empty_benchmark(),
         "fills": [],
         "days": [],
         "updated_at_utc": None,
@@ -108,6 +129,14 @@ def _ensure_books(ledger: dict) -> dict:
     acct.pop("cash_hkd", None)
     acct.pop("fee_usd_per_order", None)
     acct.pop("orders_per_roundtrip", None)
+    bench = ledger.setdefault("benchmark", _empty_benchmark())
+    for k, v in _empty_benchmark().items():
+        bench.setdefault(k, v)
+    bench["ticker"] = PAPER_BENCHMARK_TICKER
+    if not bench.get("shares") and not ledger.get("fills"):
+        bench["starting_equity_hkd"] = PAPER_STARTING_HKD
+        bench["equity_hkd"] = PAPER_STARTING_HKD
+        bench["pnl_hkd"] = 0.0
     return ledger
 
 
@@ -129,6 +158,82 @@ def _read_cards(path: Path) -> dict | None:
     if not path.exists():
         return None
     return json.loads(path.read_text(encoding="utf-8"))
+
+
+def _session_close(ohlcv: pd.DataFrame, ticker: str, session: str) -> float | None:
+    sess = pd.Timestamp(session).tz_localize(None).normalize()
+    g = ohlcv[(ohlcv["ticker"] == ticker) & (pd.to_datetime(ohlcv["date"]).dt.tz_localize(None).dt.normalize() == sess)]
+    if g.empty:
+        return None
+    px = g.sort_values("date").iloc[-1].get("close")
+    if px is None or (isinstance(px, float) and pd.isna(px)):
+        return None
+    return float(px)
+
+
+def _close_on_or_after(ohlcv: pd.DataFrame, ticker: str, start: str) -> tuple[str, float] | None:
+    """First daily close on or after ``start`` (inclusive)."""
+    start_ts = pd.Timestamp(start).tz_localize(None).normalize()
+    g = ohlcv[ohlcv["ticker"] == ticker].copy()
+    if g.empty:
+        return None
+    g["date"] = pd.to_datetime(g["date"]).dt.tz_localize(None).dt.normalize()
+    g = g[g["date"] >= start_ts].dropna(subset=["close"])
+    if g.empty:
+        return None
+    row = g.sort_values("date").iloc[0]
+    px = float(row["close"])
+    if px <= 0:
+        return None
+    return str(pd.Timestamp(row["date"]).date()), px
+
+
+def _mark_benchmark(ledger: dict, ohlcv: pd.DataFrame, session: str, fx: float) -> dict:
+    """One VOO buy at PAPER_BENCHMARK_START close; later sessions only mark to close."""
+    b = ledger.setdefault("benchmark", _empty_benchmark())
+    ticker = b.get("ticker") or PAPER_BENCHMARK_TICKER
+    start = b.get("start_session") or PAPER_BENCHMARK_START
+    if pd.Timestamp(session) < pd.Timestamp(start):
+        return b
+    mark_px = _session_close(ohlcv, ticker, session)
+    if mark_px is None or mark_px <= 0:
+        b["missing_sessions"] = int(b.get("missing_sessions") or 0) + 1
+        return b
+    if not b.get("shares"):
+        bought = _close_on_or_after(ohlcv, ticker, start)
+        if bought is None:
+            b["missing_sessions"] = int(b.get("missing_sessions") or 0) + 1
+            return b
+        entry_session, entry_px = bought
+        usd = float(b.get("starting_equity_hkd") or PAPER_STARTING_HKD) / fx
+        shares = math.floor(usd / entry_px)
+        if shares < 1:
+            return b
+        b["shares"] = int(shares)
+        b["cash_usd"] = usd - shares * entry_px
+        b["entry_px"] = entry_px
+        b["entry_session"] = entry_session
+        b["start_session"] = start
+    nav_usd = float(b["shares"]) * mark_px + float(b.get("cash_usd") or 0)
+    b["last_px"] = mark_px
+    b["last_session"] = session
+    b["equity_hkd"] = nav_usd * fx
+    b["pnl_hkd"] = float(b["equity_hkd"]) - float(b.get("starting_equity_hkd") or PAPER_STARTING_HKD)
+    return b
+
+
+def _benchmark_headline(b: dict) -> dict:
+    start = float(b.get("starting_equity_hkd") or PAPER_STARTING_HKD)
+    eq = float(b.get("equity_hkd") or start)
+    return {
+        "ticker": b.get("ticker") or PAPER_BENCHMARK_TICKER,
+        "equity_hkd": eq,
+        "pnl_hkd": float(b.get("pnl_hkd") or (eq - start)),
+        "ret": (eq / start - 1.0) if start else None,
+        "shares": int(b.get("shares") or 0),
+        "entry_px": b.get("entry_px"),
+        "last_px": b.get("last_px"),
+    }
 
 
 def _next_bar(ohlcv: pd.DataFrame, ticker: str, asof: pd.Timestamp) -> pd.Series | None:
@@ -334,20 +439,11 @@ def _score_card(card: dict, bar: pd.Series, bars=None) -> dict:
         sl = float(card["sl"])
         if _bars_usable(bars):
             filled = fill_fade_bars(side, entry, tp, sl, bars)
-            fill_source = "5m"
+            rec["fill_source"] = "5m"
         else:
-            filled = fill_fade(
-                side,
-                entry,
-                tp,
-                sl,
-                float(bar["open"]),
-                float(bar["high"]),
-                float(bar["low"]),
-                float(bar["close"]),
-            )
-            fill_source = "daily"
-        rec["fill_source"] = fill_source
+            # No 5m: miss. Daily OHLC cannot enforce the 12:30 ET entry cutoff.
+            filled = None
+            rec["fill_source"] = None
         if filled is None:
             rec["fill"] = "miss"
             rec["entry_ts"] = None
@@ -372,9 +468,9 @@ def realize_once(
 ) -> dict:
     """Score current on-disk cards against the next session in ohlcv. Idempotent per asof.
 
-    Paper fills prefer America/New_York RTH 5-minute bars; if 5m is missing for a
-    ticker, fall back to daily OHLC ``fill_fade``. Pass ``bars_by_ticker`` to inject
-    bars (tests) and skip Yahoo.
+    Paper fills use America/New_York RTH 5-minute bars only (entry must print
+    before 12:30 ET). Missing 5m is a miss — no daily OHLC fallback.
+    Pass ``bars_by_ticker`` to inject bars (tests) and skip Yahoo.
     """
     ledger = ledger or load_ledger()
     ohlcv = load_ohlcv() if ohlcv is None else ohlcv
@@ -513,10 +609,21 @@ def realize_once(
         }
         day["equity_hkd"][fam] = fam_state["equity_hkd"]
 
+    bench = _mark_benchmark(ledger, ohlcv, session, fx)
+    day["benchmark"] = {
+        "ticker": bench.get("ticker"),
+        "equity_hkd": bench.get("equity_hkd"),
+        "pnl_hkd": bench.get("pnl_hkd"),
+        "shares": bench.get("shares"),
+        "px": bench.get("last_px"),
+    }
+    day["equity_hkd"]["voo"] = bench.get("equity_hkd")
+
     ledger["days"].append(day)
     ledger["realized_asofs"].append(asof_s)
     ledger["updated_at_utc"] = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
     ledger["headlines"] = {fam: _family_headline(ledger["families"][fam]) for fam in FAMILY_PATHS}
+    ledger["headlines"]["voo"] = _benchmark_headline(bench)
     return ledger
 
 
@@ -524,7 +631,8 @@ def update_ledger() -> dict:
     ledger = realize_once()
     save_ledger(ledger)
     eq = {fam: ledger["families"][fam]["equity_hkd"] for fam in FAMILY_PATHS}
-    print(f"ledger equities={eq} asofs={ledger.get('realized_asofs')} fills={len(ledger.get('fills') or [])}")
+    voo = (ledger.get("benchmark") or {}).get("equity_hkd")
+    print(f"ledger equities={eq} voo={voo} asofs={ledger.get('realized_asofs')} fills={len(ledger.get('fills') or [])}")
     return ledger
 
 
@@ -538,9 +646,11 @@ def ledger_view(ledger: dict | None = None) -> dict:
         asofs[fam] = cards.get("asof") if cards else None
         eq = float(ledger["families"][fam]["equity_hkd"])
         planned[fam] = planned_orders(cards, eq, fx)
+    headlines = {fam: _family_headline(ledger["families"][fam]) for fam in FAMILY_PATHS}
+    headlines["voo"] = _benchmark_headline(ledger.get("benchmark") or _empty_benchmark())
     return {
         "ledger": ledger,
-        "headlines": {fam: _family_headline(ledger["families"][fam]) for fam in FAMILY_PATHS},
+        "headlines": headlines,
         "planned": planned,
         "cards_asof": asofs,
     }
