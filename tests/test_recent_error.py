@@ -21,18 +21,22 @@ from trendline.cards import _apply_recent_mae_decision, _recent_error
 
 
 def test_apply_recent_mae_flattens_when_too_high():
-    setup = FadeSetup(1, 98.0, 100.0, 96.0, 2.0, "fade_to_prior_close")
-    err = {"n": 20, "mae_close_ret": 0.04, "mae_close_px": 4.0, "scope": "recent"}
+    setup = FadeSetup(1, 100.0, 101.0, 99.0, 1.0, "ok")
+    err = {"n": 20, "mae_close_ret": 0.03, "mae_close_px": 4.0, "scope": "recent"}
     out = _apply_recent_mae_decision(setup, err)
     assert out.side == 0
     assert out.reason == "recent_close_mae_too_high"
 
 
+
+
 def test_apply_recent_mae_ignores_walk_forward_scope():
-    setup = FadeSetup(1, 98.0, 100.0, 96.0, 2.0, "fade_to_prior_close")
+    setup = FadeSetup(1, 100.0, 101.0, 99.0, 1.0, "ok")
     err = {"n": 441, "mae_close_ret": 0.04, "mae_close_px": 4.0, "scope": "walk_forward"}
     out = _apply_recent_mae_decision(setup, err)
     assert out.side == 1
+
+
 
 
 def test_recent_lookup_preferred():

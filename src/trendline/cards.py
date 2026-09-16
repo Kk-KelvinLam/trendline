@@ -12,6 +12,7 @@ import pandas as pd
 from trendline.config import (
     ARTIFACT_DIR,
     FADE_MIN_ATR,
+    CLOSE_GATE_FAMILIES,
     RECENT_CLOSE_MAE_MAX,
     RECENT_CLOSE_MAE_SOFT,
     RECENT_ERROR_MIN_N,
@@ -357,7 +358,8 @@ def build_cards(
             prior_close=close,
             recent_lookup=recent_map,
         )
-        setup = choose_setup(close, atr, q50h, q50l, q10l, q90h, range_ok, q50c=q50c)
+        q50c_gate = q50c if family in CLOSE_GATE_FAMILIES else None
+        setup = choose_setup(close, atr, q50h, q50l, q10l, q90h, range_ok, q50c=q50c_gate)
         setup = _apply_recent_mae_decision(setup, err)
         action = "觀望"
         side = setup.side
