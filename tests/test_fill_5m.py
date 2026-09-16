@@ -68,6 +68,51 @@ def test_never_touched_is_miss():
     assert fill_fade_bars(1, 98.0, 100.0, 96.0, bars) is None
 
 
+def test_touch_at_or_after_1230_et_is_miss():
+    idx = pd.DatetimeIndex(
+        [
+            "2026-09-14 12:30:00",
+            "2026-09-14 12:35:00",
+            "2026-09-14 15:55:00",
+        ],
+        tz="America/New_York",
+    )
+    df = pd.DataFrame(
+        {
+            "open": [99.0, 99.0, 99.0],
+            "high": [99.5, 99.5, 99.2],
+            "low": [97.5, 97.5, 98.8],
+            "close": [99.0, 99.0, 99.1],
+        },
+        index=idx,
+    )
+    assert fill_fade_bars(1, 98.0, 100.0, 96.0, df) is None
+
+
+def test_touch_before_1230_et_still_fills():
+    idx = pd.DatetimeIndex(
+        [
+            "2026-09-14 12:25:00",
+            "2026-09-14 12:30:00",
+            "2026-09-14 15:55:00",
+        ],
+        tz="America/New_York",
+    )
+    df = pd.DataFrame(
+        {
+            "open": [99.0, 99.0, 99.0],
+            "high": [99.5, 99.5, 99.2],
+            "low": [97.5, 98.8, 98.8],
+            "close": [98.5, 99.0, 99.1],
+        },
+        index=idx,
+    )
+    filled = fill_fade_bars(1, 98.0, 100.0, 96.0, df)
+    assert filled is not None
+    assert filled.reason == "close"
+    assert filled.entry_ts is not None and "12:25" in filled.entry_ts
+
+
 def test_entry_exit_timestamps_from_index():
     idx = pd.DatetimeIndex(
         [

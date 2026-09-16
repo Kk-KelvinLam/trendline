@@ -102,6 +102,9 @@ PAPER_DAILY_RISK_FRAC = 0.05
 PAPER_MAX_NAME_RISK = 0.006
 PAPER_FAMILY = "shared"
 ATR_SL_MULT = 1.0
+# Paper ledger: only open if the trigger prints before this NY time (bar start).
+# Management (TP/SL/close) after fill can continue through the RTH close.
+PAPER_ENTRY_CUTOFF_ET = (12, 30)
 
 SHOW_TOP_N = 100
 

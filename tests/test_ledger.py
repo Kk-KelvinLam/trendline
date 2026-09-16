@@ -143,7 +143,7 @@ def test_realize_uses_5m_when_bars_injected(monkeypatch):
     assert fills[0]["exit"] == 98.8
 
 
-def test_realize_falls_back_to_daily_when_5m_missing(monkeypatch):
+def test_realize_misses_when_5m_missing(monkeypatch):
     import trendline.ledger as ledger_mod
     from trendline.ledger import new_ledger, realize_once
 
@@ -174,8 +174,10 @@ def test_realize_falls_back_to_daily_when_5m_missing(monkeypatch):
     )
     ohlcv["date"] = pd.to_datetime(ohlcv["date"])
     led = new_ledger()
-    out = realize_once(led, ohlcv, bars_by_ticker={})  # inject empty → daily fallback
+    out = realize_once(led, ohlcv, bars_by_ticker={})  # empty 5m → miss, no daily fill
     fills = [f for f in out["fills"] if f["ticker"] == "BBB"]
-    assert fills
-    assert fills[0]["fill_source"] == "daily"
-    assert fills[0]["reason"] == "tp"
+    assert fills == []
+    day = out["days"][-1]["families"]["shared"]
+    assert day["n_signals"] == 1
+    assert day["n_miss"] == 1
+    assert day["paper_fills"] == 0
