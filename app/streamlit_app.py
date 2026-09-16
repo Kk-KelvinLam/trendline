@@ -426,19 +426,19 @@ def main() -> None:
         st.caption(
             "現有規則（共用）：淡區間入場，無 Close q50 方向閘。"
             "近期 Close MAE（20 日、至少 10 個樣本）高於 2.5% 則整張觀望；"
-            "高於 1.8% 則唔標高信心。三族規則唔同，唔好比邊個模型叻。"
+            "高於 1.8% 則唔標高信心。三套系統（模型＋規則＋執行）賽馬；以流水權益為準，勝率只供參考。"
         )
     elif key == "sector":
         st.caption(
             "現有規則（行業）：淡區間入場，另要 Close q50 ≥ +10bps 先做多、≤ −10bps 先做空。"
             "近期 Close MAE（20 日、至少 10 個樣本）高於 2.5% 則整張觀望；"
-            "高於 1.8% 則唔標高信心。三族規則唔同，唔好比邊個模型叻。"
+            "高於 1.8% 則唔標高信心。三套系統（模型＋規則＋執行）賽馬；以流水權益為準，勝率只供參考。"
         )
     elif key == "stock":
         st.caption(
             "現有規則（個股）：淡區間入場，另要 Close q50 ≥ +10bps 先做多、≤ −10bps 先做空。"
             "薄歷史票會 fallback 共用模型。近期 Close MAE 高於 2.5% 則整張觀望；"
-            "高於 1.8% 則唔標高信心。三族規則唔同，唔好比邊個模型叻。"
+            "高於 1.8% 則唔標高信心。三套系統（模型＋規則＋執行）賽馬；以流水權益為準，勝率只供參考。"
         )
 
     search_key = f"search_{key}"
@@ -634,7 +634,7 @@ def _fmt_hkd(x) -> str:
 
 def _render_ledger() -> None:
     st.subheader("流水 · 三戶口賽馬")
-    st.warning("紙上模擬，未接券商。三個模型各 HK$500,000。入場當日一定平倉，未中止盈／止損就用當日收市價出場，唔留過夜。")
+    st.warning("紙上模擬，未接券商。三個模型同 VOO 基準各 HK$500,000。入場當日一定平倉，未中止盈／止損就用當日收市價出場，唔留過夜。")
     st.caption(
         "對賬路徑：只認 America/New_York 常規時段 5 分鐘 bar；"
         "觸價要喺 12:30 ET 之前先入場，之後先到價當錯過。"
@@ -642,18 +642,22 @@ def _render_ledger() -> None:
     )
     st.caption(
         "勝率／成交數按「有方向嘅訊號卡」計，未扣佣、亦包括未入書（倉位太細／觸及名義下限）嘅觸價。"
-        "三族規則唔同（共用無 Close 閘；行業／個股要 Close q50 ±10bps），唔好比邊個模型叻。"
+        "三套系統（模型＋規則＋執行）賽馬：共用無 Close 閘，行業／個股要 Close q50 ±10bps。"
+        "以三本權益對照 VOO：2026-09-14 收市一把過買住，之後唔買賣、只按收市計市值（無佣）。勝率只供參考。"
     )
     view = ledger_view()
     ledger = view["ledger"]
     acct = ledger.get("account") or {}
     headlines = view.get("headlines") or {}
     labels = (("shared", "共用"), ("sector", "行業"), ("stock", "個股"))
-    cols = st.columns(3)
+    cols = st.columns(4)
     for col, (fam, label) in zip(cols, labels):
         h = headlines.get(fam) or {}
         with col:
             st.metric(f"{label}權益", _fmt_hkd(h.get("equity_hkd")), delta=_fmt_hkd(h.get("pnl_hkd")))
+    with cols[3]:
+        vh = headlines.get("voo") or {}
+        st.metric("VOO 基準", _fmt_hkd(vh.get("equity_hkd")), delta=_fmt_hkd(vh.get("pnl_hkd")))
     st.caption(
         f"各本金 {_fmt_hkd(acct.get('starting_equity_hkd'))}　·　按止損風險分倉　·　"
         f"按當日權益、支出不可超過當日權益　·　全日 SL 5%、單隻風險 0.6%、名義 12%　·　"
@@ -682,6 +686,22 @@ def _render_ledger() -> None:
                 "Close MAE$": h.get("mae_close"),
             }
         )
+    vh = headlines.get("voo") or {}
+    rows.append(
+        {
+            "模型": "VOO 基準",
+            "權益HKD": vh.get("equity_hkd"),
+            "損益HKD": vh.get("pnl_hkd"),
+            "回報": vh.get("ret"),
+            "信號": "—",
+            "成交": vh.get("shares"),
+            "錯過": "—",
+            "勝率": "—",
+            "High MAE$": "—",
+            "Low MAE$": "—",
+            "Close MAE$": "—",
+        }
+    )
     st.dataframe(pd.DataFrame(rows), hide_index=True, use_container_width=True)
 
     st.markdown("#### 下一轉計劃（未成交）")
