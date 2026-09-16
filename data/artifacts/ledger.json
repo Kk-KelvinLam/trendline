@@ -567,5 +567,19 @@
       "pnl_hkd": 136.4717812599265,
       "ret": 0.000272943562519945
     }
+  },
+  "benchmark": {
+    "ticker": "VOO",
+    "starting_equity_hkd": 500000.0,
+    "equity_hkd": 500000.0,
+    "pnl_hkd": 0.0,
+    "shares": 0,
+    "cash_usd": 0.0,
+    "entry_px": null,
+    "entry_session": null,
+    "start_session": "2026-09-14",
+    "last_px": null,
+    "last_session": null,
+    "missing_sessions": 0
   }
 }
