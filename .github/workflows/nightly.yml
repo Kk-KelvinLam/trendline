@@ -27,7 +27,7 @@ jobs:
       - name: Checkout dashboard branch
         uses: actions/checkout@v4
         with:
-          ref: feat/v1-dashboard
+          ref: main
 
       - name: Set up Python
         uses: actions/setup-python@v5
