@@ -2,22 +2,30 @@
 
 High-win-rate setup. Close q50 gates fade side: long needs pred close >= prior,
 short needs pred close <= prior (fade room alone is not enough).
-Paper ledger prefers RTH 5-minute bars (``fill_fade_bars``); daily OHLC
-``fill_fade`` remains the walk-forward / missing-5m fallback.
-Conservative fill: if stop and target both print in the same bar, stop wins.
-If the trigger fills but neither TP nor SL prints, flatten at the last bar close
-(same-day book; no overnight). Skip if the session open gapped through the trigger.
+Paper ledger uses RTH 5-minute bars (``fill_fade_bars``) and only opens if the
+trigger prints before 12:30 America/New_York. Daily OHLC ``fill_fade`` remains
+the walk-forward simulator. Conservative fill: if stop and target both print
+in the same bar, stop wins. If the trigger fills but neither TP nor SL prints,
+flatten at the last bar close (same-day book; no overnight). Skip if the
+session open gapped through the trigger.
 """
 
 from __future__ import annotations
 
 from dataclasses import dataclass
+from datetime import time
 
 import numpy as np
 
 import pandas as pd
 
-from trendline.config import ATR_SL_MULT, CLOSE_GATE_MIN_RET, FADE_MIN_ATR, RANGE_ATR_MIN
+from trendline.config import (
+    ATR_SL_MULT,
+    CLOSE_GATE_MIN_RET,
+    FADE_MIN_ATR,
+    PAPER_ENTRY_CUTOFF_ET,
+    RANGE_ATR_MIN,
+)
 
 
 @dataclass(frozen=True)
@@ -51,6 +59,33 @@ def _fmt_ts(ts) -> str | None:
         t = t.tz_convert("America/New_York")
         return t.isoformat()
     return t.isoformat()
+
+
+def _ny_time(ts) -> time | None:
+    """Bar clock in America/New_York, or None if the index has no timestamp."""
+    if ts is None:
+        return None
+    try:
+        t = pd.Timestamp(ts)
+    except Exception:
+        return None
+    if pd.isna(t):
+        return None
+    if t.tzinfo is not None:
+        t = t.tz_convert("America/New_York")
+    return t.time()
+
+
+def _past_entry_cutoff(ts) -> bool:
+    """True when this bar starts at or after PAPER_ENTRY_CUTOFF_ET (NY).
+
+    Bars with no timestamp do not trip the cutoff (unit tests / daily OHLC).
+    """
+    clock = _ny_time(ts)
+    if clock is None:
+        return False
+    hh, mm = PAPER_ENTRY_CUTOFF_ET
+    return clock >= time(hh, mm)
 
 
 
@@ -211,6 +246,9 @@ def fill_fade_bars(
     (including the fill bar): SL if hit else TP; both in the same bar → SL.
     Still open on the last bar → flatten at that close (reason=close).
     Prints of TP/SL *before* the entry fill are ignored.
+    If the bar index has America/New_York timestamps, a first touch at or
+    after 12:30 ET is ignored (no new entry). Management after a morning
+    fill still runs until the last bar.
 
     Returns ``FillResult`` with America/New_York ``entry_ts`` / ``exit_ts`` when
     the bar index carries timestamps (Yahoo 5m).
@@ -234,6 +272,8 @@ def fill_fade_bars(
     for ts, bar in seq:
         _o, h, l, _c = _ohlc(bar)
         if not filled:
+            if _past_entry_cutoff(ts):
+                continue
             if side == 1:
                 if l > entry:
                     continue

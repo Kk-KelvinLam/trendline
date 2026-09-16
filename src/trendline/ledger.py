@@ -33,7 +33,7 @@ from trendline.config import (
 from trendline.data.intraday import fetch_rth_5m
 from trendline.data.store import load_ohlcv
 from trendline.ibkr_fees import roundtrip_fees
-from trendline.range_touch import FillResult, fill_fade, fill_fade_bars
+from trendline.range_touch import FillResult, fill_fade_bars
 
 FAMILY_PATHS = {
     "shared": CARDS_SHARED_PATH,
@@ -334,20 +334,11 @@ def _score_card(card: dict, bar: pd.Series, bars=None) -> dict:
         sl = float(card["sl"])
         if _bars_usable(bars):
             filled = fill_fade_bars(side, entry, tp, sl, bars)
-            fill_source = "5m"
+            rec["fill_source"] = "5m"
         else:
-            filled = fill_fade(
-                side,
-                entry,
-                tp,
-                sl,
-                float(bar["open"]),
-                float(bar["high"]),
-                float(bar["low"]),
-                float(bar["close"]),
-            )
-            fill_source = "daily"
-        rec["fill_source"] = fill_source
+            # No 5m: miss. Daily OHLC cannot enforce the 12:30 ET entry cutoff.
+            filled = None
+            rec["fill_source"] = None
         if filled is None:
             rec["fill"] = "miss"
             rec["entry_ts"] = None
@@ -372,9 +363,9 @@ def realize_once(
 ) -> dict:
     """Score current on-disk cards against the next session in ohlcv. Idempotent per asof.
 
-    Paper fills prefer America/New_York RTH 5-minute bars; if 5m is missing for a
-    ticker, fall back to daily OHLC ``fill_fade``. Pass ``bars_by_ticker`` to inject
-    bars (tests) and skip Yahoo.
+    Paper fills use America/New_York RTH 5-minute bars only (entry must print
+    before 12:30 ET). Missing 5m is a miss — no daily OHLC fallback.
+    Pass ``bars_by_ticker`` to inject bars (tests) and skip Yahoo.
     """
     ledger = ledger or load_ledger()
     ohlcv = load_ohlcv() if ohlcv is None else ohlcv

@@ -422,6 +422,24 @@ def main() -> None:
     c3.metric("做多", cards_payload.get("n_long", 0))
     c4.metric("做空 / 觀望", f"{cards_payload.get('n_short', 0)} / {cards_payload.get('n_flat', 0)}")
     st.caption(f"模型家族：{cards_payload.get('model_family_zh') or page}")
+    if key == "shared":
+        st.caption(
+            "現有規則（共用）：淡區間入場，無 Close q50 方向閘。"
+            "近期 Close MAE（20 日、至少 10 個樣本）高於 2.5% 則整張觀望；"
+            "高於 1.8% 則唔標高信心。三族規則唔同，唔好比邊個模型叻。"
+        )
+    elif key == "sector":
+        st.caption(
+            "現有規則（行業）：淡區間入場，另要 Close q50 ≥ +10bps 先做多、≤ −10bps 先做空。"
+            "近期 Close MAE（20 日、至少 10 個樣本）高於 2.5% 則整張觀望；"
+            "高於 1.8% 則唔標高信心。三族規則唔同，唔好比邊個模型叻。"
+        )
+    elif key == "stock":
+        st.caption(
+            "現有規則（個股）：淡區間入場，另要 Close q50 ≥ +10bps 先做多、≤ −10bps 先做空。"
+            "薄歷史票會 fallback 共用模型。近期 Close MAE 高於 2.5% 則整張觀望；"
+            "高於 1.8% 則唔標高信心。三族規則唔同，唔好比邊個模型叻。"
+        )
 
     search_key = f"search_{key}"
     if search_key not in st.session_state:
@@ -617,7 +635,15 @@ def _fmt_hkd(x) -> str:
 def _render_ledger() -> None:
     st.subheader("流水 · 三戶口賽馬")
     st.warning("紙上模擬，未接券商。三個模型各 HK$500,000。入場當日一定平倉，未中止盈／止損就用當日收市價出場，唔留過夜。")
-    st.caption("對賬路徑：America/New_York 常規時段（09:30–16:00）5 分鐘 bar 成交；若個別股份缺 5m 資料則回退日 K OHLC（fill_source=5m / daily）。Walk-forward OOS 仍用日 K。")
+    st.caption(
+        "對賬路徑：只認 America/New_York 常規時段 5 分鐘 bar；"
+        "觸價要喺 12:30 ET 之前先入場，之後先到價當錯過。"
+        "缺 5m 亦當錯過，不再回退日 K。Walk-forward OOS 仍用日 K。"
+    )
+    st.caption(
+        "勝率／成交數按「有方向嘅訊號卡」計，未扣佣、亦包括未入書（倉位太細／觸及名義下限）嘅觸價。"
+        "三族規則唔同（共用無 Close 閘；行業／個股要 Close q50 ±10bps），唔好比邊個模型叻。"
+    )
     view = ledger_view()
     ledger = view["ledger"]
     acct = ledger.get("account") or {}
@@ -676,7 +702,7 @@ def _render_ledger() -> None:
     if not fills:
         st.info("未有成交。美股下一個完整時段收市後，Nightly 會自動記帳。")
     else:
-        st.caption("按模型分頁。出入場時間為 America/New_York（5 分鐘 bar）；日 K 回退則可能空白。")
+        st.caption("按模型分頁。出入場時間為 America/New_York（5 分鐘 bar）。12:30 ET 或之後先到價、或缺 5m，唔入呢度。")
 
         def _fill_rows(items: list[dict]) -> list[dict]:
             rows = []
