@@ -97,7 +97,7 @@ def test_realize_marks_voo_buy_and_hold(monkeypatch):
         [
             {"date": "2026-09-14", "ticker": "AAA", "open": 100, "high": 101, "low": 99, "close": 100, "adj_close": 100, "volume": 1, "source": "yfinance"},
             {"date": "2026-09-15", "ticker": "AAA", "open": 100, "high": 101, "low": 99, "close": 100, "adj_close": 100, "volume": 1, "source": "yfinance"},
-            {"date": "2026-09-14", "ticker": "VOO", "open": 500, "high": 505, "low": 499, "close": 500, "adj_close": 500, "volume": 1, "source": "yfinance"},
+            {"date": "2026-09-14", "ticker": "VOO", "open": 490, "high": 505, "low": 489, "close": 500, "adj_close": 500, "volume": 1, "source": "yfinance"},
             {"date": "2026-09-15", "ticker": "VOO", "open": 508, "high": 512, "low": 507, "close": 510, "adj_close": 510, "volume": 1, "source": "yfinance"},
         ]
     )
@@ -106,13 +106,36 @@ def test_realize_marks_voo_buy_and_hold(monkeypatch):
     out = realize_once(new_ledger(), ohlcv, bars_by_ticker={})
     b = out["benchmark"]
     assert b["entry_session"] == "2026-09-14"
-    assert b["entry_px"] == 500.0
+    assert b["entry_kind"] == "open"
+    assert b["entry_px"] == 490.0
     assert b["last_px"] == 510.0
-    assert b["shares"] == int((500_000 / 7.8) // 500)
+    assert b["shares"] == int((500_000 / 7.8) // 490)
     usd = 500_000 / 7.8
-    cash = usd - b["shares"] * 500.0
+    cash = usd - b["shares"] * 490.0
     assert abs(b["equity_hkd"] - (b["shares"] * 510.0 + cash) * 7.8) < 1e-6
     assert out["days"][-1]["equity_hkd"]["voo"] == b["equity_hkd"]
+
+
+def test_sync_benchmark_when_asof_already_realized():
+    from trendline.ledger import new_ledger, realize_once, sync_benchmark
+
+    led = new_ledger()
+    led["realized_asofs"] = ["2026-09-14"]
+    ohlcv = pd.DataFrame(
+        [
+            {"date": "2026-09-14", "ticker": "VOO", "open": 490, "high": 505, "low": 489, "close": 500, "adj_close": 500, "volume": 1, "source": "yfinance"},
+            {"date": "2026-09-15", "ticker": "VOO", "open": 508, "high": 512, "low": 507, "close": 510, "adj_close": 510, "volume": 1, "source": "yfinance"},
+        ]
+    )
+    ohlcv["date"] = pd.to_datetime(ohlcv["date"])
+    skipped = realize_once(led, ohlcv, bars_by_ticker={})
+    assert skipped["benchmark"]["shares"] == 0
+    out = sync_benchmark(skipped, ohlcv, fx=7.8)
+    b = out["benchmark"]
+    assert b["entry_px"] == 490.0
+    assert b["last_session"] == "2026-09-15"
+    assert b["last_px"] == 510.0
+    assert b["shares"] > 0
 
 
 def test_spend_uses_current_equity_not_start():
