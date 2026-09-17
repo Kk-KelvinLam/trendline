@@ -17,10 +17,6 @@ try:
 except ImportError:  # pragma: no cover
     st_keyup = None
 
-try:
-    from streamlit_local_storage import LocalStorage
-except ImportError:  # pragma: no cover
-    LocalStorage = None
 
 from trendline.config import (
     ARTIFACT_DIR,
@@ -33,7 +29,7 @@ from trendline.config import (
     LEDGER_PATH,
 )
 from trendline.ledger import ledger_view
-from components.tl_widgets import card_head, search_bar
+from components.tl_widgets import pins_bridge, search_bar
 
 
 st.set_page_config(page_title="Trendline · 美股翌日預測", page_icon="📈", layout="wide")
@@ -81,8 +77,6 @@ def _fmt_num(x, digits=4) -> str:
 
 
 
-PIN_STORAGE_KEY = "trendline_pinned"
-
 
 def _ensure_pinned_state() -> list[str]:
     if "pinned_tickers" not in st.session_state:
@@ -90,61 +84,37 @@ def _ensure_pinned_state() -> list[str]:
     return st.session_state["pinned_tickers"]
 
 
-def _hydrate_pins_from_local_storage() -> None:
-    """Load pinned tickers from browser localStorage once per session."""
-    if st.session_state.get("_pins_hydrated"):
-        return
-    st.session_state["_pins_hydrated"] = True
-    if LocalStorage is None:
-        return
-    try:
-        ls = LocalStorage(key="tl_ls")
-        raw = ls.getItem(PIN_STORAGE_KEY)
-    except Exception:
-        return
+def _normalize_pins(raw) -> list[str]:
     if not raw:
+        return []
+    if isinstance(raw, dict):
+        raw = raw.get("pins")
+    if not isinstance(raw, list):
+        return []
+    seen: set[str] = set()
+    out: list[str] = []
+    for item in raw:
+        t = str(item or "").strip().upper()
+        if t and t not in seen:
+            seen.add(t)
+            out.append(t)
+    return out
+
+
+def _sync_pins_storage() -> None:
+    """One iframe talks to parent.localStorage. Read once, write after hydrate."""
+    hydrated = bool(st.session_state.get("_pins_hydrated"))
+    current = list(_ensure_pinned_state())
+    incoming = pins_bridge(pins=current, write=hydrated, key="tl_pins_bridge")
+    if hydrated:
         return
-    import json
-
-    try:
-        if isinstance(raw, str):
-            data = json.loads(raw)
-        else:
-            data = raw
-        if isinstance(data, list):
-            pins = [str(x).strip().upper() for x in data if str(x).strip()]
-            # preserve order, dedupe
-            seen = set()
-            ordered = []
-            for t in pins:
-                if t not in seen:
-                    seen.add(t)
-                    ordered.append(t)
-            st.session_state["pinned_tickers"] = ordered
-    except Exception:
+    if incoming is None:
         return
-
-
-def _persist_pins() -> None:
-    """Write pinned tickers to browser localStorage."""
-    pins = list(_ensure_pinned_state())
-    import json
-
-    payload = json.dumps(pins, ensure_ascii=False)
-    # JS write (works even if LocalStorage helper flakes)
-    import streamlit.components.v1 as components
-
-    components.html(
-        f"""
-<script>
-try {{
-  localStorage.setItem({json.dumps(PIN_STORAGE_KEY)}, {json.dumps(payload)});
-}} catch (e) {{}}
-</script>
-""",
-        height=0,
-    )
-    # Prefer the JS write above. Avoid LocalStorage.setItem remounts (can feel like extra reloads).
+    loaded = _normalize_pins(incoming)
+    st.session_state["_pins_hydrated"] = True
+    if loaded != current:
+        st.session_state["pinned_tickers"] = loaded
+        st.rerun()
 
 
 def _pin_ticker(ticker: str) -> None:
@@ -154,35 +124,14 @@ def _pin_ticker(ticker: str) -> None:
     pinned = _ensure_pinned_state()
     if t not in pinned:
         pinned.append(t)
-        _persist_pins()
 
 
 def _unpin_ticker(ticker: str) -> None:
     t = (ticker or "").strip().upper()
     pinned = _ensure_pinned_state()
     st.session_state["pinned_tickers"] = [x for x in pinned if x != t]
-    _persist_pins()
 
 
-
-
-def _consume_pin_toggle(event, *, state_key: str) -> bool:
-    """Return True once per pin click. Ignores sticky component values that would loop reruns."""
-    if event is None:
-        return False
-    event_id = None
-    if isinstance(event, dict) and event.get("action") == "toggle":
-        event_id = str(event.get("id") or "")
-    elif event == "toggle":
-        # legacy string value — treat as already consumed sticky signal
-        return False
-    if not event_id:
-        return False
-    prev = st.session_state.get(state_key)
-    if prev == event_id:
-        return False
-    st.session_state[state_key] = event_id
-    return True
 
 
 def _clear_text_key(key: str) -> None:
@@ -267,6 +216,7 @@ def _inject_back_to_top(*, jump: bool) -> None:
   font-size: 1.35rem;
   font-weight: 700;
   white-space: nowrap;
+  color: inherit;
 }
 .tl-card-head .tl-a {
   font-size: 1.35rem;
@@ -382,7 +332,7 @@ div[data-testid="stHorizontalBlock"]:has(> div[data-testid="column"]:nth-child(2
 
 
 def main() -> None:
-    _hydrate_pins_from_local_storage()
+    _sync_pins_storage()
     _ensure_pinned_state()
     st.title("Trendline")
     st.caption("美股收市後 · 盤中觸價淡區間（止盈前收）。S&P 500 全數訓練 / 顯示前 100 成交額")
@@ -789,20 +739,26 @@ def _render_card(card: dict, *, family: str = "shared") -> None:
     pinned = _ensure_pinned_state()
     is_pinned = ticker in pinned
     conf_txt = conf.strip(" ·") if conf else ""
-    pin_event = card_head(
-        ticker=ticker,
-        action=action,
-        color=color,
-        conf=conf_txt,
-        pinned=is_pinned,
-        key=f"tl_head_{family}_{ticker}",
-    )
-    if _consume_pin_toggle(pin_event, state_key=f"_pin_evt_{family}_{ticker}"):
-        if is_pinned:
-            _unpin_ticker(ticker)
-        else:
-            _pin_ticker(ticker)
-        # No st.rerun(): click already triggered a run; another rerun + sticky value = reload loop.
+    head_l, head_r = st.columns([12, 1], gap="small")
+    with head_l:
+        st.markdown(
+            f'<div class="tl-card-head">'
+            f'<span class="tl-t">{ticker}</span>'
+            f'<span class="tl-a {color}">{action}</span>'
+            f'<span class="tl-conf">{conf_txt}</span>'
+            f"</div>",
+            unsafe_allow_html=True,
+        )
+    with head_r:
+        if st.button(
+            "📍" if is_pinned else "📌",
+            key=f"pin_{family}_{ticker}",
+            help="取消釘選" if is_pinned else "釘選對照",
+        ):
+            if is_pinned:
+                _unpin_ticker(ticker)
+            else:
+                _pin_ticker(ticker)
     st.caption(
         f"#{card.get('dvol_rank', '—')} 成交額　·　{card.get('sector') or '—'}　·　"
         f"{'High/Low 優於基準' if card.get('beats_range', card.get('beats_baseline')) else 'High/Low 未優於該股基準'}"
@@ -927,16 +883,16 @@ def _render_pinned() -> None:
 
     st.caption(f"已釘選 {len(pinned)} 隻")
     for ticker in pinned:
-        pin_event = card_head(
-            ticker=ticker,
-            action="",
-            color="gray",
-            conf="",
-            pinned=True,
-            key=f"tl_unpin_{ticker}",
-        )
-        if _consume_pin_toggle(pin_event, state_key=f"_pin_evt_unpin_{ticker}"):
-            _unpin_ticker(ticker)
+        head_l, head_r = st.columns([12, 1], gap="small")
+        with head_l:
+            st.markdown(
+                f'<div class="tl-card-head"><span class="tl-t">{ticker}</span></div>',
+                unsafe_allow_html=True,
+            )
+        with head_r:
+            if st.button("📍", key=f"unpin_{ticker}", help="取消釘選"):
+                _unpin_ticker(ticker)
+                st.rerun()
 
         cards_by_fam = {fam: indexes[fam].get(ticker) for fam, _ in FAMILY_LABELS}
         actions = {
