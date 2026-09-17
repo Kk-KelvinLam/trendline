@@ -7,7 +7,7 @@
 <body>
 <script>
   const KEY = "trendline_pinned";
-  let reported = false;
+  let lastNonce = null;
   function sendMessage(type, data) {
     parent.postMessage(Object.assign({ isStreamlitMessage: true, type: type }, data || {}), "*");
   }
@@ -38,9 +38,10 @@
     const msg = event.data;
     if (!msg || msg.type !== "streamlit:render") return;
     const d = msg.args || {};
-    if (!reported) {
-      reported = true;
-      setValue({ source: "ls", pins: readPins() });
+    const nonce = d.nonce == null ? 0 : d.nonce;
+    if (lastNonce === null || nonce !== lastNonce) {
+      lastNonce = nonce;
+      setValue({ source: "ls", pins: readPins(), nonce: nonce });
       return;
     }
     if (d.write && Array.isArray(d.pins)) writePins(d.pins);
