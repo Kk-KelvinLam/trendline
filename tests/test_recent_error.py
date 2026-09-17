@@ -22,10 +22,17 @@ from trendline.cards import _apply_recent_mae_decision, _recent_error
 
 def test_apply_recent_mae_flattens_when_too_high():
     setup = FadeSetup(1, 100.0, 101.0, 99.0, 1.0, "ok")
-    err = {"n": 20, "mae_close_ret": 0.03, "mae_close_px": 4.0, "scope": "recent"}
+    err = {
+        "n": 20,
+        "mae_high_ret": 0.03,
+        "mae_low_ret": 0.03,
+        "mae_close_ret": 0.03,
+        "mae_close_px": 4.0,
+        "scope": "recent",
+    }
     out = _apply_recent_mae_decision(setup, err)
     assert out.side == 0
-    assert out.reason == "recent_close_mae_too_high"
+    assert out.reason == "recent_mae_too_high"
 
 
 
