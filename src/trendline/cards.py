@@ -265,18 +265,20 @@ def _recent_error(
 
 
 def _apply_recent_mae_decision(setup: FadeSetup, err: dict) -> FadeSetup:
-    """Hard-flat when trusted recent Close MAE is too high."""
+    """Hard-flat when trusted recent High/Low/Close MAE is too high."""
     if setup.side == 0:
         return setup
     if err.get("scope") != "recent":
         return setup
     if int(err.get("n") or 0) < int(RECENT_ERROR_MIN_N):
         return setup
-    mae = err.get("mae_close_ret")
+    mae = _mae_score(err)
+    if mae is None:
+        mae = err.get("mae_close_ret")
     if mae is None or not np.isfinite(mae):
         return setup
     if float(mae) > float(RECENT_CLOSE_MAE_MAX):
-        return FadeSetup(0, float("nan"), float("nan"), float("nan"), 0.0, "recent_close_mae_too_high")
+        return FadeSetup(0, float("nan"), float("nan"), float("nan"), 0.0, "recent_mae_too_high")
     return setup
 
 
@@ -509,8 +511,15 @@ def build_cards(
                     and setup.room >= 2 * FADE_MIN_ATR * atr
                     and not (
                         err.get("scope") == "recent"
-                        and err.get("mae_close_ret") is not None
-                        and float(err["mae_close_ret"]) > float(RECENT_CLOSE_MAE_SOFT)
+                        and int(err.get("n") or 0) >= int(RECENT_ERROR_MIN_N)
+                        and (
+                            (_mae_score(err) is not None and float(_mae_score(err)) > float(RECENT_CLOSE_MAE_SOFT))
+                            or (
+                                _mae_score(err) is None
+                                and err.get("mae_close_ret") is not None
+                                and float(err["mae_close_ret"]) > float(RECENT_CLOSE_MAE_SOFT)
+                            )
+                        )
                     )
                 ),
                 "beats_baseline": bool(beat.get(ticker, False)),
