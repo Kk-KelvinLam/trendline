@@ -275,6 +275,12 @@ def _inject_back_to_top(*, jump: bool) -> None:
   opacity: 0.75;
   white-space: nowrap;
 }
+button[kind="tertiary"] {
+  min-height: 1.6rem !important;
+  height: 1.6rem !important;
+  padding: 0 0.15rem !important;
+  line-height: 1 !important;
+}
 
 </style>
 <div id="tl-top"></div>
@@ -760,9 +766,24 @@ def _render_ledger() -> None:
 
 
 def _same_row(*builders) -> None:
-    """Stack in the card column only. A nested horizontal container breaks the 3-card grid."""
-    for build in builders:
-        build()
+    """Title + pin on one row, sized to content so it stays inside the card column."""
+    row = None
+    for kwargs in (
+        dict(horizontal=True, vertical_alignment="center", gap="small", width="content"),
+        dict(horizontal=True, vertical_alignment="center", gap="small"),
+    ):
+        try:
+            row = st.container(**kwargs)
+            break
+        except TypeError:
+            continue
+    if row is None:
+        for build in builders:
+            build()
+        return
+    with row:
+        for build in builders:
+            build()
 
 
 def _render_card(card: dict, *, family: str = "shared") -> None:
