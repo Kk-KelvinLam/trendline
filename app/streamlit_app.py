@@ -671,7 +671,7 @@ def _render_ledger() -> None:
         st.metric("VOO 基準", _fmt_hkd(vh.get("equity_hkd")), delta=_fmt_hkd_delta(vh.get("pnl_hkd")))
     st.caption(
         f"各本金 {_fmt_hkd(acct.get('starting_equity_hkd'))}　·　按止損風險分倉　·　"
-        f"按當日權益、支出不可超過當日權益　·　全日 SL 5%、單隻風險 0.6%、名義 12%　·　"
+        f"按當日權益、支出不可超過當日權益　·　全日 SL 5%、單隻風險 5%÷入書隻數、名義 12%　·　"
         f"入書要全市場近期 MAE 排名 ≤ {int(acct.get('max_mae_rank') or 200)}　·　"
         f"{acct.get('broker') or 'IBKR Pro Fixed'}　$0.005/股（每單最少 $1，賣出加 SEC/FINRA）　·　"
         f"匯率 {float(acct.get('fx_hkd_per_usd') or 0):.3f} HKD/USD　·　"
