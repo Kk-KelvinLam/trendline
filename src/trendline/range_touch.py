@@ -1,7 +1,8 @@
 """Intraday fade: touch predicted High/Low, take profit at prior close.
 
-High-win-rate setup. Close q50 gates fade side: long needs pred close >= prior,
-short needs pred close <= prior (fade room alone is not enough).
+High-win-rate setup. Fade side is the High/Low side with more room back to
+prior close. For sector/stock, Close q50 must agree with that side
+(+10bps long / -10bps short) or the card flattens — Close cannot flip the side.
 Paper ledger uses RTH 5-minute bars (``fill_fade_bars``) and only opens if the
 trigger prints before 12:30 America/New_York. Daily OHLC ``fill_fade`` remains
 the walk-forward simulator. Conservative fill: if stop and target both print
@@ -124,11 +125,11 @@ def choose_setup(
     allowed: bool,
     q50c: float | None = None,
 ) -> FadeSetup:
-    """Pick fade side with more room back to prior close, gated by Close q50.
+    """Pick the High/Low side with more fade room; Close may only veto, not flip.
 
-    Long only if Close q50 is at least +CLOSE_GATE_MIN_RET above prior.
-    Short only if Close q50 is at least CLOSE_GATE_MIN_RET below prior.
-    Near-zero Close predictions are treated as no edge (cannot open either side via Close gate).
+    When q50c is set (sector/stock): the preferred side needs Close q50 at least
+    +CLOSE_GATE_MIN_RET to stay long or -CLOSE_GATE_MIN_RET to stay short.
+    Disagreement flattens. Shared passes q50c=None and skips this check.
     """
     if not allowed:
         return FadeSetup(0, float("nan"), float("nan"), float("nan"), 0.0, "range_model_does_not_beat_baseline")
@@ -143,20 +144,21 @@ def choose_setup(
     long_ok = np.isfinite(le) and lroom >= min_room and lsl < le < close
     short_ok = np.isfinite(se) and sroom >= min_room and close < se < ssl
 
-    close_gate = q50c is not None and np.isfinite(q50c)
-    if close_gate:
-        # Require meaningful |Close| edge — tiny q50c is noise, not permission to fade.
-        long_ok = long_ok and float(q50c) >= float(CLOSE_GATE_MIN_RET)
-        short_ok = short_ok and float(q50c) <= -float(CLOSE_GATE_MIN_RET)
-
     if long_ok and (not short_ok or lroom >= sroom):
-        return FadeSetup(1, float(le), float(ltp), float(lsl), float(lroom), "fade_to_prior_close")
-    if short_ok:
-        return FadeSetup(-1, float(se), float(stp), float(ssl), float(sroom), "fade_to_prior_close")
-    if close_gate and (np.isfinite(le) or np.isfinite(se)):
-        # Had a room-eligible side that Close vetoed (or both sides vetoed).
+        preferred = FadeSetup(1, float(le), float(ltp), float(lsl), float(lroom), "fade_to_prior_close")
+    elif short_ok:
+        preferred = FadeSetup(-1, float(se), float(stp), float(ssl), float(sroom), "fade_to_prior_close")
+    else:
+        return FadeSetup(0, float("nan"), float("nan"), float("nan"), 0.0, "fade_room_too_small")
+
+    close_gate = q50c is not None and np.isfinite(q50c)
+    if not close_gate:
+        return preferred
+    if preferred.side == 1 and float(q50c) < float(CLOSE_GATE_MIN_RET):
         return FadeSetup(0, float("nan"), float("nan"), float("nan"), 0.0, "close_disagrees_with_fade")
-    return FadeSetup(0, float("nan"), float("nan"), float("nan"), 0.0, "fade_room_too_small")
+    if preferred.side == -1 and float(q50c) > -float(CLOSE_GATE_MIN_RET):
+        return FadeSetup(0, float("nan"), float("nan"), float("nan"), 0.0, "close_disagrees_with_fade")
+    return preferred
 
 
 def gapped_through(side: int, next_open: float, entry: float) -> bool:
