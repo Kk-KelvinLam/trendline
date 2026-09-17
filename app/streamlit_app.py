@@ -256,6 +256,7 @@ def _inject_back_to_top(*, jump: bool) -> None:
   padding: 0.2rem 0;
   line-height: 1.45;
 }
+
 .tl-card-head .tl-t {
   font-size: 1.35rem;
   font-weight: 700;
@@ -280,6 +281,7 @@ button[kind="tertiary"] {
   height: 1.6rem !important;
   padding: 0 0.15rem !important;
   line-height: 1 !important;
+  margin-bottom: -1rem !important;
 }
 
 </style>
