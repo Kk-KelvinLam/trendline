@@ -275,6 +275,22 @@ def _inject_back_to_top(*, jump: bool) -> None:
   opacity: 0.75;
   white-space: nowrap;
 }
+/* Pull the pin button onto the title line without a nested layout container. */
+[data-testid="stElementContainer"]:has(.tl-card-head),
+[data-testid="element-container"]:has(.tl-card-head) {
+  padding-right: 2rem;
+}
+[data-testid="stElementContainer"]:has(.tl-card-head) + [data-testid="stElementContainer"],
+[data-testid="element-container"]:has(.tl-card-head) + [data-testid="element-container"] {
+  margin-top: -2.1rem !important;
+  margin-bottom: 0.15rem !important;
+  display: flex !important;
+  justify-content: flex-end !important;
+  align-items: center !important;
+  min-height: 0 !important;
+  height: auto !important;
+}
+
 /* Grow to the title+pin; do not clip glyphs or add an inner scrollbar. */
 div[data-testid="stHorizontalBlock"]:has(.tl-card-head),
 div[data-testid="stLayoutWrapper"]:has(.tl-card-head) {
@@ -835,27 +851,9 @@ def _render_ledger() -> None:
 
 
 def _same_row(*builders) -> None:
-    """Ticker + pin on one flex row. Falls back if Streamlit is too old for horizontal=."""
-    row = None
-    try:
-        row = st.container(
-            horizontal=True,
-            vertical_alignment="center",
-            gap="small",
-            height="content",
-        )
-    except TypeError:
-        try:
-            row = st.container(horizontal=True, vertical_alignment="center", gap="small")
-        except TypeError:
-            row = None
-    if row is None:
-        for build in builders:
-            build()
-        return
-    with row:
-        for build in builders:
-            build()
+    """Stack in the card column only. A nested horizontal container breaks the 3-card grid."""
+    for build in builders:
+        build()
 
 
 def _render_card(card: dict, *, family: str = "shared") -> None:
