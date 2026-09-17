@@ -4,10 +4,10 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
-    :root { color-scheme: dark light; }
     html, body {
       margin: 0; padding: 0;
       background: transparent;
+      color: inherit;
       font-family: "Source Sans Pro", "Segoe UI", sans-serif;
     }
     .row {
@@ -31,9 +31,9 @@
       width: 2.25rem;
       height: 2.25rem;
       border-radius: 999px;
-      border: 1px solid #4b5563;
-      background: #1f2937;
-      color: #f9fafb;
+      border: 1px solid rgba(128,128,128,.45);
+      background: transparent;
+      color: inherit;
       cursor: pointer;
       font-size: 1rem;
       display: inline-flex;
@@ -42,7 +42,7 @@
       line-height: 1;
       padding: 0;
     }
-    .pin:hover { filter: brightness(1.15); }
+    .pin:hover { filter: brightness(1.08); }
   </style>
 </head>
 <body>
@@ -54,14 +54,32 @@
     <button class="pin" id="pin" type="button" aria-label="pin">📌</button>
   </div>
   <script>
+    let lastH = 0;
     function sendMessage(type, data) {
       parent.postMessage(Object.assign({ isStreamlitMessage: true, type: type }, data || {}), "*");
     }
-    function setHeight(h) { sendMessage("streamlit:setFrameHeight", { height: h }); }
+    function setHeight(h) {
+      h = Math.ceil(h);
+      if (h === lastH) return;
+      lastH = h;
+      sendMessage("streamlit:setFrameHeight", { height: h });
+    }
     function setValue(v) { sendMessage("streamlit:setComponentValue", { value: v }); }
+    function applyTheme(theme) {
+      if (!theme) return;
+      const dark = theme.base === "dark";
+      document.documentElement.style.colorScheme = dark ? "dark" : "light";
+      document.body.style.background = "transparent";
+      document.body.style.color = theme.textColor || (dark ? "#fafafa" : "#111827");
+      const pin = document.getElementById("pin");
+      pin.style.background = theme.secondaryBackgroundColor || "transparent";
+      pin.style.color = theme.textColor || "inherit";
+      pin.style.borderColor = dark ? "rgba(255,255,255,.2)" : "rgba(0,0,0,.15)";
+    }
     function onRender(event) {
       const msg = event.data;
       if (!msg || msg.type !== "streamlit:render") return;
+      applyTheme(msg.theme);
       const d = msg.args || {};
       document.getElementById("t").textContent = d.ticker || "";
       const a = document.getElementById("a");
@@ -77,7 +95,6 @@
       setHeight(Math.max(40, document.body.scrollHeight));
     }
     document.getElementById("pin").addEventListener("click", function () {
-      // Unique id so Python handles each click once (component value otherwise sticks and loops).
       setValue({ action: "toggle", id: Date.now() + "-" + Math.random().toString(36).slice(2, 8) });
     });
     window.addEventListener("message", onRender);
