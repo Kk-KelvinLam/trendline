@@ -302,13 +302,17 @@ div[data-testid="stHorizontalBlock"]:has(.tl-card-head) [data-testid="stMarkdown
   align-items: center !important;
 }
 div[data-testid="stHorizontalBlock"]:has(.tl-card-head) button,
-div[data-testid="stLayoutWrapper"]:has(.tl-card-head) button {
-  width: 2.2rem !important;
-  height: 2.2rem !important;
-  min-height: 2.2rem !important;
+div[data-testid="stLayoutWrapper"]:has(.tl-card-head) button,
+.element-container:has(.tl-card-head) + .element-container button,
+div[data-testid="stHorizontalBlock"]:has(> div[data-testid="column"]:nth-child(2):last-child):has(.tl-card-head) button {
+  width: 1.55rem !important;
+  height: 1.55rem !important;
+  min-height: 1.55rem !important;
+  max-height: 1.55rem !important;
   padding: 0 !important;
   line-height: 1 !important;
   border-radius: 999px !important;
+  font-size: 0.95rem !important;
 }
 #tl-pin-sync-mark { display: none; }
 [data-testid="stElementContainer"]:has(#tl-pin-sync-mark) + [data-testid="stElementContainer"],
@@ -318,13 +322,6 @@ div[data-testid="stLayoutWrapper"]:has(.tl-card-head) button {
   height: 0 !important;
   width: 0 !important;
   overflow: hidden !important;
-}
-.element-container:has(.tl-card-head) + .element-container button {
-  width: 2.1rem !important;
-  height: 2.1rem !important;
-  min-height: 2.1rem !important;
-  padding: 0 !important;
-  border-radius: 999px !important;
 }
 /* Exactly-2-column rows only (nth-child(2):last-child). Outer card grid has 3 cols — excluded. */
 div[data-testid="stHorizontalBlock"]:has(> div[data-testid="column"]:nth-child(2):last-child):has(.tl-card-head) {
@@ -340,14 +337,6 @@ div[data-testid="stHorizontalBlock"]:has(> div[data-testid="column"]:nth-child(2
   width: 2.5rem !important;
   min-width: 2.5rem !important;
   max-width: 2.5rem !important;
-}
-div[data-testid="stHorizontalBlock"]:has(> div[data-testid="column"]:nth-child(2):last-child):has(.tl-card-head) button {
-  border-radius: 999px !important;
-  width: 2.25rem !important;
-  height: 2.25rem !important;
-  min-height: 2.25rem !important;
-  padding: 0 !important;
-  line-height: 1 !important;
 }
 div[data-testid="stHorizontalBlock"]:has(> div[data-testid="column"]:nth-child(2):last-child):has(.tl-search-mark) {
   flex-wrap: nowrap !important;
@@ -895,6 +884,7 @@ def _render_card(card: dict, *, family: str = "shared") -> None:
             pin_icon,
             key=f"pin_{family}_{ticker}",
             help=tip,
+            type="tertiary",
             on_click=_toggle_pin,
             args=(ticker,),
         )
@@ -1030,6 +1020,7 @@ def _render_pinned() -> None:
                 "📍",
                 key=f"unpin_{ticker}",
                 help="取消釘選",
+                type="tertiary",
                 on_click=_toggle_pin,
                 args=(ticker,),
             )
