@@ -133,7 +133,6 @@ def _unpin_ticker(ticker: str) -> None:
 
 
 def _toggle_pin(ticker: str) -> None:
-    """on_click: mutate pins before the next render so the icon flips in one tap."""
     t = (ticker or "").strip().upper()
     if not t:
         return
@@ -142,6 +141,26 @@ def _toggle_pin(ticker: str) -> None:
         st.session_state["pinned_tickers"] = [x for x in pinned if x != t]
     else:
         pinned.append(t)
+
+
+def _consume_pin_query() -> None:
+    """Pin is an <a href='?pin=TICKER'> in the card head; apply once then drop the param."""
+    try:
+        raw = st.query_params.get("pin")
+    except Exception:
+        return
+    if raw is None or raw == "":
+        return
+    if isinstance(raw, list):
+        raw = raw[0] if raw else ""
+    ticker = str(raw).strip().upper()
+    try:
+        del st.query_params["pin"]
+    except Exception:
+        pass
+    if ticker:
+        _toggle_pin(ticker)
+        st.rerun()
 
 
 
@@ -243,27 +262,14 @@ def _inject_back_to_top(*, jump: bool) -> None:
   opacity: 0.75;
   white-space: nowrap;
 }
-/* Ticker/action markdown + the following pin button share one line. */
-[data-testid="element-container"]:has(.tl-card-head),
-[data-testid="stElementContainer"]:has(.tl-card-head),
-.stElementContainer:has(.tl-card-head),
-.element-container:has(.tl-card-head) {
-  display: inline-block !important;
-  width: auto !important;
-  vertical-align: middle;
-  padding-right: 0.2rem !important;
+/* Pin lives in the same HTML row as ticker + direction. */
+.tl-card-head a.tl-pin {
+  text-decoration: none !important;
+  font-size: 1.2rem;
+  line-height: 1;
+  margin-left: 0.15rem;
+  cursor: pointer;
 }
-[data-testid="element-container"]:has(.tl-card-head) + [data-testid="element-container"],
-[data-testid="stElementContainer"]:has(.tl-card-head) + [data-testid="stElementContainer"],
-.stElementContainer:has(.tl-card-head) + .stElementContainer,
-.element-container:has(.tl-card-head) + .element-container {
-  display: inline-block !important;
-  width: auto !important;
-  vertical-align: middle;
-}
-[data-testid="element-container"]:has(.tl-card-head) + [data-testid="element-container"] button,
-[data-testid="stElementContainer"]:has(.tl-card-head) + [data-testid="stElementContainer"] button,
-.stElementContainer:has(.tl-card-head) + .stElementContainer button,
 .element-container:has(.tl-card-head) + .element-container button {
   width: 2.1rem !important;
   height: 2.1rem !important;
@@ -376,6 +382,7 @@ div[data-testid="stHorizontalBlock"]:has(> div[data-testid="column"]:nth-child(2
 def main() -> None:
     _sync_pins_storage()
     _ensure_pinned_state()
+    _consume_pin_query()
     st.title("Trendline")
     st.caption("美股收市後 · 盤中觸價淡區間（止盈前收）。S&P 500 全數訓練 / 顯示前 100 成交額")
     st.warning(DISCLAIMER)
@@ -777,20 +784,15 @@ def _render_card(card: dict, *, family: str = "shared") -> None:
     is_pinned = ticker in pinned
     conf_txt = conf.strip(" ·") if conf else ""
     pin_icon = "📍" if is_pinned else "📌"
+    tip = "取消釘選" if is_pinned else "釘選對照"
     st.markdown(
         f'<div class="tl-card-head">'
         f'<span class="tl-t">{ticker}</span>'
         f'<span class="tl-a {color}">{action}</span>'
+        f'<a class="tl-pin" href="?pin={ticker}" target="_self" title="{tip}">{pin_icon}</a>'
         f'<span class="tl-conf">{conf_txt}</span>'
         f"</div>",
         unsafe_allow_html=True,
-    )
-    st.button(
-        pin_icon,
-        key=f"pin_{family}_{ticker}",
-        help="取消釘選" if is_pinned else "釘選對照",
-        on_click=_toggle_pin,
-        args=(ticker,),
     )
     st.caption(
         f"#{card.get('dvol_rank', '—')} 成交額　·　{card.get('sector') or '—'}　·　"
@@ -912,15 +914,11 @@ def _render_pinned() -> None:
     st.caption(f"已釘選 {len(pinned)} 隻")
     for ticker in pinned:
         st.markdown(
-            f'<div class="tl-card-head"><span class="tl-t">{ticker}</span></div>',
+            f'<div class="tl-card-head">'
+            f'<span class="tl-t">{ticker}</span>'
+            f'<a class="tl-pin" href="?pin={ticker}" target="_self" title="取消釘選">📍</a>'
+            f"</div>",
             unsafe_allow_html=True,
-        )
-        st.button(
-            "📍",
-            key=f"unpin_{ticker}",
-            help="取消釘選",
-            on_click=_toggle_pin,
-            args=(ticker,),
         )
 
         cards_by_fam = {fam: indexes[fam].get(ticker) for fam, _ in FAMILY_LABELS}
