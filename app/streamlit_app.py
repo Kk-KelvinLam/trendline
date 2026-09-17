@@ -416,20 +416,28 @@ def main() -> None:
     if key == "shared":
         st.caption(
             "現有規則（共用）：淡區間入場，無 Close q50 方向閘。"
+            "開市已穿過入場價唔追。"
             "近期 Close MAE（20 日、至少 10 個樣本）高於 2.5% 則整張觀望；"
-            "高於 1.8% 則唔標高信心。三套系統（模型＋規則＋執行）賽馬；以流水權益為準，勝率只供參考。"
+            "高於 1.8% 則唔標高信心。"
+            "High/Low 優於基準只係標籤（票或整體贏 ATR 基準就允許出牌），唔因此觀望。"
+            "三套系統賽馬以流水權益為準，勝率只供參考。"
         )
     elif key == "sector":
         st.caption(
             "現有規則（行業）：淡區間入場，另要 Close q50 ≥ +10bps 先做多、≤ −10bps 先做空。"
+            "開市已穿過入場價唔追。"
             "近期 Close MAE（20 日、至少 10 個樣本）高於 2.5% 則整張觀望；"
-            "高於 1.8% 則唔標高信心。三套系統（模型＋規則＋執行）賽馬；以流水權益為準，勝率只供參考。"
+            "高於 1.8% 則唔標高信心。"
+            "High/Low 優於基準只係標籤，唔因此觀望。"
+            "三套系統賽馬以流水權益為準，勝率只供參考。"
         )
     elif key == "stock":
         st.caption(
             "現有規則（個股）：淡區間入場，另要 Close q50 ≥ +10bps 先做多、≤ −10bps 先做空。"
-            "薄歷史票會 fallback 共用模型。近期 Close MAE 高於 2.5% 則整張觀望；"
-            "高於 1.8% 則唔標高信心。三套系統（模型＋規則＋執行）賽馬；以流水權益為準，勝率只供參考。"
+            "薄歷史票會 fallback 共用模型。開市已穿過入場價唔追。"
+            "近期 Close MAE 高於 2.5% 則整張觀望；高於 1.8% 則唔標高信心。"
+            "High/Low 優於基準只係標籤，唔因此觀望。"
+            "三套系統賽馬以流水權益為準，勝率只供參考。"
         )
 
     search_q = _live_search(
@@ -635,12 +643,18 @@ def _render_ledger() -> None:
     st.caption(
         "對賬路徑：只認 America/New_York 常規時段 5 分鐘 bar；"
         "觸價要喺 12:30 ET 之前先入場，之後先到價當錯過。"
-        "缺 5m 亦當錯過，不再回退日 K。Walk-forward OOS 仍用日 K。"
+        "缺 5m、或者開市已穿過入場價，亦當錯過，不回退日 K。"
+        "Nightly 先用磁碟上舊卡結算，再寫新卡；新卡要下一轉先入流水。"
+        "當日 S&P 真實 Close 少過 90% 則 skip 結算同出卡。"
+        "Walk-forward OOS 仍用日 K。"
     )
     st.caption(
         "勝率／成交數按「有方向嘅訊號卡」計，未扣佣、亦包括未入書（倉位太細／觸及名義下限）嘅觸價。"
-        "三套系統（模型＋規則＋執行）賽馬：共用無 Close 閘，行業／個股要 Close q50 ±10bps。"
-        "以三本權益對照 VOO：2026-09-14 開市一把過買住，之後唔買賣、只按收市計市值（無佣）。勝率只供參考。"
+        "表上 High/Low/Close MAE$ 係對賬時預測 vs 第二日真實價，唔係出卡用嗰個近期 MAE%。"
+        "三套系統賽馬：共用無 Close 閘，行業／個股要 Close q50 ±10bps。"
+        "VOO：2026-09-14 開市一把過買 91 股剩現金，之後唔買賣；"
+        "每日權益 = 股數 × 當日收市 + 現金（轉 HKD）。上面 delta 係對 HK$500,000 嘅累計盈虧，唔係單日。"
+        "勝率只供參考。"
     )
     view = ledger_view()
     ledger = view["ledger"]
@@ -701,7 +715,7 @@ def _render_ledger() -> None:
     )
     st.dataframe(pd.DataFrame(rows), hide_index=True, use_container_width=True)
 
-    st.markdown("#### 下一轉計劃（未成交）")
+    st.markdown("#### 下一轉計劃（已 sizing，最多 20 隻）")
     planned = view.get("planned") or {}
     asofs = view.get("cards_asof") or {}
     tabs = st.tabs(["共用", "行業", "個股"])
@@ -709,9 +723,12 @@ def _render_ledger() -> None:
         with tab:
             rows_p = planned.get(fam) or []
             if not rows_p:
-                st.info("未有可觸價信號。")
+                st.info("呢個模型而家冇入到書嘅計劃（觀望／分數太低／名義太細／超權益）。")
             else:
-                st.caption(f"asof {asofs.get(fam)} · {len(rows_p)} 隻")
+                st.caption(
+                    f"asof {asofs.get(fam)} · {len(rows_p)} 隻入書。"
+                    "呢份唔係錯過名單；錯過喺上面「錯過」同埋唔會出現喺成交流水。"
+                )
                 st.dataframe(pd.DataFrame(rows_p), hide_index=True, use_container_width=True)
 
     st.markdown("#### 成交流水")
@@ -823,7 +840,7 @@ def _render_card(card: dict, *, family: str = "shared") -> None:
     st.caption(
         f"MAE #{card.get('mae_rank') or '—'}　·　"
         f"成交額 #{card.get('dvol_rank', '—')}　·　{card.get('sector') or '—'}　·　"
-        f"{'High/Low 優於基準' if card.get('beats_range', card.get('beats_baseline')) else 'High/Low 未優於該股基準'}"
+        f"{'High/Low 優於該股基準' if card.get('beats_range', card.get('beats_baseline')) else 'High/Low 未優於該股基準（只標籤，唔觀望）'}"
     )
     st.caption(
         f"數據來源：{card.get('data_source') or '未知'}　·　"
