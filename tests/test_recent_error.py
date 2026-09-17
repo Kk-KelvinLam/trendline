@@ -47,3 +47,74 @@ def test_recent_lookup_preferred():
     )
     assert err["scope"] == "recent"
     assert err["n"] == 20
+
+
+from trendline.cards import _mae_score, compute_recent_close_errors, rank_by_recent_mae
+import pandas as pd
+
+
+def test_mae_score_weights():
+    err = {"mae_high_ret": 0.10, "mae_low_ret": 0.20, "mae_close_ret": 0.30}
+    assert abs(_mae_score(err) - (0.4 * 0.10 + 0.4 * 0.20 + 0.2 * 0.30)) < 1e-12
+    assert _mae_score({"mae_high_ret": 0.1, "mae_low_ret": None, "mae_close_ret": 0.1}) is None
+
+
+def test_rank_by_recent_mae_order_and_min_n():
+    recent = {
+        "AAA": {"n": 20, "mae_high_ret": 0.01, "mae_low_ret": 0.01, "mae_close_ret": 0.01},
+        "BBB": {"n": 20, "mae_high_ret": 0.02, "mae_low_ret": 0.02, "mae_close_ret": 0.02},
+        "CCC": {"n": 5, "mae_high_ret": 0.001, "mae_low_ret": 0.001, "mae_close_ret": 0.001},
+        "DDD": {"n": 20, "mae_high_ret": 0.01, "mae_low_ret": 0.01, "mae_close_ret": 0.01},
+    }
+    dvol = {"AAA": 1.0, "DDD": 9.0, "BBB": 5.0}
+    out = rank_by_recent_mae(recent, dvol, top_n=3)
+    assert [r["ticker"] for r in out] == ["DDD", "AAA", "BBB"]
+    assert out[0]["mae_rank"] == 1
+    assert "CCC" not in {r["ticker"] for r in out}
+
+
+class _HLStub:
+    def predict(self, frame):
+        # Constant forecasts so MAE equals |y - 0|
+        n = len(frame)
+        z = [0.0] * n
+        return pd.DataFrame(
+            {
+                "pred_high_q50": z,
+                "pred_low_q50": z,
+                "pred_close_q50": z,
+            }
+        )
+
+
+def test_compute_recent_includes_high_low():
+    rows = []
+    asof = pd.Timestamp("2026-09-20")
+    for i in range(12):
+        d = asof - pd.Timedelta(days=i + 1)
+        rows.append(
+            {
+                "date": d,
+                "ticker": "AAA",
+                "close": 100.0,
+                "y_high": 0.02,
+                "y_low": -0.01,
+                "y_close": 0.00,
+            }
+        )
+        rows.append(
+            {
+                "date": d,
+                "ticker": "BBB",
+                "close": 50.0,
+                "y_high": 0.10,
+                "y_low": -0.10,
+                "y_close": 0.05,
+            }
+        )
+    featured = pd.DataFrame(rows)
+    out = compute_recent_close_errors(featured, _HLStub(), asof=asof)
+    assert out["AAA"]["n"] == 12
+    assert "mae_high_ret" in out["AAA"]
+    assert "mae_low_ret" in out["AAA"]
+    assert out["AAA"]["mae_score"] < out["BBB"]["mae_score"]

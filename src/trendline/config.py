@@ -106,7 +106,10 @@ ATR_SL_MULT = 1.0
 # Management (TP/SL/close) after fill can continue through the RTH close.
 PAPER_ENTRY_CUTOFF_ET = (12, 30)
 
-SHOW_TOP_N = 100
+SHOW_TOP_N = 100  # shortlist size; ranked by recent High/Low/Close MAE
+MAE_RANK_W_HIGH = 0.4
+MAE_RANK_W_LOW = 0.4
+MAE_RANK_W_CLOSE = 0.2
 
 SECTOR_ETF = {
     "Information Technology": "XLK",

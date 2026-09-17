@@ -18,6 +18,9 @@ from trendline.config import (
     RECENT_ERROR_MIN_N,
     RECENT_ERROR_WINDOW,
     SHOW_TOP_N,
+    MAE_RANK_W_CLOSE,
+    MAE_RANK_W_HIGH,
+    MAE_RANK_W_LOW,
     recent_close_error_path,
 )
 from trendline.range_touch import FadeSetup, choose_setup
@@ -85,6 +88,59 @@ def _write_recent_error_artifact(family: str, mapping: dict[str, dict], asof: pd
     return path
 
 
+def _pred_q50_col(pred_frame: pd.DataFrame, target: str, family: str) -> str | None:
+    for col in (f"pred_{target}_q50", pred_col(target, 0.50, family), pred_col(target, 0.50)):
+        if col in pred_frame.columns:
+            return col
+    return None
+
+
+def _mae_score(err: dict) -> float | None:
+    parts = []
+    for key, w in (
+        ("mae_high_ret", MAE_RANK_W_HIGH),
+        ("mae_low_ret", MAE_RANK_W_LOW),
+        ("mae_close_ret", MAE_RANK_W_CLOSE),
+    ):
+        val = err.get(key)
+        if val is None or not np.isfinite(val):
+            return None
+        parts.append(w * float(val))
+    return float(sum(parts))
+
+
+def rank_by_recent_mae(
+    recent_map: dict[str, dict],
+    dvol_by_ticker: dict[str, float] | None = None,
+    *,
+    top_n: int = SHOW_TOP_N,
+    min_n: int = RECENT_ERROR_MIN_N,
+) -> list[dict]:
+    """Best-first shortlist: 0.4 High + 0.4 Low + 0.2 Close recent MAE; n then dollar volume."""
+    dvol_by_ticker = dvol_by_ticker or {}
+    rows: list[tuple] = []
+    for ticker, err in (recent_map or {}).items():
+        if int(err.get("n") or 0) < int(min_n):
+            continue
+        score = _mae_score(err)
+        if score is None:
+            continue
+        dv = float(dvol_by_ticker.get(ticker) or 0.0)
+        rows.append((score, -int(err.get("n") or 0), -dv, str(ticker)))
+    rows.sort()
+    out = []
+    for i, (score, neg_n, _neg_dv, ticker) in enumerate(rows[: int(top_n)], start=1):
+        out.append(
+            {
+                "ticker": ticker,
+                "mae_rank": i,
+                "mae_score": float(score),
+                "n": int(-neg_n),
+            }
+        )
+    return out
+
+
 def compute_recent_close_errors(
     featured: pd.DataFrame,
     model: "Predictor | FamilyPredictor",
@@ -94,7 +150,7 @@ def compute_recent_close_errors(
 ) -> dict[str, dict]:
     """Score last-n labeled sessions with the *current* saved models (true recent MAE).
 
-    Does not need ``oos_predictions.parquet``. Uses realized ``y_close`` before ``asof``.
+    High / Low / Close vs ``y_*`` before ``asof``. Does not need oos parquet.
     """
     if featured is None or getattr(featured, "empty", True):
         return {}
@@ -104,7 +160,8 @@ def compute_recent_close_errors(
     for col in need:
         if col not in df.columns:
             return {}
-    ready = df.dropna(subset=["y_close", "close"]).copy()
+    label_cols = [c for c in ("y_high", "y_low", "y_close") if c in df.columns]
+    ready = df.dropna(subset=label_cols + ["close"]).copy()
     if asof is not None:
         ready = ready[ready["date"] < _naive_midnight(asof)]
     if ready.empty:
@@ -119,29 +176,41 @@ def compute_recent_close_errors(
     except Exception:
         return {}
     pred_frame = preds.reset_index(drop=True) if hasattr(preds, "reset_index") else preds
-    base = window[["date", "ticker", "close", "y_close"]].reset_index(drop=True)
-    # FamilyPredictor returns unsuffixed pred_* aligned to input rows
-    col = "pred_close_q50"
-    alt = pred_col("close", 0.50, family)
-    if col not in pred_frame.columns and alt in pred_frame.columns:
-        col = alt
-    if col not in pred_frame.columns:
-        bare = pred_col("close", 0.50)
-        if bare in pred_frame.columns:
-            col = bare
-        else:
-            return {}
-    merged = pd.concat([base, pred_frame[[col]]], axis=1)
+    keep = ["date", "ticker", "close", *label_cols]
+    base = window[keep].reset_index(drop=True)
+    col_c = _pred_q50_col(pred_frame, "close", family)
+    if col_c is None:
+        return {}
+    use_pred = [col_c]
+    col_h = _pred_q50_col(pred_frame, "high", family) if "y_high" in base.columns else None
+    col_l = _pred_q50_col(pred_frame, "low", family) if "y_low" in base.columns else None
+    if col_h:
+        use_pred.append(col_h)
+    if col_l:
+        use_pred.append(col_l)
+    merged = pd.concat([base, pred_frame[use_pred]], axis=1)
     out: dict[str, dict] = {}
     for ticker, g in merged.groupby("ticker", sort=False):
-        err = (g["y_close"] - g[col]).abs()
-        px_err = (g["close"] * err).abs()
-        out[str(ticker)] = {
+        close_err = (g["y_close"] - g[col_c]).abs()
+        px_err = (g["close"] * close_err).abs()
+        row = {
             "n": int(len(g)),
-            "mae_close_ret": float(err.mean()),
+            "mae_close_ret": float(close_err.mean()),
             "mae_close_px": float(px_err.mean()),
             "scope": "recent",
         }
+        if col_h and "y_high" in g.columns:
+            high_err = (g["y_high"] - g[col_h]).abs()
+            row["mae_high_ret"] = float(high_err.mean())
+            row["mae_high_px"] = float((g["close"] * high_err).abs().mean())
+        if col_l and "y_low" in g.columns:
+            low_err = (g["y_low"] - g[col_l]).abs()
+            row["mae_low_ret"] = float(low_err.mean())
+            row["mae_low_px"] = float((g["close"] * low_err).abs().mean())
+        score = _mae_score(row)
+        if score is not None:
+            row["mae_score"] = score
+        out[str(ticker)] = row
     return out
 
 
@@ -303,15 +372,6 @@ def build_cards(
     if day.empty:
         raise RuntimeError(f"no feature rows on {asof.date()}")
 
-    ranked = rank_by_dollar_volume(ohlcv, asof=asof, top_n=SHOW_TOP_N)
-    show = set(ranked["ticker"])
-    day = day[day["ticker"].isin(show)].copy()
-    if day.empty:
-        raise RuntimeError(
-            f"no S&P names in the top dollar-volume set for session {asof.date()} "
-            f"(ranked={len(ranked)}; macro-only/thin session?)"
-        )
-
     if model is None:
         shared = SharedBundle().load()
         sector = SectorBundle().load() if family != "shared" else None
@@ -320,16 +380,10 @@ def build_cards(
             sector = SectorBundle().load()
         model = FamilyPredictor(family, shared, sector, stock)
 
-    preds = model.predict(day)
-    base = BaselineModel().predict(day)
-    day = pd.concat([day.reset_index(drop=True), preds.reset_index(drop=True), base.reset_index(drop=True)], axis=1)
-
-    beat_col = "beats_range" if "beats_range" in per_ticker.columns else "beats_baseline"
-    beat = dict(zip(per_ticker["ticker"], per_ticker[beat_col], strict=False))
-    per_map = {r["ticker"]: r for r in per_ticker.to_dict(orient="records")}
-    rank_map = dict(zip(ranked["ticker"], ranked["dvol_rank"], strict=False))
-    dvol_map = dict(zip(ranked["ticker"], ranked["dollar_volume"], strict=False))
-    last_bar_map = _last_bar_dates(ohlcv)
+    # Dollar volume for display + MAE tie-break; do not use it to cut the pool.
+    ranked_dvol = rank_by_dollar_volume(ohlcv, asof=asof, top_n=10_000)
+    dvol_map = dict(zip(ranked_dvol["ticker"], ranked_dvol["dollar_volume"], strict=False)) if not ranked_dvol.empty else {}
+    rank_map = dict(zip(ranked_dvol["ticker"], ranked_dvol["dvol_rank"], strict=False)) if not ranked_dvol.empty else {}
 
     recent_map = compute_recent_close_errors(
         feat, model, family=family, n=RECENT_ERROR_WINDOW, asof=asof
@@ -338,6 +392,33 @@ def build_cards(
         recent_map = _load_recent_error_artifact(family)
     else:
         _write_recent_error_artifact(family, recent_map, asof)
+
+    mae_ranked = rank_by_recent_mae(recent_map, dvol_map, top_n=SHOW_TOP_N)
+    if mae_ranked:
+        show = {r["ticker"] for r in mae_ranked}
+        mae_rank_map = {r["ticker"]: r["mae_rank"] for r in mae_ranked}
+        mae_score_map = {r["ticker"]: r["mae_score"] for r in mae_ranked}
+    else:
+        # No trusted recent High/Low/Close MAE yet — keep a 100-name card file.
+        fallback = ranked_dvol.head(int(SHOW_TOP_N)) if not ranked_dvol.empty else ranked_dvol
+        show = set(fallback["ticker"]) if not fallback.empty else set(day["ticker"])
+        mae_rank_map = {}
+        mae_score_map = {}
+    day = day[day["ticker"].isin(show)].copy()
+    if day.empty:
+        raise RuntimeError(
+            f"no S&P names in the MAE shortlist for session {asof.date()} "
+            f"(mae_ranked={len(mae_ranked)}; dvol={len(ranked_dvol)})"
+        )
+
+    preds = model.predict(day)
+    base = BaselineModel().predict(day)
+    day = pd.concat([day.reset_index(drop=True), preds.reset_index(drop=True), base.reset_index(drop=True)], axis=1)
+
+    beat_col = "beats_range" if "beats_range" in per_ticker.columns else "beats_baseline"
+    beat = dict(zip(per_ticker["ticker"], per_ticker[beat_col], strict=False))
+    per_map = {r["ticker"]: r for r in per_ticker.to_dict(orient="records")}
+    last_bar_map = _last_bar_dates(ohlcv)
 
     cards = []
     for row in day.itertuples(index=False):
@@ -378,6 +459,8 @@ def build_cards(
                 "sector": getattr(row, "sector", None),
                 "model_family": family,
                 "dvol_rank": int(rank_map.get(ticker, 0) or 0),
+                "mae_rank": int(mae_rank_map.get(ticker, 0) or 0),
+                "mae_score": mae_score_map.get(ticker),
                 "dollar_volume": float(dvol_map.get(ticker, 0) or 0),
                 "action": action,
                 "side": side,
@@ -439,7 +522,13 @@ def build_cards(
             }
         )
 
-    cards.sort(key=lambda c: (0 if c["action"] != "觀望" else 1, c["dvol_rank"]))
+    cards.sort(
+        key=lambda c: (
+            0 if c["action"] != "觀望" else 1,
+            c.get("mae_rank") or 10_000,
+            c.get("dvol_rank") or 10_000,
+        )
+    )
     family_label = {"shared": "共用模型", "sector": "行業模型", "stock": "個股模型"}.get(family, family)
     payload = {
         "generated_at_utc": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
