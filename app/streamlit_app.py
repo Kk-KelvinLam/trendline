@@ -817,6 +817,25 @@ def _render_ledger() -> None:
         st.dataframe(pd.DataFrame(flat), hide_index=True, use_container_width=True)
 
 
+def _same_row(*builders) -> None:
+    """Ticker + pin on one flex row. Falls back if Streamlit is too old for horizontal=."""
+    row = None
+    try:
+        row = st.container(horizontal=True, vertical_alignment="center", gap="small", wrap=False)
+    except TypeError:
+        try:
+            row = st.container(horizontal=True, vertical_alignment="center", gap="small")
+        except TypeError:
+            row = None
+    if row is None:
+        for build in builders:
+            build()
+        return
+    with row:
+        for build in builders:
+            build()
+
+
 def _render_card(card: dict, *, family: str = "shared") -> None:
     action = card["action"]
     color = {"做多": "green", "做空": "red", "觀望": "gray"}.get(action, "gray")
@@ -827,21 +846,27 @@ def _render_card(card: dict, *, family: str = "shared") -> None:
     conf_txt = conf.strip(" ·") if conf else ""
     pin_icon = "📍" if is_pinned else "📌"
     tip = "取消釘選" if is_pinned else "釘選對照"
-    st.markdown(
-        f'<div class="tl-card-head">'
-        f'<span class="tl-t">{ticker}</span>'
-        f'<span class="tl-a {color}">{action}</span>'
-        f'<span class="tl-conf">{conf_txt}</span>'
-        f"</div>",
-        unsafe_allow_html=True,
-    )
-    st.button(
-        pin_icon,
-        key=f"pin_{family}_{ticker}",
-        help=tip,
-        on_click=_toggle_pin,
-        args=(ticker,),
-    )
+
+    def _title() -> None:
+        st.markdown(
+            f'<div class="tl-card-head">'
+            f'<span class="tl-t">{ticker}</span>'
+            f'<span class="tl-a {color}">{action}</span>'
+            f'<span class="tl-conf">{conf_txt}</span>'
+            f"</div>",
+            unsafe_allow_html=True,
+        )
+
+    def _pin() -> None:
+        st.button(
+            pin_icon,
+            key=f"pin_{family}_{ticker}",
+            help=tip,
+            on_click=_toggle_pin,
+            args=(ticker,),
+        )
+
+    _same_row(_title, _pin)
     st.caption(
         f"#{card.get('dvol_rank', '—')} 成交額　·　{card.get('sector') or '—'}　·　"
         f"{'High/Low 優於基準' if card.get('beats_range', card.get('beats_baseline')) else 'High/Low 未優於該股基準'}"
@@ -961,17 +986,22 @@ def _render_pinned() -> None:
 
     st.caption(f"已釘選 {len(pinned)} 隻")
     for ticker in pinned:
-        st.markdown(
-            f'<div class="tl-card-head"><span class="tl-t">{ticker}</span></div>',
-            unsafe_allow_html=True,
-        )
-        st.button(
-            "📍",
-            key=f"unpin_{ticker}",
-            help="取消釘選",
-            on_click=_toggle_pin,
-            args=(ticker,),
-        )
+        def _title() -> None:
+            st.markdown(
+                f'<div class="tl-card-head"><span class="tl-t">{ticker}</span></div>',
+                unsafe_allow_html=True,
+            )
+
+        def _pin() -> None:
+            st.button(
+                "📍",
+                key=f"unpin_{ticker}",
+                help="取消釘選",
+                on_click=_toggle_pin,
+                args=(ticker,),
+            )
+
+        _same_row(_title, _pin)
 
         cards_by_fam = {fam: indexes[fam].get(ticker) for fam, _ in FAMILY_LABELS}
         actions = {
