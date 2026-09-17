@@ -716,19 +716,45 @@ def _render_ledger() -> None:
     st.dataframe(pd.DataFrame(rows), hide_index=True, use_container_width=True)
 
     st.markdown("#### 下一轉計劃（已 sizing，最多 20 隻）")
-    planned = view.get("planned") or {}
+    planned_now = view.get("planned") or {}
     asofs = view.get("cards_asof") or {}
+    history = list(view.get("plan_history") or [])
+    open_plan = view.get("open_plan") or {}
+    choices = ["今期未對賬"]
+    labels = {"今期未對賬": None}
+    for item in reversed(history):
+        lab = f"已對賬 {item.get('asof')} → session {item.get('session')}"
+        choices.append(lab)
+        labels[lab] = item
+    picked = st.selectbox(
+        "睇邊一份計劃",
+        choices,
+        help="今期 = 而家卡上、等下一 session 對賬。已對賬 = nightly 結算時鎖定嘅入書名單，用嚟對下面成交流水。",
+    )
+    if picked == "今期未對賬":
+        planned = planned_now
+        head = (
+            f"用而家 cards asof {asofs.get('shared') or asofs.get('stock')}。"
+            "Nightly 先結算舊卡再換新卡，所以呢份要等下一轉先入成交流水。"
+        )
+        if open_plan.get("asof"):
+            head += f" ledger 亦存咗一份 open_plan asof {open_plan.get('asof')}。"
+    else:
+        item = labels[picked]
+        planned = item.get("families") or {}
+        head = (
+            f"呢份係 asof {item.get('asof')} 入書名單，"
+            f"對賬 session {item.get('session')}。對下面成交流水嗰日。"
+        )
+    st.caption(head)
     tabs = st.tabs(["共用", "行業", "個股"])
     for tab, fam in zip(tabs, ("shared", "sector", "stock")):
         with tab:
             rows_p = planned.get(fam) or []
             if not rows_p:
-                st.info("呢個模型而家冇入到書嘅計劃（觀望／分數太低／名義太細／超權益）。")
+                st.info("呢個模型呢份計劃冇入到書（觀望／分數太低／名義太細／超權益，或舊日未存計劃）。")
             else:
-                st.caption(
-                    f"asof {asofs.get(fam)} · {len(rows_p)} 隻入書。"
-                    "呢份唔係錯過名單；錯過喺上面「錯過」同埋唔會出現喺成交流水。"
-                )
+                st.caption(f"{len(rows_p)} 隻入書。唔係錯過名單。")
                 st.dataframe(pd.DataFrame(rows_p), hide_index=True, use_container_width=True)
 
     st.markdown("#### 成交流水")

@@ -246,3 +246,39 @@ def test_realize_misses_when_5m_missing(monkeypatch):
     assert day["n_signals"] == 1
     assert day["n_miss"] == 1
     assert day["paper_fills"] == 0
+
+
+def test_realize_stores_planned_snapshot(monkeypatch):
+    import trendline.ledger as ledger_mod
+    from trendline.ledger import new_ledger, realize_once
+
+    cards = {
+        "asof": "2026-09-11",
+        "cards": [
+            {
+                "ticker": "AAA",
+                "side": 1,
+                "action": "做多",
+                "entry_px": 98.0,
+                "prior_close": 100.0,
+                "atr": 2.0,
+                "tp": 100.0,
+                "sl": 96.0,
+                "pred": {"high": {"q50": 101}, "low": {"q50": 97}, "close": {"q50": 100}},
+            }
+        ],
+    }
+    monkeypatch.setattr(ledger_mod, "_read_cards", lambda path: cards)
+    monkeypatch.setattr(ledger_mod, "_refresh_fx", lambda default: 7.8)
+    ohlcv = pd.DataFrame(
+        [
+            {"date": "2026-09-11", "ticker": "AAA", "open": 100, "high": 101, "low": 99, "close": 100, "adj_close": 100, "volume": 1, "source": "yfinance"},
+            {"date": "2026-09-12", "ticker": "AAA", "open": 99.5, "high": 100.0, "low": 98.5, "close": 99.0, "adj_close": 99, "volume": 1, "source": "yfinance"},
+        ]
+    )
+    ohlcv["date"] = pd.to_datetime(ohlcv["date"])
+    bars = {"AAA": [{"open": 99.5, "high": 99.8, "low": 97.5, "close": 98.5}]}
+    out = realize_once(new_ledger(), ohlcv, bars_by_ticker=bars)
+    planned = ((out["days"][0].get("families") or {}).get("shared") or {}).get("planned") or []
+    assert planned and planned[0]["ticker"] == "AAA"
+    assert planned[0]["shares"] >= 1
