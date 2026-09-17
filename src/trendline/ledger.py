@@ -32,6 +32,7 @@ from trendline.config import (
     PAPER_BENCHMARK_TICKER,
     PAPER_MIN_NOTIONAL_USD,
     PAPER_MIN_DVOL_RANK,
+    PAPER_PLAN_HISTORY_DAYS,
     PAPER_STARTING_HKD,
 )
 from trendline.data.intraday import fetch_rth_5m
@@ -152,9 +153,23 @@ def load_ledger(path: Path | None = None) -> dict:
     return _ensure_books(json.loads(path.read_text(encoding="utf-8")))
 
 
+def _prune_plan_history(ledger: dict) -> dict:
+    """Keep planned snapshots only on the last N realized days."""
+    days = ledger.get("days") or []
+    keep = set(id(d) for d in days[-int(PAPER_PLAN_HISTORY_DAYS) :])
+    for day in days:
+        if id(day) in keep:
+            continue
+        for rec in (day.get("families") or {}).values():
+            if isinstance(rec, dict):
+                rec.pop("planned", None)
+    return ledger
+
+
 def save_ledger(ledger: dict, path: Path | None = None) -> Path:
     path = Path(path or LEDGER_PATH)
     path.parent.mkdir(parents=True, exist_ok=True)
+    _prune_plan_history(ledger)
     path.write_text(json.dumps(ledger, ensure_ascii=False, indent=2), encoding="utf-8")
     return path
 
@@ -808,5 +823,5 @@ def ledger_view(ledger: dict | None = None) -> dict:
         "planned": planned,
         "cards_asof": asofs,
         "open_plan": ledger.get("open_plan"),
-        "plan_history": history,
+        "plan_history": history[-int(PAPER_PLAN_HISTORY_DAYS) :],
     }

@@ -307,3 +307,19 @@ def test_locked_open_plan_used_instead_of_recompute(monkeypatch):
     }
     rows = _locked_plan_rows(led, "shared", payload, 500_000, 7.8)
     assert rows == [{"ticker": "LOCK", "shares": 7, "side": 1}]
+
+
+def test_prune_plan_history_keeps_last_three():
+    from trendline.ledger import _prune_plan_history
+
+    def day(asof, planned=True):
+        rec = {"n_fills": 0}
+        if planned:
+            rec["planned"] = [{"ticker": "X"}]
+        return {"asof": asof, "families": {"shared": rec, "sector": dict(rec), "stock": dict(rec)}}
+
+    led = {"days": [day("d1"), day("d2"), day("d3"), day("d4")]}
+    _prune_plan_history(led)
+    assert "planned" not in led["days"][0]["families"]["shared"]
+    assert "planned" in led["days"][-1]["families"]["shared"]
+    assert "planned" in led["days"][-3]["families"]["shared"]
