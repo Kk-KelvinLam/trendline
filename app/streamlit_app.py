@@ -170,6 +170,15 @@ def _clear_text_key(key: str) -> None:
     st.session_state[key] = ""
 
 
+def _live_search(label: str, *, placeholder: str, key: str, debounce: int = 150) -> str:
+    """Filter as the user types. Falls back to Enter/blur if streamlit-keyup is missing."""
+    if st_keyup is not None:
+        raw = st_keyup(label, placeholder=placeholder, key=key, debounce=debounce)
+        return "" if raw is None else str(raw)
+    raw = st.text_input(label, placeholder=placeholder, key=key)
+    return "" if raw is None else str(raw)
+
+
 def _filter_cards_by_query(cards: list[dict], query: str) -> list[dict]:
     q = (query or "").strip().upper()
     if not q:
@@ -440,11 +449,11 @@ def main() -> None:
             "高於 1.8% 則唔標高信心。三套系統（模型＋規則＋執行）賽馬；以流水權益為準，勝率只供參考。"
         )
 
-    search_key = f"search_{key}"
-    search_q = st.text_input(
+    search_q = _live_search(
         "搜尋",
         placeholder="搜尋股票代號（例如 NVDA）",
-        key=search_key,
+        key=f"search_{key}",
+        debounce=150,
     )
     filt = st.radio("篩選", ["全部", "做多", "做空", "高信心"], horizontal=True, key=f"filt_{key}")
 
