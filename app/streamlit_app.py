@@ -730,16 +730,16 @@ def _render_ledger() -> None:
     picked = st.selectbox(
         "睇邊一份計劃",
         choices,
-        help="今期 = 而家卡上、等下一 session 對賬。已對賬 = nightly 結算時鎖定嘅入書名單，用嚟對下面成交流水。",
+        help="今期 = nightly 出卡後鎖死嘅 open_plan。已對賬 = 結算時再鎖一次。唔會開頁重算。",
     )
     if picked == "今期未對賬":
         planned = planned_now
+        locked = bool((open_plan.get("families") or {}).get("shared") or (open_plan.get("families") or {}).get("stock"))
         head = (
-            f"用而家 cards asof {asofs.get('shared') or asofs.get('stock')}。"
-            "Nightly 先結算舊卡再換新卡，所以呢份要等下一轉先入成交流水。"
+            f"今期 asof {open_plan.get('asof') or asofs.get('shared') or asofs.get('stock')}。"
+            + ("Nightly 出卡後已鎖死，開頁唔重算。" if locked else "未有 open_plan，先用即時計（後備）。")
+            + " 呢份要等下一轉 session 先入成交流水。"
         )
-        if open_plan.get("asof"):
-            head += f" ledger 亦存咗一份 open_plan asof {open_plan.get('asof')}。"
     else:
         item = labels[picked]
         planned = item.get("families") or {}

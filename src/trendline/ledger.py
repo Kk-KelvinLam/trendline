@@ -32,6 +32,7 @@ from trendline.config import (
     PAPER_BENCHMARK_TICKER,
     PAPER_MIN_NOTIONAL_USD,
     PAPER_MIN_DVOL_RANK,
+    PAPER_PLAN_HISTORY_DAYS,
     PAPER_STARTING_HKD,
 )
 from trendline.data.intraday import fetch_rth_5m
@@ -152,9 +153,23 @@ def load_ledger(path: Path | None = None) -> dict:
     return _ensure_books(json.loads(path.read_text(encoding="utf-8")))
 
 
+def _prune_plan_history(ledger: dict) -> dict:
+    """Keep planned snapshots only on the last N realized days."""
+    days = ledger.get("days") or []
+    keep = set(id(d) for d in days[-int(PAPER_PLAN_HISTORY_DAYS) :])
+    for day in days:
+        if id(day) in keep:
+            continue
+        for rec in (day.get("families") or {}).values():
+            if isinstance(rec, dict):
+                rec.pop("planned", None)
+    return ledger
+
+
 def save_ledger(ledger: dict, path: Path | None = None) -> Path:
     path = Path(path or LEDGER_PATH)
     path.parent.mkdir(parents=True, exist_ok=True)
+    _prune_plan_history(ledger)
     path.write_text(json.dumps(ledger, ensure_ascii=False, indent=2), encoding="utf-8")
     return path
 
@@ -470,6 +485,17 @@ def _plan_snapshot(rows: list[dict] | None) -> list[dict]:
     return out
 
 
+def _locked_plan_rows(ledger: dict, family: str, payload: dict | None, equity_hkd: float, fx: float) -> list[dict]:
+    """Prefer the nightly open_plan snapshot when it matches this card asof."""
+    asof = str((payload or {}).get("asof") or "")
+    snap = ledger.get("open_plan") or {}
+    snap_asof = str((snap.get("asofs") or {}).get(family) or snap.get("asof") or "")
+    rows = ((snap.get("families") or {}).get(family)) or []
+    if asof and snap_asof == asof and rows:
+        return list(rows)
+    return planned_orders(payload, equity_hkd, fx)
+
+
 def snapshot_open_plan(ledger: dict | None = None) -> dict:
     """Persist the current cards' sized book so the UI can show it after cards rotate."""
     ledger = _ensure_books(ledger or load_ledger())
@@ -643,7 +669,7 @@ def realize_once(
             continue
         fam_state = ledger["families"].setdefault(fam, _empty_family())
         equity = float(fam_state.get("equity_hkd") or PAPER_STARTING_HKD)
-        plan_rows = planned_orders(payload, equity, fx)
+        plan_rows = _locked_plan_rows(ledger, fam, payload, equity, fx)
         plan = {p["ticker"]: p for p in plan_rows}
         n_sig = n_fill = n_miss = n_win = 0
         abs_h = abs_l = abs_c = 0.0
@@ -776,7 +802,7 @@ def ledger_view(ledger: dict | None = None) -> dict:
         cards = _read_cards(path)
         asofs[fam] = cards.get("asof") if cards else None
         eq = float(ledger["families"][fam]["equity_hkd"])
-        planned[fam] = planned_orders(cards, eq, fx)
+        planned[fam] = _locked_plan_rows(ledger, fam, cards, eq, fx)
     headlines = {fam: _family_headline(ledger["families"][fam]) for fam in FAMILY_PATHS}
     headlines["voo"] = _benchmark_headline(ledger.get("benchmark") or _empty_benchmark())
     history = []
@@ -797,5 +823,5 @@ def ledger_view(ledger: dict | None = None) -> dict:
         "planned": planned,
         "cards_asof": asofs,
         "open_plan": ledger.get("open_plan"),
-        "plan_history": history,
+        "plan_history": history[-int(PAPER_PLAN_HISTORY_DAYS) :],
     }
