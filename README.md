@@ -2,7 +2,7 @@
 
 Post-US-close dashboard that forecasts the **next regular session** High / Low / Close for S&P 500 names.
 
-美股收市後儀表板：預測 **下一常規交易時段** 的高 / 低 / 收。**全數 S&P 500 成分股訓練**，按前一交易日成交額（收市價 × 成交量）排序，**顯示最多 100 隻**。
+美股收市後儀表板：預測 **下一常規交易時段** 的高 / 低 / 收。**全數 S&P 500 成分股訓練**，按近期 High／Low／Close MAE（0.4 / 0.4 / 0.2，至少 10 個樣本）排序，**顯示最好 100 隻**。
 
 **免責聲明 / Disclaimer:** 本頁為量化模型輸出，**並非投資建議**。過往回測不代表未來表現。
 Model output, not investment advice. Past backtests do not predict future results.
@@ -14,7 +14,7 @@ Model output, not investment advice. Past backtests do not predict future result
 | 項目 | 說明 |
 | --- | --- |
 | Universe | `data/universe/sp500.csv` from Wikipedia. Refreshed on the **first Sunday of each month** during the Sunday retrain. Default fetch = **all members + macros** (SPY, VIX, sector ETFs). |
-| Train / show | Train on the full downloaded membership; dashboard cards shortlist **top 100** by prior-day dollar volume. |
+| Train / show | Train on the full downloaded membership; dashboard cards shortlist the **100 lowest recent MAE** scores (0.4 High + 0.4 Low + 0.2 Close, ≥10 labeled days). Dollar volume is a tie-break and a display field only. |
 | Model families | Three LightGBM quantile families on the **same** purged walk-forward folds: **shared** (panel), **sector** (one model per large GICS sector; small sectors → `Other`), **per-stock** (smaller trees; tickers with &lt; 400 train rows fall back to shared). |
 | Quantiles | q10 / q50 / q90 on *returns vs prior close*, then converted to price levels. No LSTM. |
 | Features | Known at prior close only: 1/5/20d returns, overnight gap, ATR, Parkinson vol, dollar-volume z-score, distance to 20/50/200 MAs, plus SPY / VIX / sector ETF. |
