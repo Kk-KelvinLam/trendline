@@ -98,6 +98,9 @@ PAPER_NOTIONAL_FRAC = 0.07  # unused; kept for reference
 PAPER_GROSS_FRAC = 1.00  # never deploy more than today's equity
 PAPER_MAX_NAME_FRAC = 0.12
 PAPER_MIN_NOTIONAL_USD = 2500.0
+# Book only names in the top N S&P names by prior-session dollar volume.
+# Ranking is still fade_score; this is a liquidity floor, not a shortlist.
+PAPER_MIN_DVOL_RANK = 300
 PAPER_DAILY_RISK_FRAC = 0.05
 PAPER_MAX_NAME_RISK = 0.006
 PAPER_FAMILY = "shared"
