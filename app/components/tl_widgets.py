@@ -16,6 +16,10 @@ _search_bar = components.declare_component(
     "tl_search_bar",
     path=os.path.join(_DIR, "tl_search_bar"),
 )
+_pins_bridge = components.declare_component(
+    "tl_pins",
+    path=os.path.join(_DIR, "tl_pins"),
+)
 
 
 def card_head(
@@ -57,3 +61,8 @@ def search_bar(
         default=value or "",
     )
     return "" if out is None else str(out)
+
+
+def pins_bridge(*, pins: list[str], write: bool = False, nonce: int = 0, key: str | None = None):
+    """One iframe: first run reports parent.localStorage, later runs write pins."""
+    return _pins_bridge(pins=list(pins), write=bool(write), nonce=int(nonce or 0), key=key, default=None)
