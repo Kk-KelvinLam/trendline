@@ -243,22 +243,32 @@ def _inject_back_to_top(*, jump: bool) -> None:
   opacity: 0.75;
   white-space: nowrap;
 }
-.tl-card-head .tl-pin-slot {
-  margin-left: auto;
-  flex: 0 0 2.25rem;
-  width: 2.25rem;
-  text-align: center;
-  font-size: 1.15rem;
-  line-height: 2.25rem;
+/* Ticker/action markdown + the following pin button share one line. */
+[data-testid="element-container"]:has(.tl-card-head),
+[data-testid="stElementContainer"]:has(.tl-card-head),
+.stElementContainer:has(.tl-card-head),
+.element-container:has(.tl-card-head) {
+  display: inline-block !important;
+  width: auto !important;
+  vertical-align: middle;
+  padding-right: 0.2rem !important;
 }
-.tl-pin-slot button {
-  width: 2.25rem !important;
-  height: 2.25rem !important;
-  min-height: 2.25rem !important;
+[data-testid="element-container"]:has(.tl-card-head) + [data-testid="element-container"],
+[data-testid="stElementContainer"]:has(.tl-card-head) + [data-testid="stElementContainer"],
+.stElementContainer:has(.tl-card-head) + .stElementContainer,
+.element-container:has(.tl-card-head) + .element-container {
+  display: inline-block !important;
+  width: auto !important;
+  vertical-align: middle;
+}
+[data-testid="element-container"]:has(.tl-card-head) + [data-testid="element-container"] button,
+[data-testid="stElementContainer"]:has(.tl-card-head) + [data-testid="stElementContainer"] button,
+.stElementContainer:has(.tl-card-head) + .stElementContainer button,
+.element-container:has(.tl-card-head) + .element-container button {
+  width: 2.1rem !important;
+  height: 2.1rem !important;
+  min-height: 2.1rem !important;
   padding: 0 !important;
-  border: none !important;
-  background: transparent !important;
-  box-shadow: none !important;
   border-radius: 999px !important;
 }
 /* Exactly-2-column rows only (nth-child(2):last-child). Outer card grid has 3 cols — excluded. */
@@ -340,43 +350,12 @@ div[data-testid="stHorizontalBlock"]:has(> div[data-testid="column"]:nth-child(2
     scrollers().forEach(function(el) {{ m = Math.max(m, el.scrollTop || 0); }});
     return m;
   }}
-  function dockPins() {{
-    doc.querySelectorAll(".tl-head-block").forEach(function (head) {{
-      if (head.querySelector("button")) return;
-      var node = head;
-      var wrap = null;
-      for (var i = 0; i < 8 && node; i++) {{
-        node = node.parentElement;
-        if (!node) break;
-        var tid = node.getAttribute("data-testid") || "";
-        if (tid === "element-container" || tid === "stElementContainer" || (node.className || "").indexOf("stElementContainer") >= 0) {{
-          wrap = node;
-          break;
-        }}
-      }}
-      if (!wrap || !wrap.nextElementSibling) return;
-      var btn = wrap.nextElementSibling.querySelector("button");
-      if (!btn) return;
-      var slot = head.querySelector(".tl-pin-slot");
-      if (!slot) return;
-      slot.textContent = "";
-      slot.appendChild(btn);
-      var leftover = wrap.nextElementSibling;
-      leftover.style.height = "0";
-      leftover.style.minHeight = "0";
-      leftover.style.margin = "0";
-      leftover.style.padding = "0";
-      leftover.style.overflow = "hidden";
-    }});
-  }}
   function sync() {{
     var a = arrow();
-    if (a) {{
-      var tall = scrollers().some(function(el) {{ return el.scrollHeight > el.clientHeight + 80; }});
-      if (tall && maxY() <= 80) a.classList.add("tl-hide");
-      else a.classList.remove("tl-hide");
-    }}
-    dockPins();
+    if (!a) return;
+    var tall = scrollers().some(function(el) {{ return el.scrollHeight > el.clientHeight + 80; }});
+    if (tall && maxY() <= 80) a.classList.add("tl-hide");
+    else a.classList.remove("tl-hide");
   }}
   if (!win.__tlArrowTimer) {{
     win.__tlArrowTimer = win.setInterval(sync, 400);
@@ -799,12 +778,11 @@ def _render_card(card: dict, *, family: str = "shared") -> None:
     conf_txt = conf.strip(" ·") if conf else ""
     pin_icon = "📍" if is_pinned else "📌"
     st.markdown(
-        f'<div class="tl-head-block"><div class="tl-card-head">'
+        f'<div class="tl-card-head">'
         f'<span class="tl-t">{ticker}</span>'
         f'<span class="tl-a {color}">{action}</span>'
         f'<span class="tl-conf">{conf_txt}</span>'
-        f'<span class="tl-pin-slot">{pin_icon}</span>'
-        f"</div></div>",
+        f"</div>",
         unsafe_allow_html=True,
     )
     st.button(
@@ -934,10 +912,7 @@ def _render_pinned() -> None:
     st.caption(f"已釘選 {len(pinned)} 隻")
     for ticker in pinned:
         st.markdown(
-            f'<div class="tl-head-block"><div class="tl-card-head">'
-            f'<span class="tl-t">{ticker}</span>'
-            f'<span class="tl-pin-slot">📍</span>'
-            f"</div></div>",
+            f'<div class="tl-card-head"><span class="tl-t">{ticker}</span></div>',
             unsafe_allow_html=True,
         )
         st.button(
