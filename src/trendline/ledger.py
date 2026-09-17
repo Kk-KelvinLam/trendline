@@ -445,6 +445,34 @@ def _size_book(ranked: list, equity_usd: float) -> list[dict]:
     return out
 
 
+def _plan_snapshot(rows: list[dict] | None) -> list[dict]:
+    keep = ("ticker", "side", "action", "shares", "entry", "tp", "sl", "notional_usd", "weight", "score")
+    out = []
+    for row in rows or []:
+        out.append({k: row.get(k) for k in keep})
+    return out
+
+
+def snapshot_open_plan(ledger: dict | None = None) -> dict:
+    """Persist the current cards' sized book so the UI can show it after cards rotate."""
+    ledger = _ensure_books(ledger or load_ledger())
+    fx = float(ledger["account"]["fx_hkd_per_usd"])
+    families: dict[str, list] = {}
+    asofs: dict[str, str | None] = {}
+    for fam, path in FAMILY_PATHS.items():
+        cards = _read_cards(path)
+        asofs[fam] = cards.get("asof") if cards else None
+        eq = float(ledger["families"][fam]["equity_hkd"])
+        families[fam] = _plan_snapshot(planned_orders(cards, eq, fx))
+    ledger["open_plan"] = {
+        "asof": asofs.get("shared") or asofs.get("sector") or asofs.get("stock"),
+        "asofs": asofs,
+        "families": families,
+        "updated_at_utc": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+    }
+    return ledger
+
+
 def planned_orders(cards_payload: dict | None, equity_hkd: float, fx: float) -> list[dict]:
     """Size so a stop costs ~score-weighted share of a 5% daily risk budget."""
     if not cards_payload or fx <= 0:
@@ -582,7 +610,8 @@ def realize_once(
             continue
         fam_state = ledger["families"].setdefault(fam, _empty_family())
         equity = float(fam_state.get("equity_hkd") or PAPER_STARTING_HKD)
-        plan = {p["ticker"]: p for p in planned_orders(payload, equity, fx)}
+        plan_rows = planned_orders(payload, equity, fx)
+        plan = {p["ticker"]: p for p in plan_rows}
         n_sig = n_fill = n_miss = n_win = 0
         abs_h = abs_l = abs_c = 0.0
         n_fc = 0
@@ -667,6 +696,7 @@ def realize_once(
             "mae_high": (abs_h / n_fc) if n_fc else None,
             "mae_low": (abs_l / n_fc) if n_fc else None,
             "mae_close": (abs_c / n_fc) if n_fc else None,
+            "planned": _plan_snapshot(plan_rows),
         }
         day["equity_hkd"][fam] = fam_state["equity_hkd"]
 
@@ -716,9 +746,23 @@ def ledger_view(ledger: dict | None = None) -> dict:
         planned[fam] = planned_orders(cards, eq, fx)
     headlines = {fam: _family_headline(ledger["families"][fam]) for fam in FAMILY_PATHS}
     headlines["voo"] = _benchmark_headline(ledger.get("benchmark") or _empty_benchmark())
+    history = []
+    for day in ledger.get("days") or []:
+        fams = day.get("families") or {}
+        if not any((fams.get(fam) or {}).get("planned") for fam in FAMILY_PATHS):
+            continue
+        history.append(
+            {
+                "asof": day.get("asof"),
+                "session": day.get("session"),
+                "families": {fam: (fams.get(fam) or {}).get("planned") or [] for fam in FAMILY_PATHS},
+            }
+        )
     return {
         "ledger": ledger,
         "headlines": headlines,
         "planned": planned,
         "cards_asof": asofs,
+        "open_plan": ledger.get("open_plan"),
+        "plan_history": history,
     }

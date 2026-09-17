@@ -14,13 +14,13 @@ Model output, not investment advice. Past backtests do not predict future result
 | 項目 | 說明 |
 | --- | --- |
 | Universe | `data/universe/sp500.csv` from Wikipedia. Refreshed on the **first Sunday of each month** during the Sunday retrain. Default fetch = **all members + macros** (SPY, VIX, sector ETFs). |
-| Train / show | Train on the full downloaded membership; dashboard cards shortlist the **100 lowest recent MAE** scores (0.4 High + 0.4 Low + 0.2 Close, ≥10 labeled days). Dollar volume is a tie-break and a display field only. |
+| Train / show | Train on the full downloaded membership; dashboard cards shortlist the **100 lowest recent MAE** scores (0.4 High + 0.4 Low + 0.2 Close, ≥10 labeled days). Dollar volume is a tie-break and a display field. If recent High/Low/Close MAE cannot be scored, the shortlist falls back to dollar-volume top 100. |
 | Model families | Three LightGBM quantile families on the **same** purged walk-forward folds: **shared** (panel), **sector** (one model per large GICS sector; small sectors → `Other`), **per-stock** (smaller trees; tickers with &lt; 400 train rows fall back to shared). |
 | Quantiles | q10 / q50 / q90 on *returns vs prior close*, then converted to price levels. No LSTM. |
 | Features | Known at prior close only: 1/5/20d returns, overnight gap, ATR, Parkinson vol, dollar-volume z-score, distance to 20/50/200 MAs, plus SPY / VIX / sector ETF. |
 | Baseline | Close = prior close; High / Low = prior close ± 1×ATR. |
-| Cards | Three JSON sets. **Fade to prior close:** touch predicted High/Low q50 during the next session, TP = prior close, SL = q10/q90 or 1×ATR. Range gate: High/Low must beat the ATR baseline (ticker or overall). **Close gate differs by family:** shared skips it; sector/stock need Close q50 ≥ +10bps to go long or ≤ −10bps to go short. **Recent Close MAE** (20 sessions, ≥10 labels) above 2.5% hard-flats the card; above 1.8% strips `high_confidence`. No chase if the open gaps through. The three live books are a system horse race (model + gates + execution); pick by realized equity, not MAE or headline hit rate. |
-| Paper ledger | Three HK$500k fade books plus a **VOO buy-and-hold** book at the same start. Realize fade trades against the **next** session using RTH **5-minute** bars only. Entry must print **before 12:30 America/New_York**; later prints and missing 5m are misses (no daily-OHLC fallback). Flatten same day. VOO is bought once at the **2026-09-14 open** (whole shares, no fee) and only marked to later closes. Nightly syncs the VOO book even when fade realize is skipped. Headline hit rate is on all directional *signals* (pre-fee, including names not sized into the book). Pick a live system by realized equity vs VOO, not MAE. |
+| Cards | Three JSON sets. **Fade to prior close:** touch predicted High/Low q50 during the next session, TP = prior close, SL = q10/q90 or 1×ATR. Range gate allows a side if the **ticker or the overall** High/Low model beats the ATR baseline — failing the *ticker* flag only labels the card, it does not flatten. **Close gate differs by family:** shared skips it; sector/stock need Close q50 ≥ +10bps to go long or ≤ −10bps to go short. **Recent Close MAE** (20 sessions, ≥10 labels) above 2.5% hard-flats the card; above 1.8% strips `high_confidence`. No chase if the session **open** is already through the trigger. The three live books are a system horse race (model + gates + execution); pick by realized equity, not MAE or headline hit rate. |
+| Paper ledger | Three HK$500k fade books plus a **VOO buy-and-hold** book at the same start. Realize uses the **cards already on disk** (last night's list) against the next session; new cards written later in the same job are for the *following* session. Fills: RTH **5-minute** bars only, entry must print **before 12:30 America/New_York**; later prints, missing 5m, or an open that gaps through the trigger are misses (no daily-OHLC fallback). Flatten same day. The UI «下一轉計劃» is the **sized book** (≤20 names), not the miss list. Headline hit rate is on all directional *signals* (pre-fee, including names not sized into the book). Ledger High/Low/Close MAE$ is next-session price error, not the card recent-MAE%. VOO is bought once at the **2026-09-14 open** (whole shares, leftover cash, no fee) and marked `shares × session close + cash`. The VOO metric delta is **cumulative P&L vs HK$500k**, not a same-day change. Nightly syncs VOO even when fade realize is skipped. Pick a live system by realized equity vs VOO, not MAE. |
 | Scoreboard | `scoreboard.json`: per family × High/Low/Close × fold — MAE$, MAPE, coverage (+ overall). |
 | Backtest | Expanding walk-forward with a **5-session purge** between train and test. WF trade sim still uses daily OHLC fills and does not apply the paper 12:30 cutoff. |
 
@@ -35,7 +35,7 @@ Streamlit radio:
 3. **個股模型** — per-stock（Close q50 ±10bps 閘；薄歷史 fallback shared）  
 4. **釘選對照** — pin tickers and compare the three families side by side  
 5. **計分板** — fold-by-fold High/Low/Close MAE horse race  
-6. **流水** — 三本模擬戶口各 HK$500,000；只認 NY RTH 5 分鐘 bar，12:30 ET 前到價先入場；缺 5m 當錯過  
+6. **流水** — 三本模擬戶口各 HK$500,000 + VOO；5m、12:30 ET 前到價、開市穿過唔追；「下一轉計劃」= 已 sizing 名單（≤20），唔係錯過名單  
 
 ```bash
 python3 -m venv .venv
@@ -88,7 +88,7 @@ Model dumps under `data/artifacts/models/` are **tracked** (needed for weekday n
 
 | When | What |
 | --- | --- |
-| 04:15 UTC / 12:15 HKT Tue–Sat | **Delta** OHLCV in the runner + infer three card files + **paper ledger** realize (RTH **5-minute** fills only; entry before 12:30 ET). Later slot so Yahoo usually has real Close. Does **not** commit `ohlcv.parquet`. |
+| 04:15 UTC / 12:15 HKT Tue–Sat | **Delta** OHLCV. If the session has &lt;90% S&P names with a real Close, **skip ledger and cards**. Otherwise: realize the **existing** cards on 5m / 12:30 ET, then infer new cards. Does **not** commit `ohlcv.parquet`. |
 | 11:15 UTC / 19:15 HKT Sunday | Three-family walk-forward retrain. **First Sunday of the month:** refresh S&P list + **full** OHLCV pull and commit the single parquet (housekeep: ~12 blobs/year). Other Sundays keep delta and skip the parquet commit. |
 | Actions → Nightly cards → Run workflow | Manual, optional full retrain |
 
