@@ -99,8 +99,17 @@ def main() -> int:
     except Exception as exc:
         print(f"ledger update failed (cards still refresh): {exc}")
     if args.retrain:
-        return _run("backtest.py")
-    return _refresh_cards()
+        rc = _run("backtest.py")
+    else:
+        rc = _refresh_cards()
+    try:
+        from trendline.ledger import load_ledger, save_ledger, snapshot_open_plan
+
+        save_ledger(snapshot_open_plan(load_ledger()))
+        print("wrote ledger open_plan from current cards", flush=True)
+    except Exception as exc:
+        print(f"open_plan snapshot failed: {exc}", flush=True)
+    return rc
 
 
 if __name__ == "__main__":
