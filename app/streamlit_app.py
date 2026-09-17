@@ -376,7 +376,7 @@ def main() -> None:
     _sync_pins_storage()
     _ensure_pinned_state()
     st.title("Trendline")
-    st.caption("美股收市後 · 盤中觸價淡區間（止盈前收）。S&P 500 全數訓練 / 顯示近期 High／Low／Close MAE 最好 100 隻")
+    st.caption("美股收市後 · 盤中觸價淡區間（止盈前收）。S&P 500 全數訓練 / 顯示當日成交額最大 100 隻；入書另要全市場 MAE 排名 ≤ 200")
     st.warning(DISCLAIMER)
 
     page = st.radio("頁面", list(FAMILY_PAGES.keys()), horizontal=True)
@@ -672,7 +672,7 @@ def _render_ledger() -> None:
     st.caption(
         f"各本金 {_fmt_hkd(acct.get('starting_equity_hkd'))}　·　按止損風險分倉　·　"
         f"按當日權益、支出不可超過當日權益　·　全日 SL 5%、單隻風險 0.6%、名義 12%　·　"
-        f"入書要當日成交額排名 ≤ {int(acct.get('min_dvol_rank') or 300)}　·　"
+        f"入書要全市場近期 MAE 排名 ≤ {int(acct.get('max_mae_rank') or 200)}　·　"
         f"{acct.get('broker') or 'IBKR Pro Fixed'}　$0.005/股（每單最少 $1，賣出加 SEC/FINRA）　·　"
         f"匯率 {float(acct.get('fx_hkd_per_usd') or 0):.3f} HKD/USD　·　"
         f"已實現時段 {len(ledger.get('realized_asofs') or [])}"
