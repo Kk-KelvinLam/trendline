@@ -101,8 +101,23 @@ def _normalize_pins(raw) -> list[str]:
     return out
 
 
+def _stash_pin_query() -> None:
+    """Remember ?pin=TICKER across the localStorage hydrate rerun."""
+    try:
+        raw = st.query_params.get("pin")
+    except Exception:
+        return
+    if raw is None or raw == "":
+        return
+    if isinstance(raw, list):
+        raw = raw[0] if raw else ""
+    ticker = str(raw).strip().upper()
+    if ticker:
+        st.session_state["_pending_pin"] = ticker
+
+
 def _sync_pins_storage() -> None:
-    """One iframe talks to parent.localStorage. Read once, write after hydrate."""
+    """Read parent.localStorage once, then apply any pending pin, then write back."""
     hydrated = bool(st.session_state.get("_pins_hydrated"))
     current = list(_ensure_pinned_state())
     incoming = pins_bridge(pins=current, write=hydrated, key="tl_pins_bridge")
@@ -111,9 +126,15 @@ def _sync_pins_storage() -> None:
     if incoming is None:
         return
     loaded = _normalize_pins(incoming)
+    pending = st.session_state.pop("_pending_pin", None)
+    if pending:
+        if pending in loaded:
+            loaded = [x for x in loaded if x != pending]
+        else:
+            loaded.append(pending)
     st.session_state["_pins_hydrated"] = True
-    if loaded != current:
-        st.session_state["pinned_tickers"] = loaded
+    st.session_state["pinned_tickers"] = loaded
+    if loaded != current or pending:
         st.rerun()
 
 
@@ -143,24 +164,12 @@ def _toggle_pin(ticker: str) -> None:
         pinned.append(t)
 
 
-def _consume_pin_query() -> None:
-    """Pin is an <a href='?pin=TICKER'> in the card head; apply once then drop the param."""
+def _clear_pin_query() -> None:
     try:
-        raw = st.query_params.get("pin")
+        if "pin" in st.query_params:
+            del st.query_params["pin"]
     except Exception:
         return
-    if raw is None or raw == "":
-        return
-    if isinstance(raw, list):
-        raw = raw[0] if raw else ""
-    ticker = str(raw).strip().upper()
-    try:
-        del st.query_params["pin"]
-    except Exception:
-        pass
-    if ticker:
-        _toggle_pin(ticker)
-        st.rerun()
 
 
 
@@ -380,9 +389,11 @@ div[data-testid="stHorizontalBlock"]:has(> div[data-testid="column"]:nth-child(2
 
 
 def main() -> None:
+    _stash_pin_query()
     _sync_pins_storage()
     _ensure_pinned_state()
-    _consume_pin_query()
+    if st.session_state.get("_pins_hydrated") and not st.session_state.get("_pending_pin"):
+        _clear_pin_query()
     st.title("Trendline")
     st.caption("美股收市後 · 盤中觸價淡區間（止盈前收）。S&P 500 全數訓練 / 顯示前 100 成交額")
     st.warning(DISCLAIMER)
