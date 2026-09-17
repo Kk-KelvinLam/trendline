@@ -102,6 +102,7 @@ PAPER_MIN_NOTIONAL_USD = 2500.0
 # Ranking is still fade_score; this is a liquidity floor, not a shortlist.
 PAPER_MAX_MAE_RANK = 200  # book filter vs full-S&P recent MAE rank; cards stay dvol top 100
 PAPER_DAILY_RISK_FRAC = 0.05
+# Display/default only. Live per-name cap is daily_risk / N booked names.
 PAPER_MAX_NAME_RISK = 0.006
 PAPER_FAMILY = "shared"
 ATR_SL_MULT = 1.0

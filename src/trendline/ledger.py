@@ -396,22 +396,29 @@ def _sl_distance(card: dict) -> float:
 
 
 def _size_book(ranked: list, equity_usd: float) -> list[dict]:
-    """Risk-first: fade-score shares a 5% daily SL budget; 12% name notional cap."""
+    """Risk-first: fade-score shares a 5% daily SL budget; name cap = 5% / N."""
     if not ranked or equity_usd <= 0:
         return []
     score_sum = sum(s for s, _ in ranked)
     if score_sum <= 0:
         return []
-    raw = []
+    viable = []
     for s, c in ranked:
         dist = _sl_distance(c)
         entry = float(c["entry_px"])
         if dist <= 1e-9 or entry <= 0:
             continue
-        risk_frac = min(PAPER_MAX_NAME_RISK, PAPER_DAILY_RISK_FRAC * (s / score_sum))
+        viable.append((s, c, entry, dist))
+    n = len(viable)
+    if n < 1:
+        return []
+    name_cap = float(PAPER_DAILY_RISK_FRAC) / n
+    raw = []
+    for s, c, entry, dist in viable:
+        risk_frac = min(name_cap, PAPER_DAILY_RISK_FRAC * (s / score_sum))
         raw.append((s, c, entry, dist, risk_frac))
     tot = sum(r[-1] for r in raw)
-    if tot > PAPER_DAILY_RISK_FRAC and tot > 0:
+    if tot > PAPER_DAILY_RISK_FRAC + 1e-12 and tot > 0:
         scale = PAPER_DAILY_RISK_FRAC / tot
         raw = [(s, c, e, d, rf * scale) for s, c, e, d, rf in raw]
     out = []
