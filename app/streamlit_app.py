@@ -29,7 +29,7 @@ from trendline.config import (
     LEDGER_PATH,
 )
 from trendline.ledger import ledger_view
-from components.tl_widgets import pins_bridge, search_bar
+from components.tl_widgets import pins_bridge
 
 
 st.set_page_config(page_title="Trendline · 美股翌日預測", page_icon="📈", layout="wide")
@@ -130,6 +130,18 @@ def _unpin_ticker(ticker: str) -> None:
     t = (ticker or "").strip().upper()
     pinned = _ensure_pinned_state()
     st.session_state["pinned_tickers"] = [x for x in pinned if x != t]
+
+
+def _toggle_pin(ticker: str) -> None:
+    """on_click: mutate pins before the next render so the icon flips in one tap."""
+    t = (ticker or "").strip().upper()
+    if not t:
+        return
+    pinned = _ensure_pinned_state()
+    if t in pinned:
+        st.session_state["pinned_tickers"] = [x for x in pinned if x != t]
+    else:
+        pinned.append(t)
 
 
 
@@ -233,6 +245,8 @@ def _inject_back_to_top(*, jump: bool) -> None:
 }
 /* Exactly-2-column rows only (nth-child(2):last-child). Outer card grid has 3 cols — excluded. */
 div[data-testid="stHorizontalBlock"]:has(> div[data-testid="column"]:nth-child(2):last-child):has(.tl-card-head) {
+  display: flex !important;
+  flex-direction: row !important;
   flex-wrap: nowrap !important;
   align-items: center !important;
   gap: 0.35rem !important;
@@ -392,16 +406,11 @@ def main() -> None:
         )
 
     search_key = f"search_{key}"
-    if search_key not in st.session_state:
-        st.session_state[search_key] = ""
-    search_q = search_bar(
-        label="搜尋",
+    search_q = st.text_input(
+        "搜尋",
         placeholder="搜尋股票代號（例如 NVDA）",
-        value=st.session_state.get(search_key, ""),
-        debounce=150,
-        key=f"tl_search_{key}",
+        key=search_key,
     )
-    st.session_state[search_key] = search_q or ""
     filt = st.radio("篩選", ["全部", "做多", "做空", "高信心"], horizontal=True, key=f"filt_{key}")
 
     cards = cards_payload.get("cards", [])
@@ -750,15 +759,13 @@ def _render_card(card: dict, *, family: str = "shared") -> None:
             unsafe_allow_html=True,
         )
     with head_r:
-        if st.button(
+        st.button(
             "📍" if is_pinned else "📌",
             key=f"pin_{family}_{ticker}",
             help="取消釘選" if is_pinned else "釘選對照",
-        ):
-            if is_pinned:
-                _unpin_ticker(ticker)
-            else:
-                _pin_ticker(ticker)
+            on_click=_toggle_pin,
+            args=(ticker,),
+        )
     st.caption(
         f"#{card.get('dvol_rank', '—')} 成交額　·　{card.get('sector') or '—'}　·　"
         f"{'High/Low 優於基準' if card.get('beats_range', card.get('beats_baseline')) else 'High/Low 未優於該股基準'}"
@@ -852,18 +859,13 @@ def _render_pinned() -> None:
     }
     indexes = {fam: _card_index_by_ticker(payloads.get(fam)) for fam, _ in FAMILY_LABELS}
 
-    if "pinned_add_input" not in st.session_state:
-        st.session_state["pinned_add_input"] = ""
     if st.session_state.pop("_clear_pinned_add", False):
         st.session_state["pinned_add_input"] = ""
-    add_q = search_bar(
-        label="手動釘選",
+    add_q = st.text_input(
+        "手動釘選",
         placeholder="輸入股票代號（例如 AAPL）",
-        value=st.session_state.get("pinned_add_input", ""),
-        debounce=150,
-        key="tl_pinned_add",
+        key="pinned_add_input",
     )
-    st.session_state["pinned_add_input"] = add_q or ""
     add_clicked = st.button("加入釘選", key="pinned_add_btn", use_container_width=True)
     if add_clicked:
         t = (add_q or "").strip().upper()
@@ -890,9 +892,13 @@ def _render_pinned() -> None:
                 unsafe_allow_html=True,
             )
         with head_r:
-            if st.button("📍", key=f"unpin_{ticker}", help="取消釘選"):
-                _unpin_ticker(ticker)
-                st.rerun()
+            st.button(
+                "📍",
+                key=f"unpin_{ticker}",
+                help="取消釘選",
+                on_click=_toggle_pin,
+                args=(ticker,),
+            )
 
         cards_by_fam = {fam: indexes[fam].get(ticker) for fam, _ in FAMILY_LABELS}
         actions = {
