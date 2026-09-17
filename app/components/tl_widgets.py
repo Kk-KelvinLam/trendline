@@ -63,6 +63,6 @@ def search_bar(
     return "" if out is None else str(out)
 
 
-def pins_bridge(*, pins: list[str], write: bool = False, key: str | None = None):
+def pins_bridge(*, pins: list[str], write: bool = False, nonce: int = 0, key: str | None = None):
     """One iframe: first run reports parent.localStorage, later runs write pins."""
-    return _pins_bridge(pins=list(pins), write=bool(write), key=key, default=None)
+    return _pins_bridge(pins=list(pins), write=bool(write), nonce=int(nonce or 0), key=key, default=None)

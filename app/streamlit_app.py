@@ -117,10 +117,16 @@ def _stash_pin_query() -> None:
 
 
 def _sync_pins_storage() -> None:
-    """Read parent.localStorage once, then apply any pending pin, then write back."""
+    """Read parent.localStorage. nonce forces a fresh read after a pin click."""
     hydrated = bool(st.session_state.get("_pins_hydrated"))
     current = list(_ensure_pinned_state())
-    incoming = pins_bridge(pins=current, write=hydrated, key="tl_pins_bridge")
+    nonce = int(st.session_state.get("_pins_nonce") or 0)
+    incoming = pins_bridge(
+        pins=current,
+        write=hydrated,
+        nonce=nonce,
+        key="tl_pins_bridge",
+    )
     if hydrated:
         return
     if incoming is None:
@@ -134,7 +140,7 @@ def _sync_pins_storage() -> None:
             loaded.append(pending)
     st.session_state["_pins_hydrated"] = True
     st.session_state["pinned_tickers"] = loaded
-    if loaded != current or pending:
+    if loaded != current:
         st.rerun()
 
 
@@ -164,12 +170,13 @@ def _toggle_pin(ticker: str) -> None:
         pinned.append(t)
 
 
-def _clear_pin_query() -> None:
-    try:
-        if "pin" in st.query_params:
-            del st.query_params["pin"]
-    except Exception:
-        return
+def _pin_sync_widget() -> None:
+    """Hidden widget. Page JS clicks it so Streamlit reruns without a full load."""
+    st.markdown('<div id="tl-pin-sync-mark"></div>', unsafe_allow_html=True)
+    if st.button("pin-sync", key="tl_pin_sync"):
+        st.session_state["_pins_nonce"] = int(st.session_state.get("_pins_nonce") or 0) + 1
+        st.session_state["_pins_hydrated"] = False
+        st.rerun()
 
 
 
@@ -288,6 +295,15 @@ def _inject_back_to_top(*, jump: bool) -> None:
   margin-left: 0.15rem;
   cursor: pointer;
 }
+#tl-pin-sync-mark { display: none; }
+[data-testid="stElementContainer"]:has(#tl-pin-sync-mark) + [data-testid="stElementContainer"],
+[data-testid="element-container"]:has(#tl-pin-sync-mark) + [data-testid="element-container"] {
+  position: absolute !important;
+  left: -9999px !important;
+  height: 0 !important;
+  width: 0 !important;
+  overflow: hidden !important;
+}
 .element-container:has(.tl-card-head) + .element-container button {
   width: 2.1rem !important;
   height: 2.1rem !important;
@@ -339,10 +355,10 @@ div[data-testid="stHorizontalBlock"]:has(> div[data-testid="column"]:nth-child(2
     )
 
     # Only mount the scroll helper iframe when needed (page change / first load).
-    need_js = jump or not st.session_state.get("_tl_arrow_js_mounted_v2")
+    need_js = jump or not st.session_state.get("_tl_arrow_js_mounted_v3")
     if not need_js:
         return
-    st.session_state["_tl_arrow_js_mounted_v2"] = True
+    st.session_state["_tl_arrow_js_mounted_v3"] = True
     flag = "1" if jump else "0"
     components.html(
         f"""
@@ -381,6 +397,28 @@ div[data-testid="stHorizontalBlock"]:has(> div[data-testid="column"]:nth-child(2
     if (tall && maxY() <= 80) a.classList.add("tl-hide");
     else a.classList.remove("tl-hide");
   }}
+  if (!win.__tlPinBound) {{
+    win.__tlPinBound = true;
+    doc.addEventListener("click", function (e) {{
+      var a = e.target.closest("a.tl-pin");
+      if (!a) return;
+      e.preventDefault();
+      e.stopPropagation();
+      var t = (a.getAttribute("data-ticker") || "").toUpperCase();
+      if (!t) return;
+      var key = "trendline_pinned";
+      var pins = [];
+      try {{ pins = JSON.parse(win.localStorage.getItem(key) || "[]"); }} catch (err) {{ pins = []; }}
+      if (!Array.isArray(pins)) pins = [];
+      var i = pins.indexOf(t);
+      if (i >= 0) pins.splice(i, 1); else pins.push(t);
+      try {{ win.localStorage.setItem(key, JSON.stringify(pins)); }} catch (err) {{}}
+      var btn = Array.from(doc.querySelectorAll("button")).find(function (b) {{
+        return (b.textContent || "").trim() === "pin-sync";
+      }});
+      if (btn) btn.click();
+    }}, true);
+  }}
   if (!win.__tlArrowTimer) {{
     win.__tlArrowTimer = win.setInterval(sync, 400);
   }}
@@ -398,11 +436,9 @@ div[data-testid="stHorizontalBlock"]:has(> div[data-testid="column"]:nth-child(2
 
 
 def main() -> None:
-    _stash_pin_query()
+    _pin_sync_widget()
     _sync_pins_storage()
     _ensure_pinned_state()
-    if st.session_state.get("_pins_hydrated") and not st.session_state.get("_pending_pin"):
-        _clear_pin_query()
     st.title("Trendline")
     st.caption("美股收市後 · 盤中觸價淡區間（止盈前收）。S&P 500 全數訓練 / 顯示前 100 成交額")
     st.warning(DISCLAIMER)
@@ -809,7 +845,7 @@ def _render_card(card: dict, *, family: str = "shared") -> None:
         f'<div class="tl-card-head">'
         f'<span class="tl-t">{ticker}</span>'
         f'<span class="tl-a {color}">{action}</span>'
-        f'<a class="tl-pin" href="?pin={ticker}" target="_self" title="{tip}">{pin_icon}</a>'
+        f'<a class="tl-pin" href="#" data-ticker="{ticker}" title="{tip}">{pin_icon}</a>'
         f'<span class="tl-conf">{conf_txt}</span>'
         f"</div>",
         unsafe_allow_html=True,
@@ -936,7 +972,7 @@ def _render_pinned() -> None:
         st.markdown(
             f'<div class="tl-card-head">'
             f'<span class="tl-t">{ticker}</span>'
-            f'<a class="tl-pin" href="?pin={ticker}" target="_self" title="取消釘選">📍</a>'
+            f'<a class="tl-pin" href="#" data-ticker="{ticker}" title="取消釘選">📍</a>'
             f"</div>",
             unsafe_allow_html=True,
         )
