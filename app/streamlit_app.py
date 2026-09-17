@@ -252,8 +252,9 @@ def _inject_back_to_top(*, jump: bool) -> None:
   align-items: center;
   flex-wrap: nowrap;
   gap: 0.45rem;
-  margin: 0 0 0.15rem 0;
-  line-height: 1.2;
+  margin: 0;
+  padding: 0.2rem 0;
+  line-height: 1.45;
 }
 .tl-card-head .tl-t {
   font-size: 1.35rem;
@@ -274,12 +275,14 @@ def _inject_back_to_top(*, jump: bool) -> None:
   opacity: 0.75;
   white-space: nowrap;
 }
-/* Horizontal ticker+pin row: no inner scrollbar, vertically centered. */
+/* Grow to the title+pin; do not clip glyphs or add an inner scrollbar. */
 div[data-testid="stHorizontalBlock"]:has(.tl-card-head),
 div[data-testid="stLayoutWrapper"]:has(.tl-card-head) {
-  overflow: hidden !important;
+  overflow: visible !important;
+  height: auto !important;
+  max-height: none !important;
+  min-height: 0 !important;
   align-items: center !important;
-  min-height: 2.4rem;
   scrollbar-width: none !important;
 }
 div[data-testid="stHorizontalBlock"]:has(.tl-card-head)::-webkit-scrollbar,
@@ -290,8 +293,11 @@ div[data-testid="stLayoutWrapper"]:has(.tl-card-head)::-webkit-scrollbar {
 }
 div[data-testid="stHorizontalBlock"]:has(.tl-card-head) [data-testid="stElementContainer"],
 div[data-testid="stHorizontalBlock"]:has(.tl-card-head) [data-testid="element-container"],
-div[data-testid="stLayoutWrapper"]:has(.tl-card-head) [data-testid="stElementContainer"] {
-  overflow: hidden !important;
+div[data-testid="stLayoutWrapper"]:has(.tl-card-head) [data-testid="stElementContainer"],
+div[data-testid="stHorizontalBlock"]:has(.tl-card-head) [data-testid="stMarkdownContainer"] {
+  overflow: visible !important;
+  height: auto !important;
+  max-height: none !important;
   display: flex !important;
   align-items: center !important;
 }
