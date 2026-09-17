@@ -251,22 +251,15 @@ def _inject_back_to_top(*, jump: bool) -> None:
   font-size: 1.15rem;
   line-height: 2.25rem;
 }
-div[data-testid="element-container"]:has(.tl-head-block) + div[data-testid="element-container"] {
-  height: 0 !important;
-  min-height: 0 !important;
-  margin-top: -2.35rem !important;
-  margin-bottom: 0 !important;
-  display: flex !important;
-  justify-content: flex-end !important;
-  overflow: visible !important;
-}
-div[data-testid="element-container"]:has(.tl-head-block) + div[data-testid="element-container"] button {
+.tl-pin-slot button {
   width: 2.25rem !important;
   height: 2.25rem !important;
   min-height: 2.25rem !important;
   padding: 0 !important;
+  border: none !important;
+  background: transparent !important;
+  box-shadow: none !important;
   border-radius: 999px !important;
-  opacity: 0.01 !important;
 }
 /* Exactly-2-column rows only (nth-child(2):last-child). Outer card grid has 3 cols — excluded. */
 div[data-testid="stHorizontalBlock"]:has(> div[data-testid="column"]:nth-child(2):last-child):has(.tl-card-head) {
@@ -312,10 +305,10 @@ div[data-testid="stHorizontalBlock"]:has(> div[data-testid="column"]:nth-child(2
     )
 
     # Only mount the scroll helper iframe when needed (page change / first load).
-    need_js = jump or not st.session_state.get("_tl_arrow_js_mounted")
+    need_js = jump or not st.session_state.get("_tl_arrow_js_mounted_v2")
     if not need_js:
         return
-    st.session_state["_tl_arrow_js_mounted"] = True
+    st.session_state["_tl_arrow_js_mounted_v2"] = True
     flag = "1" if jump else "0"
     components.html(
         f"""
@@ -347,12 +340,43 @@ div[data-testid="stHorizontalBlock"]:has(> div[data-testid="column"]:nth-child(2
     scrollers().forEach(function(el) {{ m = Math.max(m, el.scrollTop || 0); }});
     return m;
   }}
+  function dockPins() {{
+    doc.querySelectorAll(".tl-head-block").forEach(function (head) {{
+      if (head.querySelector("button")) return;
+      var node = head;
+      var wrap = null;
+      for (var i = 0; i < 8 && node; i++) {{
+        node = node.parentElement;
+        if (!node) break;
+        var tid = node.getAttribute("data-testid") || "";
+        if (tid === "element-container" || tid === "stElementContainer" || (node.className || "").indexOf("stElementContainer") >= 0) {{
+          wrap = node;
+          break;
+        }}
+      }}
+      if (!wrap || !wrap.nextElementSibling) return;
+      var btn = wrap.nextElementSibling.querySelector("button");
+      if (!btn) return;
+      var slot = head.querySelector(".tl-pin-slot");
+      if (!slot) return;
+      slot.textContent = "";
+      slot.appendChild(btn);
+      var leftover = wrap.nextElementSibling;
+      leftover.style.height = "0";
+      leftover.style.minHeight = "0";
+      leftover.style.margin = "0";
+      leftover.style.padding = "0";
+      leftover.style.overflow = "hidden";
+    }});
+  }}
   function sync() {{
     var a = arrow();
-    if (!a) return;
-    var tall = scrollers().some(function(el) {{ return el.scrollHeight > el.clientHeight + 80; }});
-    if (tall && maxY() <= 80) a.classList.add("tl-hide");
-    else a.classList.remove("tl-hide");
+    if (a) {{
+      var tall = scrollers().some(function(el) {{ return el.scrollHeight > el.clientHeight + 80; }});
+      if (tall && maxY() <= 80) a.classList.add("tl-hide");
+      else a.classList.remove("tl-hide");
+    }}
+    dockPins();
   }}
   if (!win.__tlArrowTimer) {{
     win.__tlArrowTimer = win.setInterval(sync, 400);
