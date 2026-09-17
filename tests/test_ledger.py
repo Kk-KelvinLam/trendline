@@ -293,3 +293,17 @@ def test_skips_illiquid_dvol_rank():
     out = {r["ticker"]: r for r in planned_orders(cards, 500_000, 7.8)}
     assert "LIQ" in out
     assert "THIN" not in out
+
+
+def test_locked_open_plan_used_instead_of_recompute(monkeypatch):
+    from trendline.ledger import _locked_plan_rows, new_ledger
+
+    payload = {"asof": "2026-09-16", "cards": []}
+    led = new_ledger()
+    led["open_plan"] = {
+        "asof": "2026-09-16",
+        "asofs": {"shared": "2026-09-16"},
+        "families": {"shared": [{"ticker": "LOCK", "shares": 7, "side": 1}]},
+    }
+    rows = _locked_plan_rows(led, "shared", payload, 500_000, 7.8)
+    assert rows == [{"ticker": "LOCK", "shares": 7, "side": 1}]

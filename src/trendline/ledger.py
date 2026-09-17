@@ -470,6 +470,17 @@ def _plan_snapshot(rows: list[dict] | None) -> list[dict]:
     return out
 
 
+def _locked_plan_rows(ledger: dict, family: str, payload: dict | None, equity_hkd: float, fx: float) -> list[dict]:
+    """Prefer the nightly open_plan snapshot when it matches this card asof."""
+    asof = str((payload or {}).get("asof") or "")
+    snap = ledger.get("open_plan") or {}
+    snap_asof = str((snap.get("asofs") or {}).get(family) or snap.get("asof") or "")
+    rows = ((snap.get("families") or {}).get(family)) or []
+    if asof and snap_asof == asof and rows:
+        return list(rows)
+    return planned_orders(payload, equity_hkd, fx)
+
+
 def snapshot_open_plan(ledger: dict | None = None) -> dict:
     """Persist the current cards' sized book so the UI can show it after cards rotate."""
     ledger = _ensure_books(ledger or load_ledger())
@@ -643,7 +654,7 @@ def realize_once(
             continue
         fam_state = ledger["families"].setdefault(fam, _empty_family())
         equity = float(fam_state.get("equity_hkd") or PAPER_STARTING_HKD)
-        plan_rows = planned_orders(payload, equity, fx)
+        plan_rows = _locked_plan_rows(ledger, fam, payload, equity, fx)
         plan = {p["ticker"]: p for p in plan_rows}
         n_sig = n_fill = n_miss = n_win = 0
         abs_h = abs_l = abs_c = 0.0
@@ -776,7 +787,7 @@ def ledger_view(ledger: dict | None = None) -> dict:
         cards = _read_cards(path)
         asofs[fam] = cards.get("asof") if cards else None
         eq = float(ledger["families"][fam]["equity_hkd"])
-        planned[fam] = planned_orders(cards, eq, fx)
+        planned[fam] = _locked_plan_rows(ledger, fam, cards, eq, fx)
     headlines = {fam: _family_headline(ledger["families"][fam]) for fam in FAMILY_PATHS}
     headlines["voo"] = _benchmark_headline(ledger.get("benchmark") or _empty_benchmark())
     history = []
