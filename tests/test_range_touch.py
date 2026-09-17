@@ -68,3 +68,12 @@ def test_close_gate_long_needs_min_positive_close():
         100.0, 2.0, q50h=0.005, q50l=-0.02, q10l=-0.035, q90h=0.03, allowed=True, q50c=0.001
     )
     assert s.side == 1
+
+
+def test_close_gate_does_not_flip_to_smaller_room_side():
+    # Short has more room; Close is bullish. Old gate would flip long. Now flat.
+    s = choose_setup(
+        100.0, 2.0, q50h=0.03, q50l=-0.015, q10l=-0.03, q90h=0.045, allowed=True, q50c=0.002
+    )
+    assert s.side == 0
+    assert s.reason == "close_disagrees_with_fade"
