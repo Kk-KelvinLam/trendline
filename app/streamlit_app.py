@@ -632,6 +632,17 @@ def _fmt_hkd(x) -> str:
     return f"HK${x:,.0f}"
 
 
+def _fmt_hkd_delta(x) -> str | None:
+    """Streamlit colors metric deltas by whether the string starts with '-'."""
+    if x is None or (isinstance(x, float) and pd.isna(x)):
+        return None
+    val = float(x)
+    if val == 0:
+        return None
+    sign = "-" if val < 0 else ""
+    return f"{sign}HK${abs(val):,.0f}"
+
+
 def _render_ledger() -> None:
     st.subheader("流水 · 三戶口賽馬")
     st.warning("紙上模擬，未接券商。三個模型同 VOO 基準各 HK$500,000。入場當日一定平倉，未中止盈／止損就用當日收市價出場，唔留過夜。")
@@ -654,10 +665,10 @@ def _render_ledger() -> None:
     for col, (fam, label) in zip(cols, labels):
         h = headlines.get(fam) or {}
         with col:
-            st.metric(f"{label}權益", _fmt_hkd(h.get("equity_hkd")), delta=_fmt_hkd(h.get("pnl_hkd")))
+            st.metric(f"{label}權益", _fmt_hkd(h.get("equity_hkd")), delta=_fmt_hkd_delta(h.get("pnl_hkd")))
     with cols[3]:
         vh = headlines.get("voo") or {}
-        st.metric("VOO 基準", _fmt_hkd(vh.get("equity_hkd")), delta=_fmt_hkd(vh.get("pnl_hkd")))
+        st.metric("VOO 基準", _fmt_hkd(vh.get("equity_hkd")), delta=_fmt_hkd_delta(vh.get("pnl_hkd")))
     st.caption(
         f"各本金 {_fmt_hkd(acct.get('starting_equity_hkd'))}　·　按止損風險分倉　·　"
         f"按當日權益、支出不可超過當日權益　·　全日 SL 5%、單隻風險 0.6%、名義 12%　·　"
