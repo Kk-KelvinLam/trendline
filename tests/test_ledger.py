@@ -282,3 +282,14 @@ def test_realize_stores_planned_snapshot(monkeypatch):
     planned = ((out["days"][0].get("families") or {}).get("shared") or {}).get("planned") or []
     assert planned and planned[0]["ticker"] == "AAA"
     assert planned[0]["shares"] >= 1
+
+
+def test_skips_illiquid_dvol_rank():
+    liquid = _card("LIQ", -1, 102.0, 100.0, 2.0)
+    liquid["dvol_rank"] = 20
+    thin = _card("THIN", -1, 102.0, 100.0, 2.0)
+    thin["dvol_rank"] = 401
+    cards = {"asof": "2026-09-11", "cards": [liquid, thin]}
+    out = {r["ticker"]: r for r in planned_orders(cards, 500_000, 7.8)}
+    assert "LIQ" in out
+    assert "THIN" not in out
