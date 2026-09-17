@@ -4,7 +4,12 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
-    html, body { margin: 0; padding: 0; background: transparent; font-family: "Source Sans Pro", "Segoe UI", sans-serif; }
+    html, body {
+      margin: 0; padding: 0;
+      background: transparent;
+      color: inherit;
+      font-family: "Source Sans Pro", "Segoe UI", sans-serif;
+    }
     .wrap { display: flex; flex-direction: column; gap: 0.25rem; width: 100%; }
     label { font-size: 0.875rem; opacity: 0.9; }
     .row { display: flex; align-items: center; flex-wrap: nowrap; gap: 0.5rem; width: 100%; }
@@ -13,9 +18,9 @@
       min-width: 0;
       height: 2.4rem;
       border-radius: 0.4rem;
-      border: 1px solid #4b5563;
-      background: #0e1117;
-      color: #fafafa;
+      border: 1px solid rgba(128,128,128,.45);
+      background: transparent;
+      color: inherit;
       padding: 0 0.75rem;
       font-size: 1rem;
       box-sizing: border-box;
@@ -25,9 +30,9 @@
       height: 2.4rem;
       padding: 0 0.85rem;
       border-radius: 0.4rem;
-      border: 1px solid #4b5563;
-      background: #262730;
-      color: #fafafa;
+      border: 1px solid rgba(128,128,128,.45);
+      background: transparent;
+      color: inherit;
       cursor: pointer;
       white-space: nowrap;
     }
@@ -46,14 +51,35 @@
     let debounceMs = 150;
     let timer = null;
     let lastSent = null;
+    let lastH = 0;
     function sendMessage(type, data) {
       parent.postMessage(Object.assign({ isStreamlitMessage: true, type: type }, data || {}), "*");
     }
-    function setHeight(h) { sendMessage("streamlit:setFrameHeight", { height: h }); }
+    function setHeight(h) {
+      h = Math.ceil(h);
+      if (h === lastH) return;
+      lastH = h;
+      sendMessage("streamlit:setFrameHeight", { height: h });
+    }
     function setValue(v) {
       if (v === lastSent) return;
       lastSent = v;
       sendMessage("streamlit:setComponentValue", { value: v });
+    }
+    function applyTheme(theme) {
+      if (!theme) return;
+      const dark = theme.base === "dark";
+      document.documentElement.style.colorScheme = dark ? "dark" : "light";
+      document.body.style.background = "transparent";
+      document.body.style.color = theme.textColor || (dark ? "#fafafa" : "#111827");
+      const bg = theme.secondaryBackgroundColor || (dark ? "#262730" : "#ffffff");
+      const input = document.getElementById("q");
+      const btn = document.getElementById("clr");
+      [input, btn].forEach(function (el) {
+        el.style.background = bg;
+        el.style.color = theme.textColor || "inherit";
+        el.style.borderColor = dark ? "rgba(255,255,255,.2)" : "rgba(0,0,0,.15)";
+      });
     }
     function syncClear() {
       document.getElementById("clr").disabled = !(document.getElementById("q").value || "").trim();
@@ -67,11 +93,11 @@
     function onRender(event) {
       const msg = event.data;
       if (!msg || msg.type !== "streamlit:render") return;
+      applyTheme(msg.theme);
       const d = msg.args || {};
       if (d.label) document.getElementById("lab").textContent = d.label;
       if (d.placeholder != null) document.getElementById("q").placeholder = d.placeholder;
       if (typeof d.debounce === "number") debounceMs = d.debounce;
-      // Only set input from Python when it differs and user isn't mid-edit with newer local value
       if (typeof d.value === "string" && d.value !== document.getElementById("q").value && !document.getElementById("q").matches(":focus")) {
         document.getElementById("q").value = d.value;
         lastSent = d.value;
