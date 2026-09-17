@@ -376,7 +376,7 @@ def main() -> None:
     _sync_pins_storage()
     _ensure_pinned_state()
     st.title("Trendline")
-    st.caption("美股收市後 · 盤中觸價淡區間（止盈前收）。S&P 500 全數訓練 / 顯示前 100 成交額")
+    st.caption("美股收市後 · 盤中觸價淡區間（止盈前收）。S&P 500 全數訓練 / 顯示近期 High／Low／Close MAE 最好 100 隻")
     st.warning(DISCLAIMER)
 
     page = st.radio("頁面", list(FAMILY_PAGES.keys()), horizontal=True)
@@ -821,7 +821,8 @@ def _render_card(card: dict, *, family: str = "shared") -> None:
 
     _same_row(_title, _pin)
     st.caption(
-        f"#{card.get('dvol_rank', '—')} 成交額　·　{card.get('sector') or '—'}　·　"
+        f"MAE #{card.get('mae_rank') or '—'}　·　"
+        f"成交額 #{card.get('dvol_rank', '—')}　·　{card.get('sector') or '—'}　·　"
         f"{'High/Low 優於基準' if card.get('beats_range', card.get('beats_baseline')) else 'High/Low 未優於該股基準'}"
     )
     st.caption(
