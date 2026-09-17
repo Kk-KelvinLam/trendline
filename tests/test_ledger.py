@@ -18,7 +18,7 @@ def _card(ticker, side, entry, prior, atr):
 
 
 def test_higher_fade_score_gets_more_size():
-    # Many similar names so the 0.6% name-risk cap does not flatten the book.
+    # Many similar names so size still differs by fade score under 5%/N cap.
     cards = {
         "asof": "2026-09-11",
         "cards": [_card("STRONG", -1, 100.0, 94.0, 2.0)]
@@ -323,3 +323,18 @@ def test_prune_plan_history_keeps_last_three():
     assert "planned" not in led["days"][0]["families"]["shared"]
     assert "planned" in led["days"][-1]["families"]["shared"]
     assert "planned" in led["days"][-3]["families"]["shared"]
+
+
+def test_fewer_names_raise_name_risk():
+    def wide(ticker):
+        row = _card(ticker, -1, 20.0, 18.0, 2.0)
+        row["sl"] = 28.0
+        return row
+    few = {"asof": "2026-09-11", "cards": [wide("A"), wide("B")]}
+    many = {"asof": "2026-09-11", "cards": [wide(f"N{i}") for i in range(10)]}
+    few_rows = planned_orders(few, 500_000, 7.8)
+    many_rows = planned_orders(many, 500_000, 7.8)
+    assert few_rows and many_rows
+    assert max(r["risk_frac"] for r in few_rows) > max(r["risk_frac"] for r in many_rows)
+    assert sum(r["risk_frac"] for r in few_rows) <= 0.05 + 1e-6
+    assert sum(r["risk_frac"] for r in many_rows) <= 0.05 + 1e-6
