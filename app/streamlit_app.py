@@ -252,9 +252,14 @@ def _inject_back_to_top(*, jump: bool) -> None:
   align-items: center;
   flex-wrap: nowrap;
   gap: 0.45rem;
-  margin: 0;
+  margin: 0 !important;
+  margin-bottom: 0 !important;
   padding: 0.2rem 0;
   line-height: 1.45;
+}
+[data-testid="stMarkdownContainer"]:has(> .tl-card-head) {
+  margin: 0 !important;
+  margin-bottom: 0 !important;
 }
 .tl-card-head .tl-t {
   font-size: 1.35rem;
