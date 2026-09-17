@@ -274,13 +274,35 @@ def _inject_back_to_top(*, jump: bool) -> None:
   opacity: 0.75;
   white-space: nowrap;
 }
-/* Pin lives in the same HTML row as ticker + direction. */
-.tl-card-head a.tl-pin {
-  text-decoration: none !important;
-  font-size: 1.2rem;
-  line-height: 1;
-  margin-left: 0.15rem;
-  cursor: pointer;
+/* Horizontal ticker+pin row: no inner scrollbar, vertically centered. */
+div[data-testid="stHorizontalBlock"]:has(.tl-card-head),
+div[data-testid="stLayoutWrapper"]:has(.tl-card-head) {
+  overflow: hidden !important;
+  align-items: center !important;
+  min-height: 2.4rem;
+  scrollbar-width: none !important;
+}
+div[data-testid="stHorizontalBlock"]:has(.tl-card-head)::-webkit-scrollbar,
+div[data-testid="stLayoutWrapper"]:has(.tl-card-head)::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+div[data-testid="stHorizontalBlock"]:has(.tl-card-head) [data-testid="stElementContainer"],
+div[data-testid="stHorizontalBlock"]:has(.tl-card-head) [data-testid="element-container"],
+div[data-testid="stLayoutWrapper"]:has(.tl-card-head) [data-testid="stElementContainer"] {
+  overflow: hidden !important;
+  display: flex !important;
+  align-items: center !important;
+}
+div[data-testid="stHorizontalBlock"]:has(.tl-card-head) button,
+div[data-testid="stLayoutWrapper"]:has(.tl-card-head) button {
+  width: 2.2rem !important;
+  height: 2.2rem !important;
+  min-height: 2.2rem !important;
+  padding: 0 !important;
+  line-height: 1 !important;
+  border-radius: 999px !important;
 }
 #tl-pin-sync-mark { display: none; }
 [data-testid="stElementContainer"]:has(#tl-pin-sync-mark) + [data-testid="stElementContainer"],
@@ -821,7 +843,12 @@ def _same_row(*builders) -> None:
     """Ticker + pin on one flex row. Falls back if Streamlit is too old for horizontal=."""
     row = None
     try:
-        row = st.container(horizontal=True, vertical_alignment="center", gap="small", wrap=False)
+        row = st.container(
+            horizontal=True,
+            vertical_alignment="center",
+            gap="small",
+            height="content",
+        )
     except TypeError:
         try:
             row = st.container(horizontal=True, vertical_alignment="center", gap="small")
