@@ -243,6 +243,31 @@ def _inject_back_to_top(*, jump: bool) -> None:
   opacity: 0.75;
   white-space: nowrap;
 }
+.tl-card-head .tl-pin-slot {
+  margin-left: auto;
+  flex: 0 0 2.25rem;
+  width: 2.25rem;
+  text-align: center;
+  font-size: 1.15rem;
+  line-height: 2.25rem;
+}
+div[data-testid="element-container"]:has(.tl-head-block) + div[data-testid="element-container"] {
+  height: 0 !important;
+  min-height: 0 !important;
+  margin-top: -2.35rem !important;
+  margin-bottom: 0 !important;
+  display: flex !important;
+  justify-content: flex-end !important;
+  overflow: visible !important;
+}
+div[data-testid="element-container"]:has(.tl-head-block) + div[data-testid="element-container"] button {
+  width: 2.25rem !important;
+  height: 2.25rem !important;
+  min-height: 2.25rem !important;
+  padding: 0 !important;
+  border-radius: 999px !important;
+  opacity: 0.01 !important;
+}
 /* Exactly-2-column rows only (nth-child(2):last-child). Outer card grid has 3 cols — excluded. */
 div[data-testid="stHorizontalBlock"]:has(> div[data-testid="column"]:nth-child(2):last-child):has(.tl-card-head) {
   display: flex !important;
@@ -748,24 +773,23 @@ def _render_card(card: dict, *, family: str = "shared") -> None:
     pinned = _ensure_pinned_state()
     is_pinned = ticker in pinned
     conf_txt = conf.strip(" ·") if conf else ""
-    head_l, head_r = st.columns([12, 1], gap="small")
-    with head_l:
-        st.markdown(
-            f'<div class="tl-card-head">'
-            f'<span class="tl-t">{ticker}</span>'
-            f'<span class="tl-a {color}">{action}</span>'
-            f'<span class="tl-conf">{conf_txt}</span>'
-            f"</div>",
-            unsafe_allow_html=True,
-        )
-    with head_r:
-        st.button(
-            "📍" if is_pinned else "📌",
-            key=f"pin_{family}_{ticker}",
-            help="取消釘選" if is_pinned else "釘選對照",
-            on_click=_toggle_pin,
-            args=(ticker,),
-        )
+    pin_icon = "📍" if is_pinned else "📌"
+    st.markdown(
+        f'<div class="tl-head-block"><div class="tl-card-head">'
+        f'<span class="tl-t">{ticker}</span>'
+        f'<span class="tl-a {color}">{action}</span>'
+        f'<span class="tl-conf">{conf_txt}</span>'
+        f'<span class="tl-pin-slot">{pin_icon}</span>'
+        f"</div></div>",
+        unsafe_allow_html=True,
+    )
+    st.button(
+        pin_icon,
+        key=f"pin_{family}_{ticker}",
+        help="取消釘選" if is_pinned else "釘選對照",
+        on_click=_toggle_pin,
+        args=(ticker,),
+    )
     st.caption(
         f"#{card.get('dvol_rank', '—')} 成交額　·　{card.get('sector') or '—'}　·　"
         f"{'High/Low 優於基準' if card.get('beats_range', card.get('beats_baseline')) else 'High/Low 未優於該股基準'}"
@@ -885,20 +909,20 @@ def _render_pinned() -> None:
 
     st.caption(f"已釘選 {len(pinned)} 隻")
     for ticker in pinned:
-        head_l, head_r = st.columns([12, 1], gap="small")
-        with head_l:
-            st.markdown(
-                f'<div class="tl-card-head"><span class="tl-t">{ticker}</span></div>',
-                unsafe_allow_html=True,
-            )
-        with head_r:
-            st.button(
-                "📍",
-                key=f"unpin_{ticker}",
-                help="取消釘選",
-                on_click=_toggle_pin,
-                args=(ticker,),
-            )
+        st.markdown(
+            f'<div class="tl-head-block"><div class="tl-card-head">'
+            f'<span class="tl-t">{ticker}</span>'
+            f'<span class="tl-pin-slot">📍</span>'
+            f"</div></div>",
+            unsafe_allow_html=True,
+        )
+        st.button(
+            "📍",
+            key=f"unpin_{ticker}",
+            help="取消釘選",
+            on_click=_toggle_pin,
+            args=(ticker,),
+        )
 
         cards_by_fam = {fam: indexes[fam].get(ticker) for fam, _ in FAMILY_LABELS}
         actions = {
