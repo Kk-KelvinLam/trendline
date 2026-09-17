@@ -31,6 +31,8 @@ from trendline.config import (
     PAPER_BENCHMARK_START,
     PAPER_BENCHMARK_TICKER,
     PAPER_MIN_NOTIONAL_USD,
+    PAPER_MIN_DVOL_RANK,
+    PAPER_PLAN_HISTORY_DAYS,
     PAPER_STARTING_HKD,
 )
 from trendline.data.intraday import fetch_rth_5m
@@ -95,6 +97,7 @@ def new_ledger() -> dict:
             "max_name_risk": PAPER_MAX_NAME_RISK,
             "max_name_frac": PAPER_MAX_NAME_FRAC,
             "min_notional_usd": PAPER_MIN_NOTIONAL_USD,
+            "min_dvol_rank": PAPER_MIN_DVOL_RANK,
         },
         "realized_asofs": [],
         "families": {fam: _empty_family() for fam in FAMILY_PATHS},
@@ -125,6 +128,8 @@ def _ensure_books(ledger: dict) -> dict:
     acct["broker"] = PAPER_BROKER
     acct["daily_risk_frac"] = PAPER_DAILY_RISK_FRAC
     acct["max_name_risk"] = PAPER_MAX_NAME_RISK
+    acct["min_dvol_rank"] = PAPER_MIN_DVOL_RANK
+    acct["min_notional_usd"] = PAPER_MIN_NOTIONAL_USD
     acct.pop("traded_family", None)
     acct.pop("equity_hkd", None)
     acct.pop("cash_hkd", None)
@@ -148,9 +153,23 @@ def load_ledger(path: Path | None = None) -> dict:
     return _ensure_books(json.loads(path.read_text(encoding="utf-8")))
 
 
+def _prune_plan_history(ledger: dict) -> dict:
+    """Keep planned snapshots only on the last N realized days."""
+    days = ledger.get("days") or []
+    keep = set(id(d) for d in days[-int(PAPER_PLAN_HISTORY_DAYS) :])
+    for day in days:
+        if id(day) in keep:
+            continue
+        for rec in (day.get("families") or {}).values():
+            if isinstance(rec, dict):
+                rec.pop("planned", None)
+    return ledger
+
+
 def save_ledger(ledger: dict, path: Path | None = None) -> Path:
     path = Path(path or LEDGER_PATH)
     path.parent.mkdir(parents=True, exist_ok=True)
+    _prune_plan_history(ledger)
     path.write_text(json.dumps(ledger, ensure_ascii=False, indent=2), encoding="utf-8")
     return path
 
@@ -418,6 +437,7 @@ def _size_book(ranked: list, equity_usd: float) -> list[dict]:
                 "weight": notional / equity_usd,
                 "risk_frac": shares * dist / equity_usd,
                 "score": s,
+                "dvol_rank": c.get("dvol_rank"),
                 "fee_usd": roundtrip_fees(int(c["side"]), shares, entry, float(c.get("tp") or entry))["total"],
             }
         )
@@ -446,11 +466,34 @@ def _size_book(ranked: list, equity_usd: float) -> list[dict]:
 
 
 def _plan_snapshot(rows: list[dict] | None) -> list[dict]:
-    keep = ("ticker", "side", "action", "shares", "entry", "tp", "sl", "notional_usd", "weight", "score")
+    keep = (
+        "ticker",
+        "side",
+        "action",
+        "shares",
+        "entry",
+        "tp",
+        "sl",
+        "notional_usd",
+        "weight",
+        "score",
+        "dvol_rank",
+    )
     out = []
     for row in rows or []:
         out.append({k: row.get(k) for k in keep})
     return out
+
+
+def _locked_plan_rows(ledger: dict, family: str, payload: dict | None, equity_hkd: float, fx: float) -> list[dict]:
+    """Prefer the nightly open_plan snapshot when it matches this card asof."""
+    asof = str((payload or {}).get("asof") or "")
+    snap = ledger.get("open_plan") or {}
+    snap_asof = str((snap.get("asofs") or {}).get(family) or snap.get("asof") or "")
+    rows = ((snap.get("families") or {}).get(family)) or []
+    if asof and snap_asof == asof and rows:
+        return list(rows)
+    return planned_orders(payload, equity_hkd, fx)
 
 
 def snapshot_open_plan(ledger: dict | None = None) -> dict:
@@ -473,6 +516,20 @@ def snapshot_open_plan(ledger: dict | None = None) -> dict:
     return ledger
 
 
+def _liquid_enough(card: dict) -> bool:
+    """True if dollar-volume rank is unknown or within the S&P liquidity floor."""
+    raw = card.get("dvol_rank")
+    if raw in (None, "", 0, "0"):
+        return True
+    try:
+        rank = int(raw)
+    except (TypeError, ValueError):
+        return True
+    if rank < 1:
+        return True
+    return rank <= int(PAPER_MIN_DVOL_RANK)
+
+
 def planned_orders(cards_payload: dict | None, equity_hkd: float, fx: float) -> list[dict]:
     """Size so a stop costs ~score-weighted share of a 5% daily risk budget."""
     if not cards_payload or fx <= 0:
@@ -480,6 +537,8 @@ def planned_orders(cards_payload: dict | None, equity_hkd: float, fx: float) -> 
     ranked = []
     for c in cards_payload.get("cards") or []:
         if not c.get("side") or not c.get("entry_px"):
+            continue
+        if not _liquid_enough(c):
             continue
         s = fade_score(c)
         if s > 0 and _sl_distance(c) > 0:
@@ -610,7 +669,7 @@ def realize_once(
             continue
         fam_state = ledger["families"].setdefault(fam, _empty_family())
         equity = float(fam_state.get("equity_hkd") or PAPER_STARTING_HKD)
-        plan_rows = planned_orders(payload, equity, fx)
+        plan_rows = _locked_plan_rows(ledger, fam, payload, equity, fx)
         plan = {p["ticker"]: p for p in plan_rows}
         n_sig = n_fill = n_miss = n_win = 0
         abs_h = abs_l = abs_c = 0.0
@@ -743,7 +802,7 @@ def ledger_view(ledger: dict | None = None) -> dict:
         cards = _read_cards(path)
         asofs[fam] = cards.get("asof") if cards else None
         eq = float(ledger["families"][fam]["equity_hkd"])
-        planned[fam] = planned_orders(cards, eq, fx)
+        planned[fam] = _locked_plan_rows(ledger, fam, cards, eq, fx)
     headlines = {fam: _family_headline(ledger["families"][fam]) for fam in FAMILY_PATHS}
     headlines["voo"] = _benchmark_headline(ledger.get("benchmark") or _empty_benchmark())
     history = []
@@ -764,5 +823,5 @@ def ledger_view(ledger: dict | None = None) -> dict:
         "planned": planned,
         "cards_asof": asofs,
         "open_plan": ledger.get("open_plan"),
-        "plan_history": history,
+        "plan_history": history[-int(PAPER_PLAN_HISTORY_DAYS) :],
     }

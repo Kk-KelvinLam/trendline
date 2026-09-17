@@ -98,6 +98,9 @@ PAPER_NOTIONAL_FRAC = 0.07  # unused; kept for reference
 PAPER_GROSS_FRAC = 1.00  # never deploy more than today's equity
 PAPER_MAX_NAME_FRAC = 0.12
 PAPER_MIN_NOTIONAL_USD = 2500.0
+# Book only names in the top N S&P names by prior-session dollar volume.
+# Ranking is still fade_score; this is a liquidity floor, not a shortlist.
+PAPER_MIN_DVOL_RANK = 300
 PAPER_DAILY_RISK_FRAC = 0.05
 PAPER_MAX_NAME_RISK = 0.006
 PAPER_FAMILY = "shared"
@@ -105,6 +108,8 @@ ATR_SL_MULT = 1.0
 # Paper ledger: only open if the trigger prints before this NY time (bar start).
 # Management (TP/SL/close) after fill can continue through the RTH close.
 PAPER_ENTRY_CUTOFF_ET = (12, 30)
+
+PAPER_PLAN_HISTORY_DAYS = 3  # keep planned snapshots on the last N realized days
 
 SHOW_TOP_N = 100  # shortlist size; ranked by recent High/Low/Close MAE
 MAE_RANK_W_HIGH = 0.4
