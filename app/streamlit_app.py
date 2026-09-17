@@ -285,6 +285,7 @@ button[kind="tertiary"] {
   height: 1.6rem !important;
   padding: 0 0.15rem !important;
   line-height: 1 !important;
+  margin-bottom: -1rem !important;
 }
 
 </style>
