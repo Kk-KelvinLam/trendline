@@ -382,7 +382,6 @@ def build_cards(
             sector = SectorBundle().load()
         model = FamilyPredictor(family, shared, sector, stock)
 
-    # Dollar volume for display + MAE tie-break; do not use it to cut the pool.
     ranked_dvol = rank_by_dollar_volume(ohlcv, asof=asof, top_n=10_000)
     dvol_map = dict(zip(ranked_dvol["ticker"], ranked_dvol["dollar_volume"], strict=False)) if not ranked_dvol.empty else {}
     rank_map = dict(zip(ranked_dvol["ticker"], ranked_dvol["dvol_rank"], strict=False)) if not ranked_dvol.empty else {}
@@ -395,22 +394,19 @@ def build_cards(
     else:
         _write_recent_error_artifact(family, recent_map, asof)
 
-    mae_ranked = rank_by_recent_mae(recent_map, dvol_map, top_n=SHOW_TOP_N)
-    if mae_ranked:
-        show = {r["ticker"] for r in mae_ranked}
-        mae_rank_map = {r["ticker"]: r["mae_rank"] for r in mae_ranked}
-        mae_score_map = {r["ticker"]: r["mae_score"] for r in mae_ranked}
+    # Full-universe MAE ranks for the book filter; cards themselves are dvol top N.
+    mae_ranked = rank_by_recent_mae(recent_map, dvol_map, top_n=10_000)
+    mae_rank_map = {r["ticker"]: r["mae_rank"] for r in mae_ranked}
+    mae_score_map = {r["ticker"]: r["mae_score"] for r in mae_ranked}
+    if ranked_dvol.empty:
+        show = set(day["ticker"])
     else:
-        # No trusted recent High/Low/Close MAE yet — keep a 100-name card file.
-        fallback = ranked_dvol.head(int(SHOW_TOP_N)) if not ranked_dvol.empty else ranked_dvol
-        show = set(fallback["ticker"]) if not fallback.empty else set(day["ticker"])
-        mae_rank_map = {}
-        mae_score_map = {}
+        show = set(ranked_dvol.head(int(SHOW_TOP_N))["ticker"])
     day = day[day["ticker"].isin(show)].copy()
     if day.empty:
         raise RuntimeError(
-            f"no S&P names in the MAE shortlist for session {asof.date()} "
-            f"(mae_ranked={len(mae_ranked)}; dvol={len(ranked_dvol)})"
+            f"no S&P names in the dollar-volume shortlist for session {asof.date()} "
+            f"(dvol={len(ranked_dvol)})"
         )
 
     preds = model.predict(day)
@@ -534,8 +530,8 @@ def build_cards(
     cards.sort(
         key=lambda c: (
             0 if c["action"] != "觀望" else 1,
-            c.get("mae_rank") or 10_000,
             c.get("dvol_rank") or 10_000,
+            c.get("mae_rank") or 10_000,
         )
     )
     family_label = {"shared": "共用模型", "sector": "行業模型", "stock": "個股模型"}.get(family, family)

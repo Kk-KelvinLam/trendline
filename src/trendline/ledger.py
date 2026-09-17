@@ -31,7 +31,7 @@ from trendline.config import (
     PAPER_BENCHMARK_START,
     PAPER_BENCHMARK_TICKER,
     PAPER_MIN_NOTIONAL_USD,
-    PAPER_MIN_DVOL_RANK,
+    PAPER_MAX_MAE_RANK,
     PAPER_PLAN_HISTORY_DAYS,
     PAPER_STARTING_HKD,
 )
@@ -97,7 +97,7 @@ def new_ledger() -> dict:
             "max_name_risk": PAPER_MAX_NAME_RISK,
             "max_name_frac": PAPER_MAX_NAME_FRAC,
             "min_notional_usd": PAPER_MIN_NOTIONAL_USD,
-            "min_dvol_rank": PAPER_MIN_DVOL_RANK,
+            "max_mae_rank": PAPER_MAX_MAE_RANK,
         },
         "realized_asofs": [],
         "families": {fam: _empty_family() for fam in FAMILY_PATHS},
@@ -128,7 +128,8 @@ def _ensure_books(ledger: dict) -> dict:
     acct["broker"] = PAPER_BROKER
     acct["daily_risk_frac"] = PAPER_DAILY_RISK_FRAC
     acct["max_name_risk"] = PAPER_MAX_NAME_RISK
-    acct["min_dvol_rank"] = PAPER_MIN_DVOL_RANK
+    acct["max_mae_rank"] = PAPER_MAX_MAE_RANK
+    acct.pop("min_dvol_rank", None)
     acct["min_notional_usd"] = PAPER_MIN_NOTIONAL_USD
     acct.pop("traded_family", None)
     acct.pop("equity_hkd", None)
@@ -438,6 +439,7 @@ def _size_book(ranked: list, equity_usd: float) -> list[dict]:
                 "risk_frac": shares * dist / equity_usd,
                 "score": s,
                 "dvol_rank": c.get("dvol_rank"),
+                "mae_rank": c.get("mae_rank"),
                 "fee_usd": roundtrip_fees(int(c["side"]), shares, entry, float(c.get("tp") or entry))["total"],
             }
         )
@@ -478,6 +480,7 @@ def _plan_snapshot(rows: list[dict] | None) -> list[dict]:
         "weight",
         "score",
         "dvol_rank",
+        "mae_rank",
     )
     out = []
     for row in rows or []:
@@ -516,9 +519,9 @@ def snapshot_open_plan(ledger: dict | None = None) -> dict:
     return ledger
 
 
-def _liquid_enough(card: dict) -> bool:
-    """True if dollar-volume rank is unknown or within the S&P liquidity floor."""
-    raw = card.get("dvol_rank")
+def _mae_bookable(card: dict) -> bool:
+    """True if MAE rank is unknown (tests) or in the full-S&P MAE top N."""
+    raw = card.get("mae_rank")
     if raw in (None, "", 0, "0"):
         return True
     try:
@@ -527,7 +530,7 @@ def _liquid_enough(card: dict) -> bool:
         return True
     if rank < 1:
         return True
-    return rank <= int(PAPER_MIN_DVOL_RANK)
+    return rank <= int(PAPER_MAX_MAE_RANK)
 
 
 def planned_orders(cards_payload: dict | None, equity_hkd: float, fx: float) -> list[dict]:
@@ -538,7 +541,7 @@ def planned_orders(cards_payload: dict | None, equity_hkd: float, fx: float) -> 
     for c in cards_payload.get("cards") or []:
         if not c.get("side") or not c.get("entry_px"):
             continue
-        if not _liquid_enough(c):
+        if not _mae_bookable(c):
             continue
         s = fade_score(c)
         if s > 0 and _sl_distance(c) > 0:

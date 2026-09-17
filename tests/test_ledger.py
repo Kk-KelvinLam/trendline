@@ -284,11 +284,11 @@ def test_realize_stores_planned_snapshot(monkeypatch):
     assert planned[0]["shares"] >= 1
 
 
-def test_skips_illiquid_dvol_rank():
+def test_skips_poor_mae_rank():
     liquid = _card("LIQ", -1, 102.0, 100.0, 2.0)
-    liquid["dvol_rank"] = 20
+    liquid["mae_rank"] = 20
     thin = _card("THIN", -1, 102.0, 100.0, 2.0)
-    thin["dvol_rank"] = 401
+    thin["mae_rank"] = 401
     cards = {"asof": "2026-09-11", "cards": [liquid, thin]}
     out = {r["ticker"]: r for r in planned_orders(cards, 500_000, 7.8)}
     assert "LIQ" in out
