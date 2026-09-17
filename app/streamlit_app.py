@@ -120,13 +120,7 @@ def _sync_pins_storage() -> None:
     """Read parent.localStorage. nonce forces a fresh read after a pin click."""
     hydrated = bool(st.session_state.get("_pins_hydrated"))
     current = list(_ensure_pinned_state())
-    nonce = int(st.session_state.get("_pins_nonce") or 0)
-    incoming = pins_bridge(
-        pins=current,
-        write=hydrated,
-        nonce=nonce,
-        key="tl_pins_bridge",
-    )
+    incoming = pins_bridge(pins=current, write=hydrated, key="tl_pins_bridge")
     if hydrated:
         return
     if incoming is None:
@@ -170,13 +164,6 @@ def _toggle_pin(ticker: str) -> None:
         pinned.append(t)
 
 
-def _pin_sync_widget() -> None:
-    """Hidden widget. Page JS clicks it so Streamlit reruns without a full load."""
-    st.markdown('<div id="tl-pin-sync-mark"></div>', unsafe_allow_html=True)
-    if st.button("pin-sync", key="tl_pin_sync"):
-        st.session_state["_pins_nonce"] = int(st.session_state.get("_pins_nonce") or 0) + 1
-        st.session_state["_pins_hydrated"] = False
-        st.rerun()
 
 
 
@@ -436,7 +423,6 @@ div[data-testid="stHorizontalBlock"]:has(> div[data-testid="column"]:nth-child(2
 
 
 def main() -> None:
-    _pin_sync_widget()
     _sync_pins_storage()
     _ensure_pinned_state()
     st.title("Trendline")
@@ -845,10 +831,16 @@ def _render_card(card: dict, *, family: str = "shared") -> None:
         f'<div class="tl-card-head">'
         f'<span class="tl-t">{ticker}</span>'
         f'<span class="tl-a {color}">{action}</span>'
-        f'<a class="tl-pin" href="#" data-ticker="{ticker}" title="{tip}">{pin_icon}</a>'
         f'<span class="tl-conf">{conf_txt}</span>'
         f"</div>",
         unsafe_allow_html=True,
+    )
+    st.button(
+        pin_icon,
+        key=f"pin_{family}_{ticker}",
+        help=tip,
+        on_click=_toggle_pin,
+        args=(ticker,),
     )
     st.caption(
         f"#{card.get('dvol_rank', '—')} 成交額　·　{card.get('sector') or '—'}　·　"
@@ -970,11 +962,15 @@ def _render_pinned() -> None:
     st.caption(f"已釘選 {len(pinned)} 隻")
     for ticker in pinned:
         st.markdown(
-            f'<div class="tl-card-head">'
-            f'<span class="tl-t">{ticker}</span>'
-            f'<a class="tl-pin" href="#" data-ticker="{ticker}" title="取消釘選">📍</a>'
-            f"</div>",
+            f'<div class="tl-card-head"><span class="tl-t">{ticker}</span></div>',
             unsafe_allow_html=True,
+        )
+        st.button(
+            "📍",
+            key=f"unpin_{ticker}",
+            help="取消釘選",
+            on_click=_toggle_pin,
+            args=(ticker,),
         )
 
         cards_by_fam = {fam: indexes[fam].get(ticker) for fam, _ in FAMILY_LABELS}
