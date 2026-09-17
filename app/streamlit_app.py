@@ -101,6 +101,21 @@ def _normalize_pins(raw) -> list[str]:
     return out
 
 
+def _stash_pin_query() -> None:
+    """Remember ?pin=TICKER across the localStorage hydrate rerun."""
+    try:
+        raw = st.query_params.get("pin")
+    except Exception:
+        return
+    if raw is None or raw == "":
+        return
+    if isinstance(raw, list):
+        raw = raw[0] if raw else ""
+    ticker = str(raw).strip().upper()
+    if ticker:
+        st.session_state["_pending_pin"] = ticker
+
+
 def _sync_pins_storage() -> None:
     """Read parent.localStorage. nonce forces a fresh read after a pin click."""
     hydrated = bool(st.session_state.get("_pins_hydrated"))
@@ -117,6 +132,12 @@ def _sync_pins_storage() -> None:
     if incoming is None:
         return
     loaded = _normalize_pins(incoming)
+    pending = st.session_state.pop("_pending_pin", None)
+    if pending:
+        if pending in loaded:
+            loaded = [x for x in loaded if x != pending]
+        else:
+            loaded.append(pending)
     st.session_state["_pins_hydrated"] = True
     st.session_state["pinned_tickers"] = loaded
     if loaded != current:
@@ -163,6 +184,15 @@ def _pin_sync_widget() -> None:
 def _clear_text_key(key: str) -> None:
     """on_click callback: safe to clear a keyed text widget before next render."""
     st.session_state[key] = ""
+
+
+def _live_search(label: str, *, placeholder: str, key: str, debounce: int = 150) -> str:
+    """Filter as the user types. Falls back to Enter/blur if streamlit-keyup is missing."""
+    if st_keyup is not None:
+        raw = st_keyup(label, placeholder=placeholder, key=key, debounce=debounce)
+        return "" if raw is None else str(raw)
+    raw = st.text_input(label, placeholder=placeholder, key=key)
+    return "" if raw is None else str(raw)
 
 
 def _filter_cards_by_query(cards: list[dict], query: str) -> list[dict]:
@@ -466,11 +496,11 @@ def main() -> None:
             "高於 1.8% 則唔標高信心。三套系統（模型＋規則＋執行）賽馬；以流水權益為準，勝率只供參考。"
         )
 
-    search_key = f"search_{key}"
-    search_q = st.text_input(
+    search_q = _live_search(
         "搜尋",
         placeholder="搜尋股票代號（例如 NVDA）",
-        key=search_key,
+        key=f"search_{key}",
+        debounce=150,
     )
     filt = st.radio("篩選", ["全部", "做多", "做空", "高信心"], horizontal=True, key=f"filt_{key}")
 
