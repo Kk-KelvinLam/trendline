@@ -653,7 +653,8 @@ def _render_ledger() -> None:
         "表上 High/Low/Close MAE$ 係對賬時預測 vs 第二日真實價，唔係出卡用嗰個近期 MAE%。"
         "三套系統賽馬：三族入書都跟共用（淡區間、無 Close 方向閘）；分別只係模型。"
         "VOO：2026-09-14 開市一把過買 91 股剩現金，之後唔買賣；"
-        "每日權益 = 股數 × 當日收市 + 現金（轉 HKD）。上面 delta 係對 HK$500,000 嘅累計盈虧，唔係單日。"
+        "每日權益 = 股數 × 當日收市 + 現金（轉 HKD）。上面 metric delta 係對 HK$500,000 嘅累計盈虧；"
+        "下面「每日權益」表而家有單日增減（對上一 session；第一日對本金）。"
         "勝率只供參考。"
     )
     view = ledger_view()
@@ -763,7 +764,58 @@ def _render_ledger() -> None:
     if not fills:
         st.info("未有成交。美股下一個完整時段收市後，Nightly 會自動記帳。")
     else:
-        st.caption("按模型分頁。出入場時間為 America/New_York（5 分鐘 bar）。12:30 ET 或之後先到價、或缺 5m，唔入呢度。")
+        st.caption(
+            "按模型分頁。出入場時間為 America/New_York（5 分鐘 bar）。"
+            "12:30 ET 或之後先到價、或缺 5m，唔入呢度。"
+            "下面百分比係該族全部成交累計（唔係單日），分母＝該頁成交筆數。"
+        )
+
+        def _fill_is_win(f: dict) -> bool | None:
+            pnl = f.get("pnl_hkd")
+            if pnl is not None:
+                try:
+                    return float(pnl) > 0
+                except (TypeError, ValueError):
+                    pass
+            ret = f.get("ret")
+            if ret is None:
+                return None
+            try:
+                return float(ret) > 0
+            except (TypeError, ValueError):
+                return None
+
+        def _fill_pct_stats(items: list[dict]) -> str:
+            n = len(items)
+            if n <= 0:
+                return "未有成交。"
+
+            def _pct(count: int) -> str:
+                return f"{100.0 * count / n:.1f}%（n={count}）"
+
+            n_win = n_lose = n_tp = n_sl = n_close_win = n_close_lose = 0
+            for f in items:
+                win = _fill_is_win(f)
+                reason = str(f.get("reason") or "").lower()
+                if win is True:
+                    n_win += 1
+                elif win is False:
+                    n_lose += 1
+                if reason == "tp":
+                    n_tp += 1
+                elif reason == "sl":
+                    n_sl += 1
+                elif reason == "close":
+                    if win is True:
+                        n_close_win += 1
+                    elif win is False:
+                        n_close_lose += 1
+            return (
+                f"累計佔比（共 {n} 筆）　"
+                f"勝 {_pct(n_win)}　·　負 {_pct(n_lose)}　·　"
+                f"TP {_pct(n_tp)}　·　收市勝 {_pct(n_close_win)}　·　"
+                f"SL {_pct(n_sl)}　·　收市負 {_pct(n_close_lose)}"
+            )
 
         def _fill_rows(items: list[dict]) -> list[dict]:
             rows = []
@@ -795,18 +847,51 @@ def _render_ledger() -> None:
                 if not fam_fills:
                     st.info("呢個模型未有成交。")
                 else:
-                    st.caption(f"{len(fam_fills)} 筆")
+                    st.caption(_fill_pct_stats(fam_fills))
                     st.dataframe(pd.DataFrame(_fill_rows(fam_fills)), hide_index=True, use_container_width=True)
 
     days = ledger.get("days") or []
     if days:
         st.markdown("#### 每日權益")
+        start_eq = float(acct.get("starting_equity_hkd") or 500_000)
+        delta_keys = (
+            ("shared", "增減_共用"),
+            ("sector", "增減_行業"),
+            ("stock", "增減_個股"),
+            ("voo", "增減_VOO"),
+        )
+        st.caption(
+            f"「增減_*」＝該 session 權益 − 上一 session 權益（單日）。"
+            f"第一日對本金 {_fmt_hkd(start_eq)}。上面 metric delta 仍係對本金嘅累計。"
+        )
         flat = []
+        prev_eq: dict = {}
         for d in days:
             row = {"session": d.get("session"), "asof": d.get("asof")}
             eq = d.get("equity_hkd") or {}
-            if isinstance(eq, dict):
-                row.update({f"equity_{k}": v for k, v in eq.items()})
+            if not isinstance(eq, dict):
+                eq = {}
+            for k, v in eq.items():
+                row[f"equity_{k}"] = v
+            for fam, col in delta_keys:
+                cur = eq.get(fam)
+                if cur is None:
+                    row[col] = None
+                    continue
+                try:
+                    cur_f = float(cur)
+                except (TypeError, ValueError):
+                    row[col] = None
+                    continue
+                if fam in prev_eq:
+                    row[col] = cur_f - float(prev_eq[fam])
+                else:
+                    row[col] = cur_f - start_eq
+            for fam, v in eq.items():
+                try:
+                    prev_eq[fam] = float(v)
+                except (TypeError, ValueError):
+                    pass
             flat.append(row)
         st.dataframe(pd.DataFrame(flat), hide_index=True, use_container_width=True)
 
