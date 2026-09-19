@@ -623,7 +623,7 @@ def _render_scoreboard(metrics: dict | None, scoreboard: dict | None) -> None:
 def _fmt_hkd(x) -> str:
     if x is None or (isinstance(x, float) and pd.isna(x)):
         return "—"
-    return f"HK${x:,.0f}"
+    return f"HK${float(x):,.2f}"
 
 
 def _fmt_hkd_delta(x) -> str | None:
@@ -634,7 +634,29 @@ def _fmt_hkd_delta(x) -> str | None:
     if val == 0:
         return None
     sign = "-" if val < 0 else ""
-    return f"{sign}HK${abs(val):,.0f}"
+    return f"{sign}HK${abs(val):,.2f}"
+
+
+def _round2(x):
+    """Round money/price values to 2 dp for ledger tables; pass through non-numerics."""
+    if x is None or (isinstance(x, float) and pd.isna(x)):
+        return None
+    if x == "—":
+        return "—"
+    if isinstance(x, str):
+        return x
+    try:
+        return round(float(x), 2)
+    except (TypeError, ValueError):
+        return x
+
+
+def _round_money_cols(df: pd.DataFrame, cols: list[str]) -> pd.DataFrame:
+    out = df.copy()
+    for c in cols:
+        if c in out.columns:
+            out[c] = out[c].map(_round2)
+    return out
 
 
 def _render_ledger() -> None:
@@ -654,7 +676,7 @@ def _render_ledger() -> None:
         "三套系統賽馬：三族入書都跟共用（淡區間、無 Close 方向閘）；分別只係模型。"
         "VOO：2026-09-14 開市一把過買 91 股剩現金，之後唔買賣；"
         "每日權益 = 股數 × 當日收市 + 現金（轉 HKD）。上面 metric delta 係對 HK$500,000 嘅累計盈虧；"
-        "下面「每日權益」表而家有單日增減（對上一 session；第一日對本金）。"
+        "下面「每日權益」表有 *_pnl 單日增減（對上一 session；第一日對本金）。"
         "勝率只供參考。"
     )
     view = ledger_view()
@@ -715,7 +737,12 @@ def _render_ledger() -> None:
             "Close MAE$": "—",
         }
     )
-    st.dataframe(pd.DataFrame(rows), hide_index=True, use_container_width=True)
+    acct_df = pd.DataFrame(rows)
+    acct_df = _round_money_cols(
+        acct_df,
+        ["權益HKD", "損益HKD", "High MAE$", "Low MAE$", "Close MAE$"],
+    )
+    st.dataframe(acct_df, hide_index=True, use_container_width=True)
 
     st.markdown("#### 下一轉計劃（已 sizing，最多 20 隻）")
     planned_now = view.get("planned") or {}
@@ -757,7 +784,11 @@ def _render_ledger() -> None:
                 st.info("呢個模型呢份計劃冇入到書（觀望／分數太低／名義太細／超權益，或舊日未存計劃）。")
             else:
                 st.caption(f"{len(rows_p)} 隻入書。唔係錯過名單。")
-                st.dataframe(pd.DataFrame(rows_p), hide_index=True, use_container_width=True)
+                plan_df = _round_money_cols(
+                    pd.DataFrame(rows_p),
+                    ["entry", "tp", "sl", "notional_usd"],
+                )
+                st.dataframe(plan_df, hide_index=True, use_container_width=True)
 
     st.markdown("#### 成交流水")
     fills = ledger.get("fills") or []
@@ -785,14 +816,8 @@ def _render_ledger() -> None:
             except (TypeError, ValueError):
                 return None
 
-        def _fill_pct_stats(items: list[dict]) -> str:
-            n = len(items)
-            if n <= 0:
-                return "未有成交。"
-
-            def _pct(count: int) -> str:
-                return f"{100.0 * count / n:.1f}%（n={count}）"
-
+        def _fill_pct_stats(items: list[dict]) -> dict[str, int]:
+            """Counts for the six outcome buckets (denominator = len(items))."""
             n_win = n_lose = n_tp = n_sl = n_close_win = n_close_lose = 0
             for f in items:
                 win = _fill_is_win(f)
@@ -810,12 +835,36 @@ def _render_ledger() -> None:
                         n_close_win += 1
                     elif win is False:
                         n_close_lose += 1
-            return (
-                f"累計佔比（共 {n} 筆）　"
-                f"勝 {_pct(n_win)}　·　負 {_pct(n_lose)}　·　"
-                f"TP {_pct(n_tp)}　·　收市勝 {_pct(n_close_win)}　·　"
-                f"SL {_pct(n_sl)}　·　收市負 {_pct(n_close_lose)}"
+            return {
+                "n": len(items),
+                "win": n_win,
+                "lose": n_lose,
+                "tp": n_tp,
+                "close_win": n_close_win,
+                "sl": n_sl,
+                "close_lose": n_close_lose,
+            }
+
+        def _render_fill_pct_stats(items: list[dict]) -> None:
+            stats = _fill_pct_stats(items)
+            n = int(stats["n"])
+            if n <= 0:
+                st.caption("未有成交。")
+                return
+            st.caption(f"Cumulative outcome mix · {n} fills")
+            buckets = (
+                ("Win 勝", stats["win"]),
+                ("Lose 負", stats["lose"]),
+                ("TP", stats["tp"]),
+                ("Close-win 收市勝", stats["close_win"]),
+                ("SL", stats["sl"]),
+                ("Close-lose 收市負", stats["close_lose"]),
             )
+            mcols = st.columns(6)
+            for col, (label, count) in zip(mcols, buckets):
+                pct = 100.0 * count / n
+                with col:
+                    st.metric(label, f"{pct:.1f}%", delta=f"n={count}", delta_color="off")
 
         def _fill_rows(items: list[dict]) -> list[dict]:
             rows = []
@@ -827,14 +876,14 @@ def _render_ledger() -> None:
                         "ticker": f.get("ticker"),
                         "side": f.get("side"),
                         "shares": f.get("shares"),
-                        "entry": f.get("entry"),
-                        "exit": f.get("exit"),
+                        "entry": _round2(f.get("entry")),
+                        "exit": _round2(f.get("exit")),
                         "入場時間": f.get("entry_ts") or "—",
                         "出場時間": f.get("exit_ts") or "—",
                         "reason": f.get("reason"),
                         "fill_source": f.get("fill_source"),
-                        "pnl_hkd": f.get("pnl_hkd"),
-                        "fee_usd": f.get("fee_usd"),
+                        "pnl_hkd": _round2(f.get("pnl_hkd")),
+                        "fee_usd": _round2(f.get("fee_usd")),
                     }
                 )
             return rows
@@ -847,53 +896,45 @@ def _render_ledger() -> None:
                 if not fam_fills:
                     st.info("呢個模型未有成交。")
                 else:
-                    st.caption(_fill_pct_stats(fam_fills))
+                    _render_fill_pct_stats(fam_fills)
                     st.dataframe(pd.DataFrame(_fill_rows(fam_fills)), hide_index=True, use_container_width=True)
 
     days = ledger.get("days") or []
     if days:
         st.markdown("#### 每日權益")
         start_eq = float(acct.get("starting_equity_hkd") or 500_000)
-        delta_keys = (
-            ("shared", "增減_共用"),
-            ("sector", "增減_行業"),
-            ("stock", "增減_個股"),
-            ("voo", "增減_VOO"),
-        )
-        st.caption(
-            f"「增減_*」＝該 session 權益 − 上一 session 權益（單日）。"
-            f"第一日對本金 {_fmt_hkd(start_eq)}。上面 metric delta 仍係對本金嘅累計。"
-        )
+        fam_order = ("shared", "sector", "stock", "voo")
         flat = []
         prev_eq: dict = {}
         for d in days:
-            row = {"session": d.get("session"), "asof": d.get("asof")}
+            row: dict = {"session": d.get("session"), "asof": d.get("asof")}
             eq = d.get("equity_hkd") or {}
             if not isinstance(eq, dict):
                 eq = {}
-            for k, v in eq.items():
-                row[f"equity_{k}"] = v
-            for fam, col in delta_keys:
+            for fam in fam_order:
                 cur = eq.get(fam)
                 if cur is None:
-                    row[col] = None
+                    row[f"{fam}_equity"] = None
+                    row[f"{fam}_pnl"] = None
                     continue
                 try:
                     cur_f = float(cur)
                 except (TypeError, ValueError):
-                    row[col] = None
+                    row[f"{fam}_equity"] = None
+                    row[f"{fam}_pnl"] = None
                     continue
+                row[f"{fam}_equity"] = round(cur_f, 2)
                 if fam in prev_eq:
-                    row[col] = cur_f - float(prev_eq[fam])
+                    row[f"{fam}_pnl"] = round(cur_f - float(prev_eq[fam]), 2)
                 else:
-                    row[col] = cur_f - start_eq
-            for fam, v in eq.items():
-                try:
-                    prev_eq[fam] = float(v)
-                except (TypeError, ValueError):
-                    pass
+                    row[f"{fam}_pnl"] = round(cur_f - start_eq, 2)
+                prev_eq[fam] = cur_f
             flat.append(row)
-        st.dataframe(pd.DataFrame(flat), hide_index=True, use_container_width=True)
+        day_cols = ["session", "asof"] + [
+            f"{fam}_{kind}" for fam in fam_order for kind in ("equity", "pnl")
+        ]
+        st.dataframe(pd.DataFrame(flat)[day_cols], hide_index=True, use_container_width=True)
+
 
 
 def _same_row(*builders) -> None:
