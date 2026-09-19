@@ -860,11 +860,14 @@ def _render_ledger() -> None:
                 ("SL", stats["sl"]),
                 ("Close-lose 收市負", stats["close_lose"]),
             )
-            mcols = st.columns(6)
-            for col, (label, count) in zip(mcols, buckets):
-                pct = 100.0 * count / n
-                with col:
-                    st.metric(label, f"{pct:.1f}%", delta=f"n={count}", delta_color="off")
+            # Mobile-friendly: 3 rows × 2 cols; put n in the label (not delta —
+            # st.metric delta always draws a trend arrow, and n is a count).
+            for i in range(0, len(buckets), 2):
+                cols = st.columns(2)
+                for col, (label, count) in zip(cols, buckets[i : i + 2]):
+                    pct = 100.0 * count / n
+                    with col:
+                        st.metric(f"{label} (n={count})", f"{pct:.1f}%")
 
         def _fill_rows(items: list[dict]) -> list[dict]:
             rows = []
