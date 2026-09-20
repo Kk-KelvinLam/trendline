@@ -180,11 +180,11 @@
   "tickers_evaluated": 500,
   "primary_family": "shared",
   "data": {
-    "tickers": 516,
-    "rows": 473671,
+    "tickers": 517,
+    "rows": 476265,
     "min_date": "2023-01-03",
-    "max_date": "2026-09-11",
-    "days_median": 926
+    "max_date": "2026-09-18",
+    "days_median": 931
   },
   "scoreboard_headline": {
     "shared": {
