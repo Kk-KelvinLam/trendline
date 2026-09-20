@@ -928,16 +928,14 @@ def _render_ledger() -> None:
                         st.caption(
                             f"Showing {_FILL_TABLE_DEFAULT} of {n_total} · newest first"
                         )
-                    st.dataframe(
-                        pd.DataFrame(_fill_rows(visible)),
+                    df_kwargs = dict(
                         hide_index=True,
                         use_container_width=True,
-                        height=(
-                            _FILL_TABLE_HEIGHT
-                            if n_total > _FILL_TABLE_DEFAULT and not show_all
-                            else None
-                        ),
                     )
+                    # New Streamlit rejects height=None; only pin height when truncated.
+                    if n_total > _FILL_TABLE_DEFAULT and not show_all:
+                        df_kwargs["height"] = _FILL_TABLE_HEIGHT
+                    st.dataframe(pd.DataFrame(_fill_rows(visible)), **df_kwargs)
 
     days = ledger.get("days") or []
     if days:
