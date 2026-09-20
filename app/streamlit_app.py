@@ -860,14 +860,25 @@ def _render_ledger() -> None:
                 ("SL", stats["sl"]),
                 ("Close-lose 收市負", stats["close_lose"]),
             )
-            # Mobile-friendly: 3 rows × 2 cols; put n in the label (not delta —
-            # st.metric delta always draws a trend arrow, and n is a count).
-            for i in range(0, len(buckets), 2):
-                cols = st.columns(2)
-                for col, (label, count) in zip(cols, buckets[i : i + 2]):
-                    pct = 100.0 * count / n
-                    with col:
-                        st.metric(f"{label} (n={count})", f"{pct:.1f}%")
+            # Streamlit collapses st.columns to 1-col on narrow viewports, so
+            # keep a true 2-up layout via CSS grid. n lives in the label; no
+            # delta arrows (st.metric delta always draws a trend arrow).
+            cells: list[str] = []
+            for label, count in buckets:
+                pct = 100.0 * count / n
+                cells.append(
+                    "<div>"
+                    f'<div style="opacity:.7;font-size:.85rem">{label} (n={count})</div>'
+                    f'<div style="font-size:1.6rem;font-weight:600">{pct:.1f}%</div>'
+                    "</div>"
+                )
+            st.markdown(
+                '<div style="display:grid;grid-template-columns:1fr 1fr;'
+                'gap:0.75rem 1rem;color:inherit;">'
+                + "".join(cells)
+                + "</div>",
+                unsafe_allow_html=True,
+            )
 
         def _fill_rows(items: list[dict]) -> list[dict]:
             rows = []
