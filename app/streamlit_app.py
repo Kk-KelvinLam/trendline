@@ -874,7 +874,7 @@ def _render_ledger() -> None:
                 )
             st.markdown(
                 '<div style="display:grid;grid-template-columns:1fr 1fr;'
-                'gap:0.75rem 1rem;color:inherit;">'
+                'gap:0.75rem 1rem;margin-bottom:1.25rem;color:inherit;">'
                 + "".join(cells)
                 + "</div>",
                 unsafe_allow_html=True,
@@ -902,6 +902,10 @@ def _render_ledger() -> None:
                 )
             return rows
 
+        _FILL_TABLE_DEFAULT = 10
+        # ~header + 10 body rows; fixed so the default view scrolls if taller.
+        _FILL_TABLE_HEIGHT = 38 + _FILL_TABLE_DEFAULT * 35
+
         fill_tabs = st.tabs(["共用", "行業", "個股"])
         for tab, fam in zip(fill_tabs, ("shared", "sector", "stock")):
             with tab:
@@ -911,7 +915,29 @@ def _render_ledger() -> None:
                     st.info("呢個模型未有成交。")
                 else:
                     _render_fill_pct_stats(fam_fills)
-                    st.dataframe(pd.DataFrame(_fill_rows(fam_fills)), hide_index=True, use_container_width=True)
+                    n_total = len(fam_fills)
+                    show_all = False
+                    if n_total > _FILL_TABLE_DEFAULT:
+                        show_all = st.toggle(
+                            "顯示更多 / Show all fills",
+                            value=False,
+                            key=f"fills_show_all_{fam}",
+                        )
+                    visible = fam_fills if show_all else fam_fills[:_FILL_TABLE_DEFAULT]
+                    if n_total > _FILL_TABLE_DEFAULT and not show_all:
+                        st.caption(
+                            f"Showing {_FILL_TABLE_DEFAULT} of {n_total} · newest first"
+                        )
+                    st.dataframe(
+                        pd.DataFrame(_fill_rows(visible)),
+                        hide_index=True,
+                        use_container_width=True,
+                        height=(
+                            _FILL_TABLE_HEIGHT
+                            if n_total > _FILL_TABLE_DEFAULT and not show_all
+                            else None
+                        ),
+                    )
 
     days = ledger.get("days") or []
     if days:
