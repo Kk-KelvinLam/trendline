@@ -942,6 +942,12 @@ def _render_ledger() -> None:
         st.markdown("#### 每日權益")
         start_eq = float(acct.get("starting_equity_hkd") or 500_000)
         fam_order = ("shared", "sector", "stock", "voo")
+        fam_win_labels = {
+            "shared": "Shared 共用",
+            "sector": "Sector 行業",
+            "stock": "Stock 個股",
+            "voo": "VOO",
+        }
         flat = []
         prev_eq: dict = {}
         for d in days:
@@ -968,6 +974,51 @@ def _render_ledger() -> None:
                     row[f"{fam}_pnl"] = round(cur_f - start_eq, 2)
                 prev_eq[fam] = cur_f
             flat.append(row)
+
+        def _daily_win_rate_stats(rows: list[dict]) -> dict[str, dict[str, int]]:
+            """Per-family green-day rate from daily pnl (same columns as the table)."""
+            out: dict[str, dict[str, int]] = {}
+            for fam in fam_order:
+                wins = scored = 0
+                for r in rows:
+                    pnl = r.get(f"{fam}_pnl")
+                    if pnl is None:
+                        continue
+                    scored += 1
+                    if float(pnl) > 0:
+                        wins += 1
+                out[fam] = {"wins": wins, "scored": scored}
+            return out
+
+        def _render_daily_win_rate_stats(rows: list[dict]) -> None:
+            stats = _daily_win_rate_stats(rows)
+            cells: list[str] = []
+            for fam in fam_order:
+                scored = int(stats[fam]["scored"])
+                if scored <= 0:
+                    continue  # e.g. VOO missing from equity series
+                wins = int(stats[fam]["wins"])
+                pct = 100.0 * wins / scored
+                label = fam_win_labels[fam]
+                cells.append(
+                    "<div>"
+                    f'<div style="opacity:.7;font-size:.85rem">{label} (n={scored})</div>'
+                    f'<div style="font-size:1.6rem;font-weight:600">{pct:.1f}%</div>'
+                    "</div>"
+                )
+            if not cells:
+                return
+            st.caption(f"Daily win rate · {len(days)} sessions")
+            # Same 2-up CSS grid as fill stats (Shared|Sector, Stock|VOO).
+            st.markdown(
+                '<div style="display:grid;grid-template-columns:1fr 1fr;'
+                'gap:0.75rem 1rem;margin-bottom:1.25rem;color:inherit;">'
+                + "".join(cells)
+                + "</div>",
+                unsafe_allow_html=True,
+            )
+
+        _render_daily_win_rate_stats(flat)
         day_cols = ["session", "asof"] + [
             f"{fam}_{kind}" for fam in fam_order for kind in ("equity", "pnl")
         ]
