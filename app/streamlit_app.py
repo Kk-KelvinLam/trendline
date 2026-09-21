@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 import sys
+from datetime import datetime, timezone
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
@@ -37,12 +39,12 @@ st.set_page_config(page_title="Trendline · 美股翌日預測", page_icon="📈
 DISCLAIMER = "本頁為量化模型輸出，並非投資建議。過往回測不代表未來表現。Model output, not investment advice."
 
 FAMILY_PAGES = {
+    "流水": ("ledger", None),
     "共用模型": ("shared", CARDS_SHARED_PATH),
     "行業模型": ("sector", CARDS_SECTOR_PATH),
     "個股模型": ("stock", CARDS_STOCK_PATH),
     "釘選對照": ("pinned", None),
     "計分板": ("scoreboard", None),
-    "流水": ("ledger", None),
 }
 
 FAMILY_LABELS = (("shared", "共用"), ("sector", "行業"), ("stock", "個股"))
@@ -379,7 +381,9 @@ def main() -> None:
     st.caption("美股收市後 · 盤中觸價淡區間（止盈前收）。S&P 500 全數訓練 / 顯示當日成交額最大 100 隻；入書另要全市場 MAE 排名 ≤ 200")
     st.warning(DISCLAIMER)
 
-    page = st.radio("頁面", list(FAMILY_PAGES.keys()), horizontal=True)
+    page_opts = list(FAMILY_PAGES.keys())
+    # Landing page: 流水 / ledger (first in FAMILY_PAGES).
+    page = st.radio("頁面", page_opts, horizontal=True, index=0)
     jumped = st.session_state.get("_page") != page
     st.session_state["_page"] = page
     _inject_back_to_top(jump=jumped)
@@ -468,7 +472,7 @@ def main() -> None:
 
     st.divider()
     _render_family_metrics(metrics, key)
-    st.caption(f"產物產生時間（UTC）：{cards_payload.get('generated_at_utc', '—')}")
+    st.caption(f"產物產生時間：{_fmt_hkt(cards_payload.get('generated_at_utc'))}")
 
 
 def _render_family_metrics(metrics: dict, family: str) -> None:
@@ -659,12 +663,53 @@ def _round_money_cols(df: pd.DataFrame, cols: list[str]) -> pd.DataFrame:
     return out
 
 
+
+_HKT = ZoneInfo("Asia/Hong_Kong")
+
+
+def _fmt_hkt(ts) -> str:
+    """User-visible clock time in Asia/Hong_Kong; no timezone label."""
+    if ts is None or ts == "" or ts == "—":
+        return "—"
+    try:
+        s = str(ts).strip()
+        if s.endswith("Z"):
+            s = s[:-1] + "+00:00"
+        dt = datetime.fromisoformat(s)
+        if dt.tzinfo is None:
+            dt = dt.replace(tzinfo=timezone.utc)
+        return dt.astimezone(_HKT).strftime("%Y-%m-%d %H:%M:%S")
+    except (TypeError, ValueError):
+        return str(ts)
+
+
+def _enrich_plan_expected(rows: list[dict] | None, fx: float) -> list[dict]:
+    """Add expected_profit_hkd / expected_loss_hkd (fade to TP / stop distance)."""
+    out: list[dict] = []
+    fx = float(fx or 0)
+    for r in rows or []:
+        row = dict(r)
+        try:
+            shares = float(row.get("shares") or 0)
+            entry = float(row["entry"])
+            tp = float(row["tp"])
+            sl = float(row["sl"])
+        except (TypeError, ValueError, KeyError):
+            out.append(row)
+            continue
+        if shares > 0 and fx > 0:
+            row["expected_profit_hkd"] = round(shares * abs(tp - entry) * fx, 2)
+            row["expected_loss_hkd"] = round(shares * abs(sl - entry) * fx, 2)
+        out.append(row)
+    return out
+
+
 def _render_ledger() -> None:
     st.subheader("流水 · 三戶口賽馬")
     st.warning("紙上模擬，未接券商。三個模型同 VOO 基準各 HK$500,000。入場當日一定平倉，未中止盈／止損就用當日收市價出場，唔留過夜。")
     st.caption(
-        "對賬路徑：只認 America/New_York 常規時段 5 分鐘 bar；"
-        "觸價要喺 12:30 ET 之前先入場，之後先到價當錯過。"
+        "對賬路徑：只認美股常規時段 5 分鐘 bar；"
+        "觸價要喺美股 12:30 前入場，之後先到價當錯過。"
         "缺 5m、或者開市已穿過入場價，亦當錯過，不回退日 K。"
         "Nightly 先用磁碟上舊卡結算，再寫新卡；新卡要下一轉先入流水。"
         "當日 S&P 真實 Close 少過 90% 則 skip 結算同出卡。"
@@ -700,7 +745,12 @@ def _render_ledger() -> None:
         f"匯率 {float(acct.get('fx_hkd_per_usd') or 0):.3f} HKD/USD　·　"
         f"已實現時段 {len(ledger.get('realized_asofs') or [])}"
     )
-    st.caption(f"更新（UTC）：{ledger.get('updated_at_utc') or '尚未有實盤時段。下一個有新 bar 嘅 Nightly 會記第一筆。'}")
+    _upd = ledger.get("updated_at_utc")
+    st.caption(
+        f"更新：{_fmt_hkt(_upd)}"
+        if _upd
+        else "更新：尚未有實盤時段。下一個有新 bar 嘅 Nightly 會記第一筆。"
+    )
 
     st.markdown("#### 三族戶口")
     rows = []
@@ -784,9 +834,17 @@ def _render_ledger() -> None:
                 st.info("呢個模型呢份計劃冇入到書（觀望／分數太低／名義太細／超權益，或舊日未存計劃）。")
             else:
                 st.caption(f"{len(rows_p)} 隻入書。唔係錯過名單。")
+                fx = float(acct.get("fx_hkd_per_usd") or 0)
                 plan_df = _round_money_cols(
-                    pd.DataFrame(rows_p),
-                    ["entry", "tp", "sl", "notional_usd"],
+                    pd.DataFrame(_enrich_plan_expected(rows_p, fx)),
+                    [
+                        "entry",
+                        "tp",
+                        "sl",
+                        "notional_usd",
+                        "expected_profit_hkd",
+                        "expected_loss_hkd",
+                    ],
                 )
                 st.dataframe(plan_df, hide_index=True, use_container_width=True)
 
@@ -796,8 +854,8 @@ def _render_ledger() -> None:
         st.info("未有成交。美股下一個完整時段收市後，Nightly 會自動記帳。")
     else:
         st.caption(
-            "按模型分頁。出入場時間為 America/New_York（5 分鐘 bar）。"
-            "12:30 ET 或之後先到價、或缺 5m，唔入呢度。"
+            "按模型分頁。出入場時間為香港時間。"
+            "美股 12:30 或之後先到價、或缺 5m，唔入呢度。"
             "下面百分比係該族全部成交累計（唔係單日），分母＝該頁成交筆數。"
         )
 
@@ -892,8 +950,8 @@ def _render_ledger() -> None:
                         "shares": f.get("shares"),
                         "entry": _round2(f.get("entry")),
                         "exit": _round2(f.get("exit")),
-                        "入場時間": f.get("entry_ts") or "—",
-                        "出場時間": f.get("exit_ts") or "—",
+                        "入場時間": _fmt_hkt(f.get("entry_ts")),
+                        "出場時間": _fmt_hkt(f.get("exit_ts")),
                         "reason": f.get("reason"),
                         "fill_source": f.get("fill_source"),
                         "pnl_hkd": _round2(f.get("pnl_hkd")),
