@@ -975,14 +975,31 @@ def _render_ledger() -> None:
                 prev_eq[fam] = cur_f
             flat.append(row)
 
+        # Sessions with ≥1 ledger fill per trading family (shared/sector/stock).
+        # Flat equity days with no fills must not inflate the win-rate denominator.
+        _model_fams = ("shared", "sector", "stock")
+        active_sessions: dict[str, set] = {fam: set() for fam in _model_fams}
+        for f in fills:
+            fam = f.get("family")
+            sess = f.get("session")
+            if fam in active_sessions and sess:
+                active_sessions[fam].add(sess)
+
         def _daily_win_rate_stats(rows: list[dict]) -> dict[str, dict[str, int]]:
-            """Per-family green-day rate from daily pnl (same columns as the table)."""
+            """Per-family green-day rate; models use fill-active days only.
+
+            shared/sector/stock: score only sessions with ≥1 ledger fill for that
+            family (day PnL still from equity series). VOO is buy-and-hold — score
+            every day that has equity (all sessions after start / purchase).
+            """
             out: dict[str, dict[str, int]] = {}
             for fam in fam_order:
                 wins = scored = 0
                 for r in rows:
                     pnl = r.get(f"{fam}_pnl")
                     if pnl is None:
+                        continue
+                    if fam in _model_fams and r.get("session") not in active_sessions[fam]:
                         continue
                     scored += 1
                     if float(pnl) > 0:
@@ -996,7 +1013,7 @@ def _render_ledger() -> None:
             for fam in fam_order:
                 scored = int(stats[fam]["scored"])
                 if scored <= 0:
-                    continue  # e.g. VOO missing from equity series
+                    continue  # e.g. VOO missing, or model never filled
                 wins = int(stats[fam]["wins"])
                 pct = 100.0 * wins / scored
                 label = fam_win_labels[fam]
@@ -1008,7 +1025,11 @@ def _render_ledger() -> None:
                 )
             if not cells:
                 return
-            st.caption(f"Daily win rate · {len(days)} sessions")
+            # Models: n = days with ≥1 fill; VOO: all equity sessions (always in).
+            st.caption(
+                "Daily win rate · active days only "
+                "(n = fill days; VOO = all equity days)"
+            )
             # Same 2-up CSS grid as fill stats (Shared|Sector, Stock|VOO).
             st.markdown(
                 '<div style="display:grid;grid-template-columns:1fr 1fr;'
