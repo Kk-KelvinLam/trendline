@@ -803,6 +803,78 @@ def update_ledger() -> dict:
     return ledger
 
 
+_TP_SL_EXIT_REASONS = frozenset({"tp", "sl"})
+
+
+def index_fills_for_plan(
+    fills: list[dict] | None,
+    *,
+    family: str,
+    session: str | None = None,
+    asof: str | None = None,
+) -> dict[str, dict]:
+    """Map ticker → fill for one family+session (fallback: family+asof)."""
+    out: dict[str, dict] = {}
+    sess_s = str(session) if session not in (None, "") else None
+    asof_s = str(asof) if asof not in (None, "") else None
+    for f in fills or []:
+        if f.get("family") != family:
+            continue
+        if sess_s is not None:
+            if str(f.get("session") or "") != sess_s:
+                continue
+        elif asof_s is not None:
+            if str(f.get("asof") or "") != asof_s:
+                continue
+        else:
+            continue
+        ticker = f.get("ticker")
+        if ticker:
+            out[str(ticker)] = f
+    return out
+
+
+def enrich_plan_vs_actual(
+    rows: list[dict] | None,
+    fills_by_ticker: dict[str, dict] | None,
+) -> list[dict]:
+    """Add entry/tp/sl_vs_actual (signed USD price: exit − planned level, 2dp).
+
+    - Miss (no fill): all three None.
+    - Any fill: ``entry_vs_actual`` = exit − planned entry.
+    - Fill with reason tp/sl: leave ``tp_vs_actual`` / ``sl_vs_actual`` None
+      (hit already done).
+    - Other exits (close/flatten/…): also set tp/sl distances.
+    """
+    out: list[dict] = []
+    index = fills_by_ticker or {}
+    for r in rows or []:
+        row = dict(r)
+        row["entry_vs_actual"] = None
+        row["tp_vs_actual"] = None
+        row["sl_vs_actual"] = None
+        fill = index.get(str(row.get("ticker") or ""))
+        if not fill:
+            out.append(row)
+            continue
+        try:
+            exit_px = float(fill["exit"])
+            entry = float(row["entry"])
+            tp = float(row["tp"])
+            sl = float(row["sl"])
+        except (TypeError, ValueError, KeyError):
+            out.append(row)
+            continue
+        row["entry_vs_actual"] = round(exit_px - entry, 2)
+        reason = str(fill.get("reason") or "").lower()
+        if reason not in _TP_SL_EXIT_REASONS:
+            row["tp_vs_actual"] = round(exit_px - tp, 2)
+            row["sl_vs_actual"] = round(exit_px - sl, 2)
+        out.append(row)
+    return out
+
+
+
 def ledger_view(ledger: dict | None = None) -> dict:
     ledger = _ensure_books(ledger or load_ledger())
     fx = float(ledger["account"]["fx_hkd_per_usd"])

@@ -30,7 +30,7 @@ from trendline.config import (
     SCOREBOARD_PATH,
     LEDGER_PATH,
 )
-from trendline.ledger import ledger_view
+from trendline.ledger import enrich_plan_vs_actual, index_fills_for_plan, ledger_view
 from components.tl_widgets import pins_bridge
 
 
@@ -704,6 +704,32 @@ def _enrich_plan_expected(rows: list[dict] | None, fx: float) -> list[dict]:
     return out
 
 
+def _plan_table_column_order(df: pd.DataFrame) -> pd.DataFrame:
+    """Keep entry/tp/sl_vs_actual immediately after their planned price columns."""
+    preferred = [
+        "ticker",
+        "side",
+        "action",
+        "shares",
+        "entry",
+        "entry_vs_actual",
+        "tp",
+        "tp_vs_actual",
+        "sl",
+        "sl_vs_actual",
+        "notional_usd",
+        "expected_profit_hkd",
+        "expected_loss_hkd",
+        "weight",
+        "score",
+        "dvol_rank",
+        "mae_rank",
+    ]
+    cols = [c for c in preferred if c in df.columns]
+    cols += [c for c in df.columns if c not in cols]
+    return df[cols]
+
+
 def _render_ledger() -> None:
     st.subheader("流水 · 三戶口賽馬")
     st.warning("紙上模擬，未接券商。三個模型同 VOO 基準各 HK$500,000。入場當日一定平倉，未中止盈／止損就用當日收市價出場，唔留過夜。")
@@ -826,6 +852,13 @@ def _render_ledger() -> None:
             f"對賬 session {item.get('session')}。對下面成交流水嗰日。"
         )
     st.caption(head)
+    history_item = None if picked == "今期未對賬" else labels[picked]
+    fills_all = ledger.get("fills") or []
+    if history_item is not None:
+        st.caption(
+            "已對賬：entry/tp/sl_vs_actual = 實際出場 − 計劃價（USD，2dp）。"
+            "Miss 空白；TP/SL 打中唔顯示距離（只留 entry_vs_actual）。"
+        )
     tabs = st.tabs(["共用", "行業", "個股"])
     for tab, fam in zip(tabs, ("shared", "sector", "stock")):
         with tab:
@@ -835,17 +868,41 @@ def _render_ledger() -> None:
             else:
                 st.caption(f"{len(rows_p)} 隻入書。唔係錯過名單。")
                 fx = float(acct.get("fx_hkd_per_usd") or 0)
-                plan_df = _round_money_cols(
-                    pd.DataFrame(_enrich_plan_expected(rows_p, fx)),
-                    [
+                rows_enriched = _enrich_plan_expected(rows_p, fx)
+                money_cols = [
+                    "entry",
+                    "tp",
+                    "sl",
+                    "notional_usd",
+                    "expected_profit_hkd",
+                    "expected_loss_hkd",
+                ]
+                if history_item is not None:
+                    fmap = index_fills_for_plan(
+                        fills_all,
+                        family=fam,
+                        session=history_item.get("session"),
+                    )
+                    if not fmap and history_item.get("asof"):
+                        fmap = index_fills_for_plan(
+                            fills_all,
+                            family=fam,
+                            asof=history_item.get("asof"),
+                        )
+                    rows_enriched = enrich_plan_vs_actual(rows_enriched, fmap)
+                    money_cols = [
                         "entry",
+                        "entry_vs_actual",
                         "tp",
+                        "tp_vs_actual",
                         "sl",
+                        "sl_vs_actual",
                         "notional_usd",
                         "expected_profit_hkd",
                         "expected_loss_hkd",
-                    ],
-                )
+                    ]
+                plan_df = _round_money_cols(pd.DataFrame(rows_enriched), money_cols)
+                plan_df = _plan_table_column_order(plan_df)
                 st.dataframe(plan_df, hide_index=True, use_container_width=True)
 
     st.markdown("#### 成交流水")
