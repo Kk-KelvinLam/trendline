@@ -418,3 +418,19 @@ def test_index_fills_for_plan_asof_fallback():
     assert index_fills_for_plan(fills, family="stock", session="2026-09-18")["A"]["exit"] == 1.0
     assert index_fills_for_plan(fills, family="stock", asof="2026-09-17")["A"]["exit"] == 1.0
     assert index_fills_for_plan(fills, family="stock", session="2099-01-01") == {}
+
+def test_format_plan_distance_absolute_and_pct():
+    from trendline.ledger import format_plan_distance
+
+    assert format_plan_distance(-15.01, 492.1311475409836) == "-15.01 (−3.05%)"
+    assert format_plan_distance(2.90, 400.0) == "+2.90 (+0.72%)"
+    assert format_plan_distance(0.0, 100.0) == "+0.00 (+0.00%)"
+    assert format_plan_distance(None, 100.0) is None
+    assert format_plan_distance(float("nan"), 100.0) is None
+    # Missing / zero reference: signed absolute only, still blank on None distance.
+    assert format_plan_distance(-1.5, None) == "-1.50"
+    assert format_plan_distance(-1.5, 0) == "-1.50"
+    # Enrich still returns floats; display helper is separate.
+    assert format_plan_distance(-0.6, 100.0) == "-0.60 (−0.60%)"
+    assert format_plan_distance(-0.75, 52.0) == "-0.75 (−1.44%)"
+

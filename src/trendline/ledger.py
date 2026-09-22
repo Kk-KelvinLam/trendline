@@ -944,6 +944,34 @@ def enrich_plan_vs_actual(
     return out
 
 
+def format_plan_distance(distance, reference) -> str | None:
+    """Format plan-vs-actual distance as ``+2.90 (+0.72%)`` / ``-15.01 (−3.05%)``.
+
+    Display helper only: ``enrich_plan_vs_actual`` keeps floats for tests.
+    Percentage = distance / planned reference * 100 (2dp). Blank when distance
+    is None/NaN. If reference is missing/zero/NaN, show signed absolute only.
+    """
+    if distance is None:
+        return None
+    try:
+        dist = float(distance)
+    except (TypeError, ValueError):
+        return None
+    if dist != dist:  # NaN
+        return None
+    abs_part = f"{dist:+.2f}"
+    try:
+        ref = float(reference)
+    except (TypeError, ValueError):
+        return abs_part
+    if ref != ref or ref == 0:
+        return abs_part
+    pct = dist / ref * 100.0
+    if pct >= 0:
+        return f"{abs_part} (+{pct:.2f}%)"
+    # U+2212 MINUS SIGN matches the UI examples for negative percentages.
+    return f"{abs_part} (−{abs(pct):.2f}%)"
+
 
 def ledger_view(ledger: dict | None = None) -> dict:
     ledger = _ensure_books(ledger or load_ledger())
