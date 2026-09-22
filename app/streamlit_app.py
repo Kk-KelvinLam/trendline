@@ -30,7 +30,7 @@ from trendline.config import (
     SCOREBOARD_PATH,
     LEDGER_PATH,
 )
-from trendline.ledger import enrich_plan_vs_actual, index_fills_for_plan, ledger_view
+from trendline.ledger import enrich_plan_vs_actual, index_fills_for_plan, index_session_actuals, ledger_view
 from components.tl_widgets import pins_bridge
 
 
@@ -501,7 +501,7 @@ def _render_family_metrics(metrics: dict, family: str) -> None:
                     "覆蓋 q10–q90": mm.get("coverage"),
                 }
             )
-        st.dataframe(pd.DataFrame(rows), hide_index=True, use_container_width=True)
+        _st_dataframe(pd.DataFrame(rows), hide_index=True, use_container_width=True)
     elif family == "shared":
         m = metrics.get("model", {})
         b = metrics.get("baseline", {})
@@ -518,7 +518,7 @@ def _render_family_metrics(metrics: dict, family: str) -> None:
                     "覆蓋 q10–q90": mm.get("coverage_q10_q90"),
                 }
             )
-        st.dataframe(pd.DataFrame(rows), hide_index=True, use_container_width=True)
+        _st_dataframe(pd.DataFrame(rows), hide_index=True, use_container_width=True)
 
     if family == "shared":
         tr = metrics.get("trading", {})
@@ -555,7 +555,7 @@ def _render_scoreboard(metrics: dict | None, scoreboard: dict | None) -> None:
                     "Close MAPE": (block.get("close") or {}).get("mape_px"),
                 }
             )
-        st.dataframe(pd.DataFrame(rows), hide_index=True, use_container_width=True)
+        _st_dataframe(pd.DataFrame(rows), hide_index=True, use_container_width=True)
         return
 
     if scoreboard is None:
@@ -593,7 +593,7 @@ def _render_scoreboard(metrics: dict | None, scoreboard: dict | None) -> None:
         }
     )
     st.markdown("#### 整體")
-    st.dataframe(pd.DataFrame(rows), hide_index=True, use_container_width=True)
+    _st_dataframe(pd.DataFrame(rows), hide_index=True, use_container_width=True)
 
     # Fold-by-fold
     st.markdown("#### 各摺疊 High / Low / Close MAE$")
@@ -616,12 +616,12 @@ def _render_scoreboard(metrics: dict | None, scoreboard: dict | None) -> None:
             row[f"基準{short}"] = ((br.get(tgt) or {}).get("mae_px"))
         fold_rows.append(row)
     if fold_rows:
-        st.dataframe(pd.DataFrame(fold_rows), hide_index=True, use_container_width=True)
+        _st_dataframe(pd.DataFrame(fold_rows), hide_index=True, use_container_width=True)
 
     logs = scoreboard.get("fold_logs") or (metrics or {}).get("folds") or []
     if logs:
         with st.expander("Walk-forward 摺疊設定"):
-            st.dataframe(pd.DataFrame(logs), hide_index=True, use_container_width=True)
+            _st_dataframe(pd.DataFrame(logs), hide_index=True, use_container_width=True)
 
 
 def _fmt_hkd(x) -> str:
@@ -661,6 +661,68 @@ def _round_money_cols(df: pd.DataFrame, cols: list[str]) -> pd.DataFrame:
         if c in out.columns:
             out[c] = out[c].map(_round2)
     return out
+
+
+def _freeze_first_column(df: pd.DataFrame) -> pd.DataFrame:
+    """Promote the first data column so Glide Data Grid keeps it as a frozen header.
+
+    Streamlit's column_config pinned=True needs Streamlit >=1.41; this project
+    only requires >=1.32. Showing a named index with hide_index=False is the
+    reliable freeze on mobile horizontal scroll. Do not duplicate the column.
+    """
+    if df is None or not isinstance(df, pd.DataFrame):
+        return pd.DataFrame()
+    out = df.copy()
+    if out.empty:
+        return out
+    # Transposed / already-indexed tables: keep that index as the frozen column.
+    if not isinstance(out.index, pd.RangeIndex) or out.index.name is not None:
+        return out
+    first = out.columns[0]
+    frozen = out.set_index(first, drop=True)
+    frozen.index.name = first
+    return frozen
+
+
+def _st_dataframe(data, **kwargs):
+    """All user-facing tables: freeze the first column during horizontal scroll."""
+    df = data if isinstance(data, pd.DataFrame) else pd.DataFrame(data)
+    kwargs.pop("hide_index", None)
+    return st.dataframe(_freeze_first_column(df), hide_index=False, **kwargs)
+
+
+def _session_actuals_for_plan(history_item: dict, tickers: list[str]) -> dict[str, dict]:
+    """Best-effort session OHLC for miss-vs-entry. Prefer ledger extras, else parquet."""
+    stored = history_item.get("actuals") or {}
+    session = history_item.get("session")
+    have = {
+        str(k)
+        for k, rec in stored.items()
+        if isinstance(rec, dict) and rec.get("close") not in (None, "")
+    }
+    missing = [t for t in tickers if t and str(t) not in have]
+    ohlcv = None
+    if missing and session:
+        # Streamlit does not keep OHLCV in memory; load once per page if needed.
+        ohlcv = _cached_ohlcv()
+    return index_session_actuals(stored, tickers=tickers, session=session, ohlcv=ohlcv)
+
+
+def _cached_ohlcv():
+    """Load daily parquet if present; skip (None) when the file is missing/unreadable."""
+    cached = st.session_state.get("_tl_ohlcv")
+    if cached is not None or st.session_state.get("_tl_ohlcv_tried"):
+        return cached
+    st.session_state["_tl_ohlcv_tried"] = True
+    try:
+        from trendline.data.store import load_ohlcv
+
+        ohlcv = load_ohlcv()
+    except Exception:
+        # No parquet in this process (typical slim deploy); miss distances stay blank.
+        ohlcv = None
+    st.session_state["_tl_ohlcv"] = ohlcv
+    return ohlcv
 
 
 
@@ -818,7 +880,7 @@ def _render_ledger() -> None:
         acct_df,
         ["權益HKD", "損益HKD", "High MAE$", "Low MAE$", "Close MAE$"],
     )
-    st.dataframe(acct_df, hide_index=True, use_container_width=True)
+    _st_dataframe(acct_df, hide_index=True, use_container_width=True)
 
     st.markdown("#### 下一轉計劃（已 sizing，最多 20 隻）")
     planned_now = view.get("planned") or {}
@@ -856,8 +918,9 @@ def _render_ledger() -> None:
     fills_all = ledger.get("fills") or []
     if history_item is not None:
         st.caption(
-            "已對賬：entry/tp/sl_vs_actual = 實際出場 − 計劃價（USD，2dp）。"
-            "Miss 空白；TP/SL 打中唔顯示距離（只留 entry_vs_actual）。"
+            "已對賬距離（USD，2dp）：錯過＝當日收市 − 計劃入場；"
+            "已入場但收市平倉＝出場 − 計劃 TP/SL；"
+            "已打中 TP/SL 唔顯示距離。"
         )
     tabs = st.tabs(["共用", "行業", "個股"])
     for tab, fam in zip(tabs, ("shared", "sector", "stock")):
@@ -889,7 +952,11 @@ def _render_ledger() -> None:
                             family=fam,
                             asof=history_item.get("asof"),
                         )
-                    rows_enriched = enrich_plan_vs_actual(rows_enriched, fmap)
+                    actuals = _session_actuals_for_plan(
+                        history_item,
+                        [str(r.get("ticker") or "") for r in rows_enriched],
+                    )
+                    rows_enriched = enrich_plan_vs_actual(rows_enriched, fmap, actuals)
                     money_cols = [
                         "entry",
                         "entry_vs_actual",
@@ -903,7 +970,7 @@ def _render_ledger() -> None:
                     ]
                 plan_df = _round_money_cols(pd.DataFrame(rows_enriched), money_cols)
                 plan_df = _plan_table_column_order(plan_df)
-                st.dataframe(plan_df, hide_index=True, use_container_width=True)
+                _st_dataframe(plan_df, hide_index=True, use_container_width=True)
 
     st.markdown("#### 成交流水")
     fills = ledger.get("fills") or []
@@ -1050,7 +1117,7 @@ def _render_ledger() -> None:
                     # New Streamlit rejects height=None; only pin height when truncated.
                     if n_total > _FILL_TABLE_DEFAULT and not show_all:
                         df_kwargs["height"] = _FILL_TABLE_HEIGHT
-                    st.dataframe(pd.DataFrame(_fill_rows(visible)), **df_kwargs)
+                    _st_dataframe(pd.DataFrame(_fill_rows(visible)), **df_kwargs)
 
     days = ledger.get("days") or []
     if days:
@@ -1158,7 +1225,7 @@ def _render_ledger() -> None:
         day_cols = ["session", "asof"] + [
             f"{fam}_{kind}" for fam in fam_order for kind in ("equity", "pnl")
         ]
-        st.dataframe(pd.DataFrame(flat)[day_cols], hide_index=True, use_container_width=True)
+        _st_dataframe(pd.DataFrame(flat)[day_cols], hide_index=True, use_container_width=True)
 
 
 
@@ -1378,7 +1445,7 @@ def _render_pinned() -> None:
                     st.info("無此卡片")
                     continue
                 row = _comparison_row(card)
-                st.dataframe(
+                _st_dataframe(
                     pd.DataFrame([row]).T.rename(columns={0: "值"}),
                     use_container_width=True,
                     height=420,

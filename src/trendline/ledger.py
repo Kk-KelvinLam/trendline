@@ -671,7 +671,14 @@ def realize_once(
         except Exception:
             bars_by_ticker = {}
 
-    day = {"asof": asof_s, "session": session, "families": {}, "equity_hkd": {}}
+    day = {
+        "asof": asof_s,
+        "session": session,
+        "families": {},
+        "equity_hkd": {},
+        # Realized daily bar for miss-vs-entry on plan history (no Streamlit OHLCV needed).
+        "actuals": {},
+    }
 
     for fam, path in FAMILY_PATHS.items():
         payload = payloads.get(fam) or _read_cards(path)
@@ -692,6 +699,14 @@ def realize_once(
                 continue
             bars = (bars_by_ticker or {}).get(card["ticker"])
             scored = _score_card(card, bar, bars=bars)
+            day["actuals"].setdefault(
+                card["ticker"],
+                {
+                    "high": scored["actual_high"],
+                    "low": scored["actual_low"],
+                    "close": scored["actual_close"],
+                },
+            )
             n_fc += 1
             abs_h += scored["err_high"]
             abs_l += scored["err_low"]
@@ -803,9 +818,6 @@ def update_ledger() -> dict:
     return ledger
 
 
-_TP_SL_EXIT_REASONS = frozenset({"tp", "sl"})
-
-
 def index_fills_for_plan(
     fills: list[dict] | None,
     *,
@@ -834,42 +846,100 @@ def index_fills_for_plan(
     return out
 
 
+def index_session_actuals(
+    stored: dict | None,
+    *,
+    tickers: list[str] | None = None,
+    session: str | None = None,
+    ohlcv: pd.DataFrame | None = None,
+) -> dict[str, dict]:
+    """Ticker → {high, low, close} for one session.
+
+    Prefer ``stored`` extras from ``ledger.days[*].actuals``. Fill gaps from
+    ``ohlcv`` when provided. Does not load parquet itself.
+    """
+    out: dict[str, dict] = {}
+    for key, rec in (stored or {}).items():
+        if not key:
+            continue
+        if isinstance(rec, dict):
+            out[str(key)] = rec
+        else:
+            try:
+                out[str(key)] = {"close": float(rec)}
+            except (TypeError, ValueError):
+                continue
+    if ohlcv is None or ohlcv.empty or not session:
+        return out
+    wanted = {str(t) for t in (tickers or []) if t} or None
+    try:
+        sess = pd.Timestamp(session).tz_localize(None).normalize()
+        g = ohlcv.copy()
+        g["date"] = pd.to_datetime(g["date"]).dt.tz_localize(None).dt.normalize()
+        g = g[g["date"] == sess]
+        if wanted is not None:
+            g = g[g["ticker"].astype(str).isin(wanted)]
+        for rec in g.itertuples(index=False):
+            ticker = str(getattr(rec, "ticker"))
+            if ticker in out and out[ticker].get("close") not in (None, ""):
+                continue
+            out[ticker] = {
+                "high": getattr(rec, "high", None),
+                "low": getattr(rec, "low", None),
+                "close": getattr(rec, "close", None),
+            }
+    except (TypeError, ValueError, AttributeError):
+        return out
+    return out
+
+
 def enrich_plan_vs_actual(
     rows: list[dict] | None,
     fills_by_ticker: dict[str, dict] | None,
+    actuals_by_ticker: dict[str, dict] | None = None,
 ) -> list[dict]:
-    """Add entry/tp/sl_vs_actual (signed USD price: exit − planned level, 2dp).
+    """Add signed USD distances only for unfinished plan outcomes (2dp).
 
-    - Miss (no fill): all three None.
-    - Any fill: ``entry_vs_actual`` = exit − planned entry.
-    - Fill with reason tp/sl: leave ``tp_vs_actual`` / ``sl_vs_actual`` None
-      (hit already done).
-    - Other exits (close/flatten/…): also set tp/sl distances.
+    Formulas (documented choice):
+    - Miss (no fill): ``entry_vs_actual`` = session close − planned entry.
+      Session close comes from realize extras / injected OHLC. Blank if missing.
+      (Close vs entry, not closest excursion / high-low.)
+    - Filled + reason == close: ``tp_vs_actual`` = exit − planned TP,
+      ``sl_vs_actual`` = exit − planned SL. Entry distance stays blank
+      (they did enter).
+    - Filled + reason in {tp, sl} (or any other reason): all three blank.
     """
     out: list[dict] = []
-    index = fills_by_ticker or {}
+    fills_index = fills_by_ticker or {}
+    actuals_index = actuals_by_ticker or {}
     for r in rows or []:
         row = dict(r)
         row["entry_vs_actual"] = None
         row["tp_vs_actual"] = None
         row["sl_vs_actual"] = None
-        fill = index.get(str(row.get("ticker") or ""))
+        ticker = str(row.get("ticker") or "")
+        fill = fills_index.get(ticker)
         if not fill:
+            actual = actuals_index.get(ticker) or {}
+            close = actual.get("close") if isinstance(actual, dict) else actual
+            try:
+                row["entry_vs_actual"] = round(float(close) - float(row["entry"]), 2)
+            except (TypeError, ValueError, KeyError):
+                pass
+            out.append(row)
+            continue
+        if str(fill.get("reason") or "").lower() != "close":
             out.append(row)
             continue
         try:
             exit_px = float(fill["exit"])
-            entry = float(row["entry"])
             tp = float(row["tp"])
             sl = float(row["sl"])
         except (TypeError, ValueError, KeyError):
             out.append(row)
             continue
-        row["entry_vs_actual"] = round(exit_px - entry, 2)
-        reason = str(fill.get("reason") or "").lower()
-        if reason not in _TP_SL_EXIT_REASONS:
-            row["tp_vs_actual"] = round(exit_px - tp, 2)
-            row["sl_vs_actual"] = round(exit_px - sl, 2)
+        row["tp_vs_actual"] = round(exit_px - tp, 2)
+        row["sl_vs_actual"] = round(exit_px - sl, 2)
         out.append(row)
     return out
 
@@ -897,6 +967,7 @@ def ledger_view(ledger: dict | None = None) -> dict:
                 "asof": day.get("asof"),
                 "session": day.get("session"),
                 "families": {fam: (fams.get(fam) or {}).get("planned") or [] for fam in FAMILY_PATHS},
+                "actuals": day.get("actuals") or {},
             }
         )
     return {
