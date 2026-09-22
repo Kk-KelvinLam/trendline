@@ -338,3 +338,61 @@ def test_fewer_names_raise_name_risk():
     assert max(r["risk_frac"] for r in few_rows) > max(r["risk_frac"] for r in many_rows)
     assert sum(r["risk_frac"] for r in few_rows) <= 0.05 + 1e-6
     assert sum(r["risk_frac"] for r in many_rows) <= 0.05 + 1e-6
+
+
+def test_enrich_plan_vs_actual_miss_close_and_tp():
+    from trendline.ledger import enrich_plan_vs_actual, index_fills_for_plan
+
+    rows = [
+        {"ticker": "MISS", "entry": 100.0, "tp": 98.0, "sl": 103.0},
+        {"ticker": "CLS", "entry": 50.0, "tp": 52.0, "sl": 48.0},
+        {"ticker": "HIT", "entry": 10.0, "tp": 11.0, "sl": 9.0},
+    ]
+    fills = [
+        {
+            "family": "shared",
+            "session": "2026-09-18",
+            "asof": "2026-09-17",
+            "ticker": "CLS",
+            "exit": 51.25,
+            "reason": "close",
+        },
+        {
+            "family": "shared",
+            "session": "2026-09-18",
+            "asof": "2026-09-17",
+            "ticker": "HIT",
+            "exit": 11.0,
+            "reason": "tp",
+        },
+        {
+            "family": "sector",
+            "session": "2026-09-18",
+            "ticker": "CLS",
+            "exit": 99.0,
+            "reason": "close",
+        },
+    ]
+    fmap = index_fills_for_plan(fills, family="shared", session="2026-09-18")
+    assert set(fmap) == {"CLS", "HIT"}
+    out = {r["ticker"]: r for r in enrich_plan_vs_actual(rows, fmap)}
+    assert out["MISS"]["entry_vs_actual"] is None
+    assert out["MISS"]["tp_vs_actual"] is None
+    assert out["MISS"]["sl_vs_actual"] is None
+    assert out["CLS"]["entry_vs_actual"] == 1.25
+    assert out["CLS"]["tp_vs_actual"] == -0.75
+    assert out["CLS"]["sl_vs_actual"] == 3.25
+    assert out["HIT"]["entry_vs_actual"] == 1.0
+    assert out["HIT"]["tp_vs_actual"] is None
+    assert out["HIT"]["sl_vs_actual"] is None
+
+
+def test_index_fills_for_plan_asof_fallback():
+    from trendline.ledger import index_fills_for_plan
+
+    fills = [
+        {"family": "stock", "asof": "2026-09-17", "session": "2026-09-18", "ticker": "A", "exit": 1.0},
+    ]
+    assert index_fills_for_plan(fills, family="stock", session="2026-09-18")["A"]["exit"] == 1.0
+    assert index_fills_for_plan(fills, family="stock", asof="2026-09-17")["A"]["exit"] == 1.0
+    assert index_fills_for_plan(fills, family="stock", session="2099-01-01") == {}
