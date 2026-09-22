@@ -30,7 +30,13 @@ from trendline.config import (
     SCOREBOARD_PATH,
     LEDGER_PATH,
 )
-from trendline.ledger import enrich_plan_vs_actual, index_fills_for_plan, index_session_actuals, ledger_view
+from trendline.ledger import (
+    enrich_plan_vs_actual,
+    format_plan_distance,
+    index_fills_for_plan,
+    index_session_actuals,
+    ledger_view,
+)
 from components.tl_widgets import pins_bridge
 
 
@@ -792,6 +798,27 @@ def _plan_table_column_order(df: pd.DataFrame) -> pd.DataFrame:
     return df[cols]
 
 
+def _format_plan_distance_cols(df: pd.DataFrame) -> pd.DataFrame:
+    """Replace entry/tp/sl_vs_actual floats with absolute+% display strings."""
+    out = df.copy()
+    pairs = (
+        ("entry_vs_actual", "entry"),
+        ("tp_vs_actual", "tp"),
+        ("sl_vs_actual", "sl"),
+    )
+    for dist_col, ref_col in pairs:
+        if dist_col not in out.columns:
+            continue
+        if ref_col in out.columns:
+            out[dist_col] = [
+                format_plan_distance(d, r)
+                for d, r in zip(out[dist_col], out[ref_col], strict=True)
+            ]
+        else:
+            out[dist_col] = [format_plan_distance(d, None) for d in out[dist_col]]
+    return out
+
+
 def _render_ledger() -> None:
     st.subheader("流水 · 三戶口賽馬")
     st.warning("紙上模擬，未接券商。三個模型同 VOO 基準各 HK$500,000。入場當日一定平倉，未中止盈／止損就用當日收市價出場，唔留過夜。")
@@ -918,8 +945,9 @@ def _render_ledger() -> None:
     fills_all = ledger.get("fills") or []
     if history_item is not None:
         st.caption(
-            "已對賬距離（USD，2dp）：錯過＝當日收市 − 計劃入場；"
-            "已入場但收市平倉＝出場 − 計劃 TP/SL；"
+            "已對賬距離：每格 USD（2dp）+ 相對計劃價 %（2dp）。"
+            "錯過＝當日收市 − 計劃入場（% 對計劃入場）；"
+            "已入場但收市平倉＝出場 − 計劃 TP/SL（% 對計劃 TP/SL）；"
             "已打中 TP/SL 唔顯示距離。"
         )
     tabs = st.tabs(["共用", "行業", "個股"])
@@ -957,18 +985,11 @@ def _render_ledger() -> None:
                         [str(r.get("ticker") or "") for r in rows_enriched],
                     )
                     rows_enriched = enrich_plan_vs_actual(rows_enriched, fmap, actuals)
-                    money_cols = [
-                        "entry",
-                        "entry_vs_actual",
-                        "tp",
-                        "tp_vs_actual",
-                        "sl",
-                        "sl_vs_actual",
-                        "notional_usd",
-                        "expected_profit_hkd",
-                        "expected_loss_hkd",
-                    ]
                 plan_df = _round_money_cols(pd.DataFrame(rows_enriched), money_cols)
+                if history_item is not None:
+                    # Format after money rounding so entry/tp/sl stay numeric 2dp;
+                    # distance cells become absolute+% strings (blank stays blank).
+                    plan_df = _format_plan_distance_cols(plan_df)
                 plan_df = _plan_table_column_order(plan_df)
                 _st_dataframe(plan_df, hide_index=True, use_container_width=True)
 
