@@ -282,6 +282,7 @@ def test_realize_stores_planned_snapshot(monkeypatch):
     planned = ((out["days"][0].get("families") or {}).get("shared") or {}).get("planned") or []
     assert planned and planned[0]["ticker"] == "AAA"
     assert planned[0]["shares"] >= 1
+    assert out["days"][0]["actuals"]["AAA"]["close"] == 99.0
 
 
 def test_skips_poor_mae_rank():
@@ -341,12 +342,13 @@ def test_fewer_names_raise_name_risk():
 
 
 def test_enrich_plan_vs_actual_miss_close_and_tp():
-    from trendline.ledger import enrich_plan_vs_actual, index_fills_for_plan
+    from trendline.ledger import enrich_plan_vs_actual, index_fills_for_plan, index_session_actuals
 
     rows = [
         {"ticker": "MISS", "entry": 100.0, "tp": 98.0, "sl": 103.0},
         {"ticker": "CLS", "entry": 50.0, "tp": 52.0, "sl": 48.0},
         {"ticker": "HIT", "entry": 10.0, "tp": 11.0, "sl": 9.0},
+        {"ticker": "NOBAR", "entry": 20.0, "tp": 21.0, "sl": 19.0},
     ]
     fills = [
         {
@@ -375,14 +377,34 @@ def test_enrich_plan_vs_actual_miss_close_and_tp():
     ]
     fmap = index_fills_for_plan(fills, family="shared", session="2026-09-18")
     assert set(fmap) == {"CLS", "HIT"}
-    out = {r["ticker"]: r for r in enrich_plan_vs_actual(rows, fmap)}
-    assert out["MISS"]["entry_vs_actual"] is None
+    actuals = index_session_actuals(
+        {"MISS": {"high": 101.5, "low": 99.2, "close": 99.4}},
+        tickers=["MISS", "NOBAR"],
+        session="2026-09-18",
+        ohlcv=pd.DataFrame(
+            [
+                {
+                    "date": "2026-09-18",
+                    "ticker": "NOBAR",
+                    "high": 21.0,
+                    "low": 19.5,
+                    "close": 20.75,
+                }
+            ]
+        ),
+    )
+    out = {r["ticker"]: r for r in enrich_plan_vs_actual(rows, fmap, actuals)}
+    # Miss: session close − planned entry. No tp/sl distance.
+    assert out["MISS"]["entry_vs_actual"] == -0.6
     assert out["MISS"]["tp_vs_actual"] is None
     assert out["MISS"]["sl_vs_actual"] is None
-    assert out["CLS"]["entry_vs_actual"] == 1.25
+    assert out["NOBAR"]["entry_vs_actual"] == 0.75
+    # Flattened at close: unfinished TP/SL, hide entry (they did enter).
+    assert out["CLS"]["entry_vs_actual"] is None
     assert out["CLS"]["tp_vs_actual"] == -0.75
     assert out["CLS"]["sl_vs_actual"] == 3.25
-    assert out["HIT"]["entry_vs_actual"] == 1.0
+    # TP/SL already done: no distance columns.
+    assert out["HIT"]["entry_vs_actual"] is None
     assert out["HIT"]["tp_vs_actual"] is None
     assert out["HIT"]["sl_vs_actual"] is None
 
@@ -396,3 +418,19 @@ def test_index_fills_for_plan_asof_fallback():
     assert index_fills_for_plan(fills, family="stock", session="2026-09-18")["A"]["exit"] == 1.0
     assert index_fills_for_plan(fills, family="stock", asof="2026-09-17")["A"]["exit"] == 1.0
     assert index_fills_for_plan(fills, family="stock", session="2099-01-01") == {}
+
+def test_format_plan_distance_absolute_and_pct():
+    from trendline.ledger import format_plan_distance
+
+    assert format_plan_distance(-15.01, 492.1311475409836) == "-15.01 (−3.05%)"
+    assert format_plan_distance(2.90, 400.0) == "+2.90 (+0.72%)"
+    assert format_plan_distance(0.0, 100.0) == "+0.00 (+0.00%)"
+    assert format_plan_distance(None, 100.0) is None
+    assert format_plan_distance(float("nan"), 100.0) is None
+    # Missing / zero reference: signed absolute only, still blank on None distance.
+    assert format_plan_distance(-1.5, None) == "-1.50"
+    assert format_plan_distance(-1.5, 0) == "-1.50"
+    # Enrich still returns floats; display helper is separate.
+    assert format_plan_distance(-0.6, 100.0) == "-0.60 (−0.60%)"
+    assert format_plan_distance(-0.75, 52.0) == "-0.75 (−1.44%)"
+
