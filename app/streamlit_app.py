@@ -882,7 +882,7 @@ def _render_ledger() -> None:
     )
     _st_dataframe(acct_df, hide_index=True, use_container_width=True)
 
-    st.markdown("#### 下一轉計劃（已 sizing，最多 20 隻）")
+    st.markdown("#### 下一轉計劃")
     planned_now = view.get("planned") or {}
     asofs = view.get("cards_asof") or {}
     history = list(view.get("plan_history") or [])
