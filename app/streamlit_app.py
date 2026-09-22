@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 import sys
+from datetime import datetime, timezone
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
@@ -28,7 +30,7 @@ from trendline.config import (
     SCOREBOARD_PATH,
     LEDGER_PATH,
 )
-from trendline.ledger import ledger_view
+from trendline.ledger import enrich_plan_vs_actual, index_fills_for_plan, ledger_view
 from components.tl_widgets import pins_bridge
 
 
@@ -37,12 +39,12 @@ st.set_page_config(page_title="Trendline · 美股翌日預測", page_icon="📈
 DISCLAIMER = "本頁為量化模型輸出，並非投資建議。過往回測不代表未來表現。Model output, not investment advice."
 
 FAMILY_PAGES = {
+    "流水": ("ledger", None),
     "共用模型": ("shared", CARDS_SHARED_PATH),
     "行業模型": ("sector", CARDS_SECTOR_PATH),
     "個股模型": ("stock", CARDS_STOCK_PATH),
     "釘選對照": ("pinned", None),
     "計分板": ("scoreboard", None),
-    "流水": ("ledger", None),
 }
 
 FAMILY_LABELS = (("shared", "共用"), ("sector", "行業"), ("stock", "個股"))
@@ -379,7 +381,9 @@ def main() -> None:
     st.caption("美股收市後 · 盤中觸價淡區間（止盈前收）。S&P 500 全數訓練 / 顯示當日成交額最大 100 隻；入書另要全市場 MAE 排名 ≤ 200")
     st.warning(DISCLAIMER)
 
-    page = st.radio("頁面", list(FAMILY_PAGES.keys()), horizontal=True)
+    page_opts = list(FAMILY_PAGES.keys())
+    # Landing page: 流水 / ledger (first in FAMILY_PAGES).
+    page = st.radio("頁面", page_opts, horizontal=True, index=0)
     jumped = st.session_state.get("_page") != page
     st.session_state["_page"] = page
     _inject_back_to_top(jump=jumped)
@@ -468,7 +472,7 @@ def main() -> None:
 
     st.divider()
     _render_family_metrics(metrics, key)
-    st.caption(f"產物產生時間（UTC）：{cards_payload.get('generated_at_utc', '—')}")
+    st.caption(f"產物產生時間：{_fmt_hkt(cards_payload.get('generated_at_utc'))}")
 
 
 def _render_family_metrics(metrics: dict, family: str) -> None:
@@ -623,7 +627,7 @@ def _render_scoreboard(metrics: dict | None, scoreboard: dict | None) -> None:
 def _fmt_hkd(x) -> str:
     if x is None or (isinstance(x, float) and pd.isna(x)):
         return "—"
-    return f"HK${x:,.0f}"
+    return f"HK${float(x):,.2f}"
 
 
 def _fmt_hkd_delta(x) -> str | None:
@@ -634,15 +638,104 @@ def _fmt_hkd_delta(x) -> str | None:
     if val == 0:
         return None
     sign = "-" if val < 0 else ""
-    return f"{sign}HK${abs(val):,.0f}"
+    return f"{sign}HK${abs(val):,.2f}"
+
+
+def _round2(x):
+    """Round money/price values to 2 dp for ledger tables; pass through non-numerics."""
+    if x is None or (isinstance(x, float) and pd.isna(x)):
+        return None
+    if x == "—":
+        return "—"
+    if isinstance(x, str):
+        return x
+    try:
+        return round(float(x), 2)
+    except (TypeError, ValueError):
+        return x
+
+
+def _round_money_cols(df: pd.DataFrame, cols: list[str]) -> pd.DataFrame:
+    out = df.copy()
+    for c in cols:
+        if c in out.columns:
+            out[c] = out[c].map(_round2)
+    return out
+
+
+
+_HKT = ZoneInfo("Asia/Hong_Kong")
+
+
+def _fmt_hkt(ts) -> str:
+    """User-visible clock time in Asia/Hong_Kong; no timezone label."""
+    if ts is None or ts == "" or ts == "—":
+        return "—"
+    try:
+        s = str(ts).strip()
+        if s.endswith("Z"):
+            s = s[:-1] + "+00:00"
+        dt = datetime.fromisoformat(s)
+        if dt.tzinfo is None:
+            dt = dt.replace(tzinfo=timezone.utc)
+        return dt.astimezone(_HKT).strftime("%Y-%m-%d %H:%M:%S")
+    except (TypeError, ValueError):
+        return str(ts)
+
+
+def _enrich_plan_expected(rows: list[dict] | None, fx: float) -> list[dict]:
+    """Add expected_profit_hkd / expected_loss_hkd (fade to TP / stop distance)."""
+    out: list[dict] = []
+    fx = float(fx or 0)
+    for r in rows or []:
+        row = dict(r)
+        try:
+            shares = float(row.get("shares") or 0)
+            entry = float(row["entry"])
+            tp = float(row["tp"])
+            sl = float(row["sl"])
+        except (TypeError, ValueError, KeyError):
+            out.append(row)
+            continue
+        if shares > 0 and fx > 0:
+            row["expected_profit_hkd"] = round(shares * abs(tp - entry) * fx, 2)
+            row["expected_loss_hkd"] = round(shares * abs(sl - entry) * fx, 2)
+        out.append(row)
+    return out
+
+
+def _plan_table_column_order(df: pd.DataFrame) -> pd.DataFrame:
+    """Keep entry/tp/sl_vs_actual immediately after their planned price columns."""
+    preferred = [
+        "ticker",
+        "side",
+        "action",
+        "shares",
+        "entry",
+        "entry_vs_actual",
+        "tp",
+        "tp_vs_actual",
+        "sl",
+        "sl_vs_actual",
+        "notional_usd",
+        "expected_profit_hkd",
+        "expected_loss_hkd",
+        "weight",
+        "score",
+        "dvol_rank",
+        "mae_rank",
+    ]
+    cols = [c for c in preferred if c in df.columns]
+    cols += [c for c in df.columns if c not in cols]
+    return df[cols]
 
 
 def _render_ledger() -> None:
     st.subheader("流水 · 三戶口賽馬")
     st.warning("紙上模擬，未接券商。三個模型同 VOO 基準各 HK$500,000。入場當日一定平倉，未中止盈／止損就用當日收市價出場，唔留過夜。")
     st.caption(
-        "對賬路徑：只認 America/New_York 常規時段 5 分鐘 bar；"
-        "觸價要喺 12:30 ET 之前先入場，之後先到價當錯過。"
+        "對賬路徑：只認美股常規時段 5 分鐘 bar；"
+        "觸價要喺美股 12:30 前入場，之後先到價當錯過。"
         "缺 5m、或者開市已穿過入場價，亦當錯過，不回退日 K。"
         "Nightly 先用磁碟上舊卡結算，再寫新卡；新卡要下一轉先入流水。"
         "當日 S&P 真實 Close 少過 90% 則 skip 結算同出卡。"
@@ -653,7 +746,8 @@ def _render_ledger() -> None:
         "表上 High/Low/Close MAE$ 係對賬時預測 vs 第二日真實價，唔係出卡用嗰個近期 MAE%。"
         "三套系統賽馬：三族入書都跟共用（淡區間、無 Close 方向閘）；分別只係模型。"
         "VOO：2026-09-14 開市一把過買 91 股剩現金，之後唔買賣；"
-        "每日權益 = 股數 × 當日收市 + 現金（轉 HKD）。上面 delta 係對 HK$500,000 嘅累計盈虧，唔係單日。"
+        "每日權益 = 股數 × 當日收市 + 現金（轉 HKD）。上面 metric delta 係對 HK$500,000 嘅累計盈虧；"
+        "下面「每日權益」表有 *_pnl 單日增減（對上一 session；第一日對本金）。"
         "勝率只供參考。"
     )
     view = ledger_view()
@@ -677,7 +771,12 @@ def _render_ledger() -> None:
         f"匯率 {float(acct.get('fx_hkd_per_usd') or 0):.3f} HKD/USD　·　"
         f"已實現時段 {len(ledger.get('realized_asofs') or [])}"
     )
-    st.caption(f"更新（UTC）：{ledger.get('updated_at_utc') or '尚未有實盤時段。下一個有新 bar 嘅 Nightly 會記第一筆。'}")
+    _upd = ledger.get("updated_at_utc")
+    st.caption(
+        f"更新：{_fmt_hkt(_upd)}"
+        if _upd
+        else "更新：尚未有實盤時段。下一個有新 bar 嘅 Nightly 會記第一筆。"
+    )
 
     st.markdown("#### 三族戶口")
     rows = []
@@ -714,7 +813,12 @@ def _render_ledger() -> None:
             "Close MAE$": "—",
         }
     )
-    st.dataframe(pd.DataFrame(rows), hide_index=True, use_container_width=True)
+    acct_df = pd.DataFrame(rows)
+    acct_df = _round_money_cols(
+        acct_df,
+        ["權益HKD", "損益HKD", "High MAE$", "Low MAE$", "Close MAE$"],
+    )
+    st.dataframe(acct_df, hide_index=True, use_container_width=True)
 
     st.markdown("#### 下一轉計劃（已 sizing，最多 20 隻）")
     planned_now = view.get("planned") or {}
@@ -748,6 +852,13 @@ def _render_ledger() -> None:
             f"對賬 session {item.get('session')}。對下面成交流水嗰日。"
         )
     st.caption(head)
+    history_item = None if picked == "今期未對賬" else labels[picked]
+    fills_all = ledger.get("fills") or []
+    if history_item is not None:
+        st.caption(
+            "已對賬：entry/tp/sl_vs_actual = 實際出場 − 計劃價（USD，2dp）。"
+            "Miss 空白；TP/SL 打中唔顯示距離（只留 entry_vs_actual）。"
+        )
     tabs = st.tabs(["共用", "行業", "個股"])
     for tab, fam in zip(tabs, ("shared", "sector", "stock")):
         with tab:
@@ -756,14 +867,133 @@ def _render_ledger() -> None:
                 st.info("呢個模型呢份計劃冇入到書（觀望／分數太低／名義太細／超權益，或舊日未存計劃）。")
             else:
                 st.caption(f"{len(rows_p)} 隻入書。唔係錯過名單。")
-                st.dataframe(pd.DataFrame(rows_p), hide_index=True, use_container_width=True)
+                fx = float(acct.get("fx_hkd_per_usd") or 0)
+                rows_enriched = _enrich_plan_expected(rows_p, fx)
+                money_cols = [
+                    "entry",
+                    "tp",
+                    "sl",
+                    "notional_usd",
+                    "expected_profit_hkd",
+                    "expected_loss_hkd",
+                ]
+                if history_item is not None:
+                    fmap = index_fills_for_plan(
+                        fills_all,
+                        family=fam,
+                        session=history_item.get("session"),
+                    )
+                    if not fmap and history_item.get("asof"):
+                        fmap = index_fills_for_plan(
+                            fills_all,
+                            family=fam,
+                            asof=history_item.get("asof"),
+                        )
+                    rows_enriched = enrich_plan_vs_actual(rows_enriched, fmap)
+                    money_cols = [
+                        "entry",
+                        "entry_vs_actual",
+                        "tp",
+                        "tp_vs_actual",
+                        "sl",
+                        "sl_vs_actual",
+                        "notional_usd",
+                        "expected_profit_hkd",
+                        "expected_loss_hkd",
+                    ]
+                plan_df = _round_money_cols(pd.DataFrame(rows_enriched), money_cols)
+                plan_df = _plan_table_column_order(plan_df)
+                st.dataframe(plan_df, hide_index=True, use_container_width=True)
 
     st.markdown("#### 成交流水")
     fills = ledger.get("fills") or []
     if not fills:
         st.info("未有成交。美股下一個完整時段收市後，Nightly 會自動記帳。")
     else:
-        st.caption("按模型分頁。出入場時間為 America/New_York（5 分鐘 bar）。12:30 ET 或之後先到價、或缺 5m，唔入呢度。")
+        st.caption(
+            "按模型分頁。出入場時間為香港時間。"
+            "美股 12:30 或之後先到價、或缺 5m，唔入呢度。"
+            "下面百分比係該族全部成交累計（唔係單日），分母＝該頁成交筆數。"
+        )
+
+        def _fill_is_win(f: dict) -> bool | None:
+            pnl = f.get("pnl_hkd")
+            if pnl is not None:
+                try:
+                    return float(pnl) > 0
+                except (TypeError, ValueError):
+                    pass
+            ret = f.get("ret")
+            if ret is None:
+                return None
+            try:
+                return float(ret) > 0
+            except (TypeError, ValueError):
+                return None
+
+        def _fill_pct_stats(items: list[dict]) -> dict[str, int]:
+            """Counts for the six outcome buckets (denominator = len(items))."""
+            n_win = n_lose = n_tp = n_sl = n_close_win = n_close_lose = 0
+            for f in items:
+                win = _fill_is_win(f)
+                reason = str(f.get("reason") or "").lower()
+                if win is True:
+                    n_win += 1
+                elif win is False:
+                    n_lose += 1
+                if reason == "tp":
+                    n_tp += 1
+                elif reason == "sl":
+                    n_sl += 1
+                elif reason == "close":
+                    if win is True:
+                        n_close_win += 1
+                    elif win is False:
+                        n_close_lose += 1
+            return {
+                "n": len(items),
+                "win": n_win,
+                "lose": n_lose,
+                "tp": n_tp,
+                "close_win": n_close_win,
+                "sl": n_sl,
+                "close_lose": n_close_lose,
+            }
+
+        def _render_fill_pct_stats(items: list[dict]) -> None:
+            stats = _fill_pct_stats(items)
+            n = int(stats["n"])
+            if n <= 0:
+                st.caption("未有成交。")
+                return
+            st.caption(f"Cumulative outcome mix · {n} fills")
+            buckets = (
+                ("Win 勝", stats["win"]),
+                ("Lose 負", stats["lose"]),
+                ("TP", stats["tp"]),
+                ("Close-win 收市勝", stats["close_win"]),
+                ("SL", stats["sl"]),
+                ("Close-lose 收市負", stats["close_lose"]),
+            )
+            # Streamlit collapses st.columns to 1-col on narrow viewports, so
+            # keep a true 2-up layout via CSS grid. n lives in the label; no
+            # delta arrows (st.metric delta always draws a trend arrow).
+            cells: list[str] = []
+            for label, count in buckets:
+                pct = 100.0 * count / n
+                cells.append(
+                    "<div>"
+                    f'<div style="opacity:.7;font-size:.85rem">{label} (n={count})</div>'
+                    f'<div style="font-size:1.6rem;font-weight:600">{pct:.1f}%</div>'
+                    "</div>"
+                )
+            st.markdown(
+                '<div style="display:grid;grid-template-columns:1fr 1fr;'
+                'gap:0.75rem 1rem;margin-bottom:1.25rem;color:inherit;">'
+                + "".join(cells)
+                + "</div>",
+                unsafe_allow_html=True,
+            )
 
         def _fill_rows(items: list[dict]) -> list[dict]:
             rows = []
@@ -775,17 +1005,21 @@ def _render_ledger() -> None:
                         "ticker": f.get("ticker"),
                         "side": f.get("side"),
                         "shares": f.get("shares"),
-                        "entry": f.get("entry"),
-                        "exit": f.get("exit"),
-                        "入場時間": f.get("entry_ts") or "—",
-                        "出場時間": f.get("exit_ts") or "—",
+                        "entry": _round2(f.get("entry")),
+                        "exit": _round2(f.get("exit")),
+                        "入場時間": _fmt_hkt(f.get("entry_ts")),
+                        "出場時間": _fmt_hkt(f.get("exit_ts")),
                         "reason": f.get("reason"),
                         "fill_source": f.get("fill_source"),
-                        "pnl_hkd": f.get("pnl_hkd"),
-                        "fee_usd": f.get("fee_usd"),
+                        "pnl_hkd": _round2(f.get("pnl_hkd")),
+                        "fee_usd": _round2(f.get("fee_usd")),
                     }
                 )
             return rows
+
+        _FILL_TABLE_DEFAULT = 10
+        # ~header + 10 body rows; fixed so the default view scrolls if taller.
+        _FILL_TABLE_HEIGHT = 38 + _FILL_TABLE_DEFAULT * 35
 
         fill_tabs = st.tabs(["共用", "行業", "個股"])
         for tab, fam in zip(fill_tabs, ("shared", "sector", "stock")):
@@ -795,20 +1029,137 @@ def _render_ledger() -> None:
                 if not fam_fills:
                     st.info("呢個模型未有成交。")
                 else:
-                    st.caption(f"{len(fam_fills)} 筆")
-                    st.dataframe(pd.DataFrame(_fill_rows(fam_fills)), hide_index=True, use_container_width=True)
+                    _render_fill_pct_stats(fam_fills)
+                    n_total = len(fam_fills)
+                    show_all = False
+                    if n_total > _FILL_TABLE_DEFAULT:
+                        show_all = st.toggle(
+                            "顯示更多 / Show all fills",
+                            value=False,
+                            key=f"fills_show_all_{fam}",
+                        )
+                    visible = fam_fills if show_all else fam_fills[:_FILL_TABLE_DEFAULT]
+                    if n_total > _FILL_TABLE_DEFAULT and not show_all:
+                        st.caption(
+                            f"Showing {_FILL_TABLE_DEFAULT} of {n_total} · newest first"
+                        )
+                    df_kwargs = dict(
+                        hide_index=True,
+                        use_container_width=True,
+                    )
+                    # New Streamlit rejects height=None; only pin height when truncated.
+                    if n_total > _FILL_TABLE_DEFAULT and not show_all:
+                        df_kwargs["height"] = _FILL_TABLE_HEIGHT
+                    st.dataframe(pd.DataFrame(_fill_rows(visible)), **df_kwargs)
 
     days = ledger.get("days") or []
     if days:
         st.markdown("#### 每日權益")
+        start_eq = float(acct.get("starting_equity_hkd") or 500_000)
+        fam_order = ("shared", "sector", "stock", "voo")
+        fam_win_labels = {
+            "shared": "Shared 共用",
+            "sector": "Sector 行業",
+            "stock": "Stock 個股",
+            "voo": "VOO",
+        }
         flat = []
+        prev_eq: dict = {}
         for d in days:
-            row = {"session": d.get("session"), "asof": d.get("asof")}
+            row: dict = {"session": d.get("session"), "asof": d.get("asof")}
             eq = d.get("equity_hkd") or {}
-            if isinstance(eq, dict):
-                row.update({f"equity_{k}": v for k, v in eq.items()})
+            if not isinstance(eq, dict):
+                eq = {}
+            for fam in fam_order:
+                cur = eq.get(fam)
+                if cur is None:
+                    row[f"{fam}_equity"] = None
+                    row[f"{fam}_pnl"] = None
+                    continue
+                try:
+                    cur_f = float(cur)
+                except (TypeError, ValueError):
+                    row[f"{fam}_equity"] = None
+                    row[f"{fam}_pnl"] = None
+                    continue
+                row[f"{fam}_equity"] = round(cur_f, 2)
+                if fam in prev_eq:
+                    row[f"{fam}_pnl"] = round(cur_f - float(prev_eq[fam]), 2)
+                else:
+                    row[f"{fam}_pnl"] = round(cur_f - start_eq, 2)
+                prev_eq[fam] = cur_f
             flat.append(row)
-        st.dataframe(pd.DataFrame(flat), hide_index=True, use_container_width=True)
+
+        # Sessions with ≥1 ledger fill per trading family (shared/sector/stock).
+        # Flat equity days with no fills must not inflate the win-rate denominator.
+        _model_fams = ("shared", "sector", "stock")
+        active_sessions: dict[str, set] = {fam: set() for fam in _model_fams}
+        for f in fills:
+            fam = f.get("family")
+            sess = f.get("session")
+            if fam in active_sessions and sess:
+                active_sessions[fam].add(sess)
+
+        def _daily_win_rate_stats(rows: list[dict]) -> dict[str, dict[str, int]]:
+            """Per-family green-day rate; models use fill-active days only.
+
+            shared/sector/stock: score only sessions with ≥1 ledger fill for that
+            family (day PnL still from equity series). VOO is buy-and-hold — score
+            every day that has equity (all sessions after start / purchase).
+            """
+            out: dict[str, dict[str, int]] = {}
+            for fam in fam_order:
+                wins = scored = 0
+                for r in rows:
+                    pnl = r.get(f"{fam}_pnl")
+                    if pnl is None:
+                        continue
+                    if fam in _model_fams and r.get("session") not in active_sessions[fam]:
+                        continue
+                    scored += 1
+                    if float(pnl) > 0:
+                        wins += 1
+                out[fam] = {"wins": wins, "scored": scored}
+            return out
+
+        def _render_daily_win_rate_stats(rows: list[dict]) -> None:
+            stats = _daily_win_rate_stats(rows)
+            cells: list[str] = []
+            for fam in fam_order:
+                scored = int(stats[fam]["scored"])
+                if scored <= 0:
+                    continue  # e.g. VOO missing, or model never filled
+                wins = int(stats[fam]["wins"])
+                pct = 100.0 * wins / scored
+                label = fam_win_labels[fam]
+                cells.append(
+                    "<div>"
+                    f'<div style="opacity:.7;font-size:.85rem">{label} (n={scored})</div>'
+                    f'<div style="font-size:1.6rem;font-weight:600">{pct:.1f}%</div>'
+                    "</div>"
+                )
+            if not cells:
+                return
+            # Models: n = days with ≥1 fill; VOO: all equity sessions (always in).
+            st.caption(
+                "Daily win rate · active days only "
+                "(n = fill days; VOO = all equity days)"
+            )
+            # Same 2-up CSS grid as fill stats (Shared|Sector, Stock|VOO).
+            st.markdown(
+                '<div style="display:grid;grid-template-columns:1fr 1fr;'
+                'gap:0.75rem 1rem;margin-bottom:1.25rem;color:inherit;">'
+                + "".join(cells)
+                + "</div>",
+                unsafe_allow_html=True,
+            )
+
+        _render_daily_win_rate_stats(flat)
+        day_cols = ["session", "asof"] + [
+            f"{fam}_{kind}" for fam in fam_order for kind in ("equity", "pnl")
+        ]
+        st.dataframe(pd.DataFrame(flat)[day_cols], hide_index=True, use_container_width=True)
+
 
 
 def _same_row(*builders) -> None:
