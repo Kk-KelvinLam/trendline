@@ -59,7 +59,7 @@ def test_single_yahoo_retry_fills_behind_panel_max():
     yahoo = _FakeYahoo()
     stooq = _FakeStooq()
     combined = CombinedProvider(yahoo=yahoo, stooq=stooq)  # type: ignore[arg-type]
-    out = combined.download(["AAPL", "^VIX"], start="2026-09-10", end="2026-09-16")
+    out = combined.download(["AAPL", "^VIX"], start="2026-09-10", end="2026-09-15")
     assert yahoo.singles == ["AAPL"]
     aapl = out[out["ticker"] == "AAPL"]
     assert pd.Timestamp("2026-09-14") in set(pd.to_datetime(aapl["date"]).dt.normalize())
@@ -112,3 +112,74 @@ def test_equity_session_coverage_incomplete():
     assert cov["n_have"] == 1
     assert cov["frac"] < 0.90
     assert cov["complete"] is False
+
+
+def test_expected_equity_session_end_exclusive_skips_weekend():
+    from trendline.data.providers import expected_equity_session
+
+    # end Monday → last includable Sunday → roll to Friday
+    assert expected_equity_session("2026-09-14").date().isoformat() == "2026-09-11"
+    # end Tuesday → Monday
+    assert expected_equity_session("2026-09-15").date().isoformat() == "2026-09-14"
+
+
+def test_uniform_stale_panel_triggers_stooq():
+    """Everyone stuck on the same old day must not count as caught up."""
+
+    @dataclass
+    class YahooAllOld:
+        singles: list = field(default_factory=list)
+
+        def download(self, tickers, start, end=None):
+            tickers = list(tickers)
+            if len(tickers) == 1:
+                self.singles.append(tickers[0])
+                # retry still cannot reach expected session
+                return _bars(tickers[0], ["2026-09-10", "2026-09-11"])
+            return pd.concat(
+                [_bars(t, ["2026-09-10", "2026-09-11"]) for t in tickers],
+                ignore_index=True,
+            )
+
+    @dataclass
+    class StooqFill:
+        called_with: list | None = None
+
+        def download(self, tickers, start, end=None):
+            self.called_with = list(tickers)
+            return pd.concat(
+                [_bars(t, ["2026-09-11", "2026-09-14"], source="stooq") for t in tickers],
+                ignore_index=True,
+            )
+
+    yahoo = YahooAllOld()
+    stooq = StooqFill()
+    combined = CombinedProvider(yahoo=yahoo, stooq=stooq)  # type: ignore[arg-type]
+    # end=2026-09-15 → expected 2026-09-14; panel max 2026-09-11 → stale
+    out = combined.download(["AAPL", "MSFT"], start="2026-09-01", end="2026-09-15")
+    assert stooq.called_with == ["AAPL", "MSFT"]
+    assert set(yahoo.singles) == {"AAPL", "MSFT"}
+    for t in ("AAPL", "MSFT"):
+        days = set(pd.to_datetime(out.loc[out["ticker"] == t, "date"]).dt.normalize())
+        assert pd.Timestamp("2026-09-14") in days
+
+
+def test_classify_yahoo_gap_buckets():
+    from trendline.data.providers import _classify_yahoo_gap
+
+    y = pd.concat(
+        [
+            _bars("^VIX", ["2026-09-11", "2026-09-14"]),
+            _bars("AAPL", ["2026-09-11"]),
+        ],
+        ignore_index=True,
+    )
+    b = _classify_yahoo_gap(
+        ["AAPL", "^VIX", "MSFT"],
+        y,
+        expected=pd.Timestamp("2026-09-14"),
+    )
+    assert b["ok"] == ["^VIX"]
+    assert b["behind_expected"] == ["AAPL"]
+    assert b["absent"] == ["MSFT"]
+    assert b["panel_stale"] is False
