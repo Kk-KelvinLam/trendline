@@ -30,7 +30,23 @@ def _bars(ticker: str, dates: list[str], source: str = "yfinance") -> pd.DataFra
 
 
 @dataclass
+class _NoAlpaca:
+    called: bool = False
+
+    def available(self) -> bool:
+        return False
+
+    def download(self, tickers, start, end=None):
+        self.called = True
+        return pd.DataFrame(
+            columns=["date", "ticker", "open", "high", "low", "close", "adj_close", "volume", "source"]
+        )
+
+
+@dataclass
 class _FakeYahoo:
+    """Batch: 3 names at target, AAPL one day behind → small gap (<50%)."""
+
     singles: list = field(default_factory=list)
 
     def download(self, tickers, start, end=None):
@@ -38,10 +54,13 @@ class _FakeYahoo:
         if tickers == ["AAPL"]:
             self.singles.append("AAPL")
             return _bars("AAPL", ["2026-09-11", "2026-09-14"])
-        return pd.concat(
-            [_bars("^VIX", ["2026-09-11", "2026-09-14"]), _bars("AAPL", ["2026-09-11"])],
-            ignore_index=True,
-        )
+        frames = []
+        for t in tickers:
+            if t == "AAPL":
+                frames.append(_bars("AAPL", ["2026-09-11"]))
+            else:
+                frames.append(_bars(t, ["2026-09-11", "2026-09-14"]))
+        return pd.concat(frames, ignore_index=True)
 
 
 @dataclass
@@ -58,8 +77,13 @@ class _FakeStooq:
 def test_single_yahoo_retry_fills_behind_panel_max():
     yahoo = _FakeYahoo()
     stooq = _FakeStooq()
-    combined = CombinedProvider(yahoo=yahoo, stooq=stooq)  # type: ignore[arg-type]
-    out = combined.download(["AAPL", "^VIX"], start="2026-09-10", end="2026-09-15")
+    alpaca = _NoAlpaca()
+    combined = CombinedProvider(yahoo=yahoo, alpaca=alpaca, stooq=stooq)  # type: ignore[arg-type]
+    # 4 names, 1 behind → need=1 < 50% → single-ticker Yahoo retry (not mass-gap)
+    out = combined.download(
+        ["AAPL", "MSFT", "GOOG", "^VIX"], start="2026-09-10", end="2026-09-15"
+    )
+    assert alpaca.called is False
     assert yahoo.singles == ["AAPL"]
     aapl = out[out["ticker"] == "AAPL"]
     assert pd.Timestamp("2026-09-14") in set(pd.to_datetime(aapl["date"]).dt.normalize())
@@ -154,11 +178,14 @@ def test_uniform_stale_panel_triggers_stooq():
 
     yahoo = YahooAllOld()
     stooq = StooqFill()
-    combined = CombinedProvider(yahoo=yahoo, stooq=stooq)  # type: ignore[arg-type]
+    alpaca = _NoAlpaca()
+    combined = CombinedProvider(yahoo=yahoo, alpaca=alpaca, stooq=stooq)  # type: ignore[arg-type]
     # end=2026-09-15 → expected 2026-09-14; panel max 2026-09-11 → stale
+    # Mass gap skips per-ticker Yahoo retry; no Alpaca keys → Stooq.
     out = combined.download(["AAPL", "MSFT"], start="2026-09-01", end="2026-09-15")
+    assert alpaca.called is False
     assert stooq.called_with == ["AAPL", "MSFT"]
-    assert set(yahoo.singles) == {"AAPL", "MSFT"}
+    assert yahoo.singles == []
     for t in ("AAPL", "MSFT"):
         days = set(pd.to_datetime(out.loc[out["ticker"] == t, "date"]).dt.normalize())
         assert pd.Timestamp("2026-09-14") in days
@@ -183,3 +210,107 @@ def test_classify_yahoo_gap_buckets():
     assert b["behind_expected"] == ["AAPL"]
     assert b["absent"] == ["MSFT"]
     assert b["panel_stale"] is False
+
+
+def test_alpaca_symbol_map():
+    from trendline.data.providers import _alpaca_symbol
+
+    assert _alpaca_symbol("AAPL") == "AAPL"
+    assert _alpaca_symbol("BRK-B") == "BRK.B"
+    assert _alpaca_symbol("^VIX") is None
+
+
+@dataclass
+class _FakeAlpaca:
+    called_with: list | None = None
+    key_id: str = "k"
+    secret: str = "s"
+    feed: str = "sip"
+
+    def available(self) -> bool:
+        return True
+
+    def download(self, tickers, start, end=None):
+        self.called_with = list(tickers)
+        return pd.concat(
+            [_bars(t, ["2026-09-11", "2026-09-14"], source="alpaca") for t in tickers],
+            ignore_index=True,
+        )
+
+
+def test_alpaca_primary_then_stooq_for_index():
+    """Alpaca first for equities; index leftovers go Yahoo then Stooq."""
+
+    @dataclass
+    class YahooSpy:
+        calls: list = field(default_factory=list)
+
+        def download(self, tickers, start, end=None):
+            tickers = list(tickers)
+            self.calls.append(tickers)
+            return pd.concat(
+                [_bars(t, ["2026-09-10", "2026-09-11"]) for t in tickers],
+                ignore_index=True,
+            )
+
+    @dataclass
+    class StooqSpy:
+        called_with: list | None = None
+
+        def download(self, tickers, start, end=None):
+            self.called_with = list(tickers)
+            return pd.DataFrame(
+                columns=["date", "ticker", "open", "high", "low", "close", "adj_close", "volume", "source"]
+            )
+
+    yahoo = YahooSpy()
+    alpaca = _FakeAlpaca()
+    stooq = StooqSpy()
+    combined = CombinedProvider(yahoo=yahoo, alpaca=alpaca, stooq=stooq)  # type: ignore[arg-type]
+    out = combined.download(["AAPL", "MSFT", "^VIX"], start="2026-09-01", end="2026-09-15")
+    assert alpaca.called_with == ["AAPL", "MSFT"]
+    # Equities filled by Alpaca → Yahoo only asked for leftover index (1-ticker batch;
+    # mass-gap skip means no extra single-ticker retry call).
+    assert yahoo.calls == [["^VIX"]]
+    assert stooq.called_with == ["^VIX"]
+    for t in ("AAPL", "MSFT"):
+        days = set(pd.to_datetime(out.loc[out["ticker"] == t, "date"]).dt.normalize())
+        assert pd.Timestamp("2026-09-14") in days
+        src = out.loc[
+            (out["ticker"] == t)
+            & (pd.to_datetime(out["date"]).dt.normalize() == pd.Timestamp("2026-09-14")),
+            "source",
+        ]
+        assert list(src) == ["alpaca"]
+
+
+def test_alpaca_skipped_without_keys_goes_yahoo_then_stooq():
+    @dataclass
+    class YahooAllOld:
+        def download(self, tickers, start, end=None):
+            tickers = list(tickers)
+            return pd.concat(
+                [_bars(t, ["2026-09-10", "2026-09-11"]) for t in tickers],
+                ignore_index=True,
+            )
+
+    @dataclass
+    class StooqFill:
+        called_with: list | None = None
+
+        def download(self, tickers, start, end=None):
+            self.called_with = list(tickers)
+            return pd.concat(
+                [_bars(t, ["2026-09-11", "2026-09-14"], source="stooq") for t in tickers],
+                ignore_index=True,
+            )
+
+    alpaca = _NoAlpaca()
+    stooq = StooqFill()
+    combined = CombinedProvider(yahoo=YahooAllOld(), alpaca=alpaca, stooq=stooq)  # type: ignore[arg-type]
+    out = combined.download(["AAPL", "MSFT"], start="2026-09-01", end="2026-09-15")
+    assert alpaca.called is False
+    assert stooq.called_with == ["AAPL", "MSFT"]
+    assert pd.Timestamp("2026-09-14") in set(
+        pd.to_datetime(out.loc[out["ticker"] == "AAPL", "date"]).dt.normalize()
+    )
