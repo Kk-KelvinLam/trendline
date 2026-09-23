@@ -41,6 +41,8 @@ jobs:
       - name: Fetch and refresh
         env:
           PYTHONUNBUFFERED: "1"
+          APCA_API_KEY_ID: ${{ secrets.APCA_API_KEY_ID }}
+          APCA_API_SECRET_KEY: ${{ secrets.APCA_API_SECRET_KEY }}
         run: |
           RETRAIN=false
           if [ "${{ github.event.inputs.retrain }}" = "true" ]; then
