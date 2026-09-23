@@ -16,7 +16,36 @@ import requests
 
 from trendline.data.store import OHLCV_COLS
 
-_UA = {"User-Agent": "trendline/0.1 (research; +https://github.com/Kk-KelvinLam/trendline)"}
+# Browser-like UA (was trendline/0.1 bot string). Used for Stooq requests and
+# the yfinance session so Yahoo/Stooq see the same client label.
+_UA_STRING = (
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:133.0) "
+    "Gecko/20100101 Firefox/133.0"
+)
+_UA = {
+    "User-Agent": _UA_STRING,
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+    "Accept-Language": "en-US,en;q=0.9",
+}
+
+
+def _http_session() -> requests.Session:
+    """Shared requests session for Stooq; also passed into yfinance when possible."""
+    s = requests.Session()
+    s.headers.update(_UA)
+    return s
+
+
+def _yf_session():
+    """Prefer yfinance's backend session (curl_cffi when available), with our UA."""
+    try:
+        from yfinance import _http as yf_http
+
+        s = yf_http.new_session()
+        s.headers.update(_UA)
+        return s
+    except Exception:
+        return _http_session()
 
 
 class DataProvider(Protocol):
@@ -59,6 +88,7 @@ class YahooFinanceProvider:
             return _empty()
 
         frames: list[pd.DataFrame] = []
+        session = _yf_session()
         # Small batches + pause: Actions IPs hit Yahoo 429 hard on wide pulls.
         batch_size = 8
         for i in range(0, len(tickers), batch_size):
@@ -72,6 +102,7 @@ class YahooFinanceProvider:
                 threads=False,
                 progress=False,
                 timeout=30,
+                session=session,
             )
             frames.append(self._flatten(raw, batch))
             if i + batch_size < len(tickers):
