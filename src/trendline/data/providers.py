@@ -13,7 +13,9 @@ import urllib.error
 import urllib.parse
 import urllib.request
 from dataclasses import dataclass, field
+from datetime import datetime, time as dt_time, timedelta, timezone
 from typing import Protocol
+from zoneinfo import ZoneInfo
 
 import pandas as pd
 import requests
@@ -257,12 +259,51 @@ def _alpaca_credentials() -> tuple[str, str] | None:
     return None
 
 
+_NY = ZoneInfo("America/New_York")
+# Free SIP: end must be at least ~15 minutes old; keep a 16m buffer.
+_ALPACA_SIP_END_MIN_AGE = timedelta(minutes=16)
+_ALPACA_SIP_END_AFTER_CLOSE = timedelta(minutes=15)
+
+
+def _alpaca_daily_end_rfc3339(
+    end_incl: pd.Timestamp,
+    *,
+    now_utc: datetime | None = None,
+) -> str | None:
+    """RFC3339 UTC ``end`` for free-SIP daily bars covering ``end_incl`` session.
+
+    Prefer US/Eastern cash close (16:00) + 15 minutes on the session calendar day,
+    converted to UTC. Clamp so the timestamp is at least ~16 minutes before now
+    (free-plan rule). Returns ``None`` when the session is not yet finished enough
+    that a legal end would still cover the cash session (caller should skip).
+    """
+    d = pd.Timestamp(end_incl).tz_localize(None).normalize().date()
+    close_ny = datetime.combine(d, dt_time(16, 0), tzinfo=_NY)
+    desired = (close_ny + _ALPACA_SIP_END_AFTER_CLOSE).astimezone(timezone.utc)
+    now = now_utc if now_utc is not None else datetime.now(timezone.utc)
+    if now.tzinfo is None:
+        now = now.replace(tzinfo=timezone.utc)
+    else:
+        now = now.astimezone(timezone.utc)
+    floor = now - _ALPACA_SIP_END_MIN_AGE
+    if desired <= floor:
+        return desired.strftime("%Y-%m-%dT%H:%M:%SZ")
+    # Desired end is still too recent for free SIP.
+    close_utc = close_ny.astimezone(timezone.utc)
+    if floor >= close_utc:
+        # Past cash close — clamp to free-plan floor (still covers the session day).
+        return floor.strftime("%Y-%m-%dT%H:%M:%SZ")
+    return None
+
+
 @dataclass
 class AlpacaProvider:
     """Daily bars from Alpaca Market Data (SIP for completed sessions).
 
     Requires ``APCA_API_KEY_ID`` and ``APCA_API_SECRET_KEY``. Free SIP rejects an
-    ``end`` that is too recent — we clamp inclusive end to ``expected_equity_session``.
+    ``end`` that is too recent — we keep the session calendar day via
+    ``expected_equity_session``, then send API ``end`` as RFC3339 UTC at cash
+    close + 15m (clamped to ≥16m before now).
     """
 
     name: str = "alpaca"
@@ -291,6 +332,16 @@ class AlpacaProvider:
         if end_incl < start_ts:
             return _empty()
 
+        api_end = _alpaca_daily_end_rfc3339(end_incl)
+        if api_end is None:
+            print(
+                f"[alpaca] skip daily: session {end_incl.date()} not finished "
+                f"enough for free SIP (need cash close+15m, ≥16m old)",
+                flush=True,
+            )
+            return _empty()
+        print(f"[alpaca] daily end={api_end} (session {end_incl.date()})", flush=True)
+
         want: list[tuple[str, str]] = []
         seen_sym: set[str] = set()
         for t in tickers:
@@ -310,7 +361,7 @@ class AlpacaProvider:
                 part = self._fetch_chunk(
                     list(sym_to_orig.keys()),
                     start=start_ts.strftime("%Y-%m-%d"),
-                    end=end_incl.strftime("%Y-%m-%d"),
+                    end=api_end,
                     sym_to_orig=sym_to_orig,
                 )
             except Exception as exc:
