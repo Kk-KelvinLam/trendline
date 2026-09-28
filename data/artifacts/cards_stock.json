@@ -1,5 +1,5 @@
 {
-  "generated_at_utc": "2026-09-27T16:23:06Z",
+  "generated_at_utc": "2026-09-28T22:22:35Z",
   "asof": "2026-09-25",
   "next_session": "下一常規交易時段",
   "model_family": "stock",
@@ -1192,7 +1192,7 @@
       "model_family": "stock",
       "dvol_rank": 30,
       "mae_rank": 270,
-      "mae_score": 0.010441061915705986,
+      "mae_score": 0.010441509902550659,
       "dollar_volume": 2128173966.6000001,
       "action": "做空",
       "side": -1,
@@ -1242,14 +1242,14 @@
       "strategy": "fade_to_prior_close",
       "recent_error": {
         "n": 19,
-        "mae_close_ret": 0.01289870564660999,
-        "mae_close_px": 1.4128572466746296,
+        "mae_close_ret": 0.012900945580833354,
+        "mae_close_px": 1.4131037962345954,
         "scope": "recent",
         "mae_high_ret": 0.008445590202744633,
         "mae_high_px": 0.9195683515989908,
         "mae_low_ret": 0.011207711763215337,
         "mae_low_px": 1.2310893788639306,
-        "mae_score": 0.010441061915705986
+        "mae_score": 0.010441509902550659
       },
       "data_source": "alpaca",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
