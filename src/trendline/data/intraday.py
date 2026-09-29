@@ -72,6 +72,54 @@ def filter_rth(df: pd.DataFrame, session: date) -> pd.DataFrame:
     return day.loc[mask]
 
 
+# NYSE 1pm ET early closes (last 5m bar starts 12:55). Keep a rolling window;
+# holidays that are full closes are simply absent from providers.
+_NYSE_EARLY_CLOSE: set[date] = {
+    date(2023, 7, 3), date(2023, 11, 24), date(2023, 12, 24),
+    date(2024, 7, 3), date(2024, 11, 29), date(2024, 12, 24),
+    date(2025, 7, 3), date(2025, 11, 28), date(2025, 12, 24),
+    date(2026, 7, 2), date(2026, 11, 27), date(2026, 12, 24),
+    date(2027, 11, 26), date(2027, 12, 24),
+}
+RTH_EARLY_END_BAR = time(12, 55)
+_FULL_RTH_BARS = 78  # 09:30..15:55 inclusive / 5m
+_EARLY_RTH_BARS = 42  # 09:30..12:55 inclusive / 5m
+
+
+def expected_last_rth_bar(session: date) -> time:
+    return RTH_EARLY_END_BAR if session in _NYSE_EARLY_CLOSE else RTH_END_BAR
+
+
+def expected_rth_bar_count(session: date) -> int:
+    return _EARLY_RTH_BARS if session in _NYSE_EARLY_CLOSE else _FULL_RTH_BARS
+
+
+def rth_session_status(df: pd.DataFrame, session: date, *, min_frac: float = 0.90) -> str:
+    """Classify RTH 5m coverage: ``complete``, ``incomplete``, or ``missing``.
+
+    Requires the cash open (09:30) and the expected last bar (15:55 or early-close
+    12:55), plus ≥ ``min_frac`` of the expected bar count. A nonempty but truncated
+    stream is *incomplete* (not a genuine miss) so callers can refuse to treat it
+    as a finished session.
+    """
+    rth = filter_rth(df, session)
+    if rth is None or rth.empty:
+        return "missing"
+    times = list(rth.index.time)
+    if times[0] != RTH_START:
+        return "incomplete"
+    if times[-1] != expected_last_rth_bar(session):
+        return "incomplete"
+    need = expected_rth_bar_count(session)
+    if len(rth) < int(need * min_frac):
+        return "incomplete"
+    return "complete"
+
+
+def is_complete_rth(df: pd.DataFrame, session: date) -> bool:
+    return rth_session_status(df, session) == "complete"
+
+
 def _rth_window_utc(session: date) -> tuple[str, str]:
     """Inclusive RTH window in RFC3339 UTC for Alpaca (handles EST/EDT)."""
     start_ny = datetime.combine(session, RTH_START, tzinfo=NY)
@@ -336,7 +384,7 @@ def _load_cache(
             else:
                 cached.index = cached.index.tz_convert(NY)
             rth = filter_rth(cached, session)
-            if not rth.empty:
+            if not rth.empty and is_complete_rth(cached, session):
                 out[t] = rth
                 continue
         except Exception:
@@ -423,7 +471,7 @@ def fetch_rth_5m(
                 if norm is None or getattr(norm, "empty", True):
                     continue
                 rth = filter_rth(norm, session)
-                if rth.empty:
+                if rth.empty or not is_complete_rth(norm, session):
                     continue
                 out[t] = rth
                 n_ok += 1
@@ -468,7 +516,7 @@ def fetch_rth_5m(
             if norm is None or getattr(norm, "empty", True):
                 continue
             rth = filter_rth(norm, session)
-            if rth.empty:
+            if rth.empty or not is_complete_rth(norm, session):
                 continue
             out[t] = rth
             n_ok += 1

@@ -92,12 +92,22 @@ def main() -> int:
         )
         return 0
 
+    ledger_ok = False
     try:
         from trendline.ledger import update_ledger
 
         update_ledger()
+        ledger_ok = True
     except Exception as exc:
-        print(f"ledger update failed (cards still refresh): {exc}")
+        print(f"ledger update failed: {exc}", flush=True)
+    if not ledger_ok:
+        print(
+            "skipping card refresh / open_plan rotate — "
+            "require successful ledger reconcile first "
+            "(prior cards kept so the day is not lost)",
+            flush=True,
+        )
+        return 1
     if args.retrain:
         rc = _run("backtest.py")
     else:
