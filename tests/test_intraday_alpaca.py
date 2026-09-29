@@ -12,23 +12,18 @@ from trendline.data.intraday import fetch_rth_5m, filter_rth
 
 
 def _rth_frame(session: str, ticker_px: float = 100.0) -> pd.DataFrame:
-    """Three RTH 5m bars in America/New_York."""
-    idx = pd.DatetimeIndex(
-        [
-            f"{session} 09:30:00",
-            f"{session} 09:35:00",
-            f"{session} 15:55:00",
-        ],
-        tz="America/New_York",
-    )
+    """Full regular RTH 5m session (09:30..15:55) in America/New_York."""
+    start = pd.Timestamp(f"{session} 09:30:00", tz="America/New_York")
+    idx = pd.date_range(start, periods=78, freq="5min")
     px = float(ticker_px)
+    n = len(idx)
     return pd.DataFrame(
         {
-            "open": [px, px, px],
-            "high": [px + 1, px + 1, px + 0.5],
-            "low": [px - 1, px - 1, px - 0.5],
-            "close": [px, px + 0.2, px - 0.1],
-            "volume": [1000, 1100, 900],
+            "open": [px] * n,
+            "high": [px + 1] * n,
+            "low": [px - 1] * n,
+            "close": [px] * n,
+            "volume": [1000] * n,
         },
         index=idx,
     )

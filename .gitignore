@@ -21,3 +21,4 @@ data/artifacts/daily_returns.parquet
 
 # Yahoo 5m RTH cache for paper fills
 data/artifacts/intraday/
+data/artifacts/cards_archive/
