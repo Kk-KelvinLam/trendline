@@ -6,9 +6,10 @@ prior close. For sector/stock, Close q50 must agree with that side
 Paper ledger uses RTH 5-minute bars (``fill_fade_bars``) and only opens if the
 trigger prints before 12:30 America/New_York. Daily OHLC ``fill_fade`` remains
 the walk-forward simulator. Conservative fill: if stop and target both print
-in the same bar, stop wins. If the trigger fills but neither TP nor SL prints,
-flatten at the last bar close (same-day book; no overnight). Skip if the
-session open gapped through the trigger.
+in the same bar, stop wins. If a later bar *opens through* the stop, fill at
+that open (gap slippage — not the theoretical stop). If the trigger fills but
+neither TP nor SL prints, flatten at the last bar close (same-day book; no
+overnight). Skip if the session open gapped through the trigger.
 """
 
 from __future__ import annotations
@@ -272,7 +273,7 @@ def fill_fade_bars(
     filled = False
     entry_ts = None
     for ts, bar in seq:
-        _o, h, l, _c = _ohlc(bar)
+        o, h, l, _c = _ohlc(bar)
         if not filled:
             if _past_entry_cutoff(ts):
                 continue
@@ -285,6 +286,11 @@ def fill_fade_bars(
                     continue
                 filled = True
             entry_ts = ts
+            # Same-bar: if open already through stop, gap-fill at open.
+            if side == 1 and o <= sl:
+                return _done(o / entry - 1.0, o, "sl", entry_ts, ts)
+            if side == -1 and o >= sl:
+                return _done((entry - o) / entry, o, "sl", entry_ts, ts)
             if side == 1:
                 hit_sl = l <= sl
                 hit_tp = h >= tp
@@ -299,7 +305,10 @@ def fill_fade_bars(
                 return _done(ret, tp, "tp", entry_ts, ts)
             continue
 
+        # Post-entry management. Gap-through stop → next executable = bar open.
         if side == 1:
+            if o <= sl:
+                return _done(o / entry - 1.0, o, "sl", entry_ts, ts)
             hit_sl = l <= sl
             hit_tp = h >= tp
             if hit_sl:
@@ -307,6 +316,8 @@ def fill_fade_bars(
             if hit_tp:
                 return _done(tp / entry - 1.0, tp, "tp", entry_ts, ts)
         else:
+            if o >= sl:
+                return _done((entry - o) / entry, o, "sl", entry_ts, ts)
             hit_sl = h >= sl
             hit_tp = l <= tp
             if hit_sl:

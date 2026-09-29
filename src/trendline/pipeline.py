@@ -51,7 +51,24 @@ def _jsonable(obj):
     return obj
 
 
+def _archive_cards(path: Path) -> None:
+    """Keep prior cards under artifacts/cards_archive/<asof>/ before rotate."""
+    if not path.exists():
+        return
+    try:
+        prev = json.loads(path.read_text(encoding="utf-8"))
+    except Exception:
+        return
+    asof = str(prev.get("asof") or "unknown")
+    dest_dir = ARTIFACT_DIR / "cards_archive" / asof
+    dest_dir.mkdir(parents=True, exist_ok=True)
+    dest = dest_dir / path.name
+    if not dest.exists():
+        shutil.copy2(path, dest)
+
+
 def _write_cards(path: Path, payload: dict) -> None:
+    _archive_cards(path)
     path.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
 
 

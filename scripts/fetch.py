@@ -19,6 +19,7 @@ from trendline.config import OHLCV_PATH  # noqa: E402
 from trendline.data.providers import CombinedProvider  # noqa: E402
 from trendline.data.store import (  # noqa: E402
     delta_start,
+    full_replace_acceptable,
     load_ohlcv,
     merge_ohlcv,
     save_ohlcv,
@@ -64,7 +65,20 @@ def main() -> int:
         print(f"Drop a parquet with columns date,ticker,open,high,low,close,adj_close,volume at {OHLCV_PATH}")
         return 2
 
-    combined = merge_ohlcv(existing if existing is not None else raw.iloc[0:0], raw)
+    if args.full and stored is not None and not stored.empty:
+        # --full rebuilds from scratch; refuse to erase history on a thin/partial pull.
+        ok, reason = full_replace_acceptable(stored, raw)
+        if not ok:
+            print(
+                f"WARNING: --full download rejected ({reason}); "
+                "keeping last valid ohlcv.parquet",
+                flush=True,
+            )
+            print(summarize(stored))
+            return 0
+        combined = merge_ohlcv(raw.iloc[0:0], raw)
+    else:
+        combined = merge_ohlcv(existing if existing is not None else raw.iloc[0:0], raw)
     path = save_ohlcv(combined, OHLCV_PATH)
     info = summarize(combined)
     print(f"wrote {path} mode={mode}")

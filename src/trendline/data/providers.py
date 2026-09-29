@@ -388,54 +388,63 @@ class AlpacaProvider:
     ) -> pd.DataFrame:
         import json as _json
 
-        params = {
-            "symbols": ",".join(symbols),
-            "timeframe": "1Day",
-            "start": start,
-            "end": end,
-            "adjustment": "split",
-            "feed": self.feed,
-            "limit": 10000,
-            "sort": "asc",
-        }
-        url = f"{self.BASE}?{urllib.parse.urlencode(params)}"
-        req = urllib.request.Request(
-            url,
-            headers={
-                "APCA-API-KEY-ID": self.key_id or "",
-                "APCA-API-SECRET-KEY": self.secret or "",
-                "Accept": "application/json",
-            },
-        )
-        try:
-            with urllib.request.urlopen(req, timeout=90) as resp:
-                payload = _json.loads(resp.read().decode())
-        except urllib.error.HTTPError as exc:
-            body = exc.read().decode(errors="replace")[:300]
-            raise RuntimeError(f"HTTP {exc.code}: {body}") from exc
-
-        bars_map = payload.get("bars") or {}
         rows: list[dict] = []
-        for sym, bars in bars_map.items():
-            orig = sym_to_orig.get(sym, sym)
-            for b in bars or []:
-                rows.append(
-                    {
-                        "date": pd.Timestamp(str(b.get("t", ""))[:10]),
-                        "ticker": orig,
-                        "open": b.get("o"),
-                        "high": b.get("h"),
-                        "low": b.get("l"),
-                        "close": b.get("c"),
-                        "adj_close": b.get("c"),
-                        "volume": b.get("v", 0),
-                        "source": "alpaca",
-                    }
-                )
+        page_token: str | None = None
+        while True:
+            params: dict[str, str | int] = {
+                "symbols": ",".join(symbols),
+                "timeframe": "1Day",
+                "start": start,
+                "end": end,
+                "adjustment": "split",
+                "feed": self.feed,
+                "limit": 10000,
+                "sort": "asc",
+            }
+            if page_token:
+                params["page_token"] = page_token
+            url = f"{self.BASE}?{urllib.parse.urlencode(params)}"
+            req = urllib.request.Request(
+                url,
+                headers={
+                    "APCA-API-KEY-ID": self.key_id or "",
+                    "APCA-API-SECRET-KEY": self.secret or "",
+                    "Accept": "application/json",
+                },
+            )
+            try:
+                with urllib.request.urlopen(req, timeout=90) as resp:
+                    payload = _json.loads(resp.read().decode())
+            except urllib.error.HTTPError as exc:
+                body = exc.read().decode(errors="replace")[:300]
+                raise RuntimeError(f"HTTP {exc.code}: {body}") from exc
+
+            bars_map = payload.get("bars") or {}
+            for sym, bars in bars_map.items():
+                orig = sym_to_orig.get(sym, sym)
+                for b in bars or []:
+                    rows.append(
+                        {
+                            "date": pd.Timestamp(str(b.get("t", ""))[:10]),
+                            "ticker": orig,
+                            "open": b.get("o"),
+                            "high": b.get("h"),
+                            "low": b.get("l"),
+                            "close": b.get("c"),
+                            "adj_close": b.get("c"),
+                            "volume": b.get("v", 0),
+                            "source": "alpaca",
+                        }
+                    )
+            page_token = payload.get("next_page_token") or None
+            if not page_token:
+                break
+
         if not rows:
             return _empty()
         out = pd.DataFrame(rows)
         return out.dropna(subset=["open", "high", "low", "close"])
+
 
 
 def _as_naive_day(ts) -> pd.Timestamp:

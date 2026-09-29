@@ -105,6 +105,26 @@ def forecast_block(
     return block
 
 
+def _daily_returns_with_flat_sessions(daily: pd.DataFrame, trades: pd.DataFrame) -> np.ndarray:
+    """Mean trade ret per session, with 0.0 on no-trade business days in the span.
+
+    Backtest ``daily`` historically only listed days with fills; annualizing Sharpe
+    on that series overstates activity. Fill business-day gaps with flat returns.
+    """
+    if daily is None or daily.empty:
+        r = trades["ret"].to_numpy(dtype=float)
+        return np.asarray(r, dtype=float)
+    d = daily.copy()
+    d["date"] = pd.to_datetime(d["date"])
+    d = d.sort_values("date")
+    start, end = d["date"].iloc[0], d["date"].iloc[-1]
+    idx = pd.bdate_range(start, end)
+    series = d.set_index("date")["ret"].astype(float)
+    series = series.groupby(level=0).mean()
+    aligned = series.reindex(idx).fillna(0.0)
+    return aligned.to_numpy(dtype=float)
+
+
 def trade_stats(trades: pd.DataFrame, daily: pd.DataFrame) -> dict:
     if trades is None or trades.empty:
         return {
@@ -121,9 +141,10 @@ def trade_stats(trades: pd.DataFrame, daily: pd.DataFrame) -> dict:
     losses = r[r < 0]
     hit = float(np.mean(r > 0)) if len(r) else float("nan")
     payoff = float(np.mean(wins) / abs(np.mean(losses))) if len(wins) and len(losses) else float("nan")
-    dret = daily["ret"].to_numpy(dtype=float) if daily is not None and not daily.empty else r
-    eq = np.cumprod(1.0 + np.nan_to_num(dret, nan=0.0))
-    n_days = max(int(daily["date"].nunique()) if daily is not None and not daily.empty else 1, 1)
+    dret = _daily_returns_with_flat_sessions(daily, trades)
+    # Prepend starting capital so the first loss is a drawdown from 1.0, not peak=first equity.
+    eq = np.concatenate([[1.0], np.cumprod(1.0 + np.nan_to_num(dret, nan=0.0))])
+    n_days = max(len(dret), 1)
     return {
         "n_trades": int(len(trades)),
         "hit_rate": hit,

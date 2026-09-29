@@ -324,15 +324,66 @@ def _next_bar(ohlcv: pd.DataFrame, ticker: str, asof: pd.Timestamp) -> pd.Series
     return g.sort_values("date").iloc[0]
 
 
+def _bar_on_session(ohlcv: pd.DataFrame, ticker: str, session: pd.Timestamp | str) -> pd.Series | None:
+    """Exact session lookup — never roll forward to a later day."""
+    sess = pd.Timestamp(session).normalize()
+    g = ohlcv[
+        (ohlcv["ticker"] == ticker)
+        & (pd.to_datetime(ohlcv["date"]).dt.normalize() == sess)
+    ]
+    if g.empty:
+        return None
+    return g.sort_values("date").iloc[0]
+
+
+def _resolve_exchange_session(
+    ohlcv: pd.DataFrame,
+    asof: pd.Timestamp,
+    tickers: list[str],
+) -> str | None:
+    """One shared next session for the book.
+
+    Prefer the modal next-bar date across signal tickers (then SPY), so a single
+    name listing a holiday make-up day cannot drag the whole book off-session.
+    """
+    from collections import Counter
+
+    dates: list[str] = []
+    for t in tickers:
+        if not t:
+            continue
+        bar = _next_bar(ohlcv, t, asof)
+        if bar is not None:
+            dates.append(str(pd.Timestamp(bar["date"]).date()))
+    if not dates:
+        for probe in ("SPY", "VOO"):
+            bar = _next_bar(ohlcv, probe, asof)
+            if bar is not None:
+                return str(pd.Timestamp(bar["date"]).date())
+        return None
+    return Counter(dates).most_common(1)[0][0]
+
+
+def _normalize_fx_close(close) -> "pd.Series":
+    """Yahoo may return MultiIndex columns → DataFrame; squeeze to a 1-d Series."""
+    if isinstance(close, pd.DataFrame):
+        close = close.iloc[:, 0]
+    if not isinstance(close, pd.Series):
+        close = pd.Series(close)
+    return close.dropna()
+
+
 def _refresh_fx(default: float) -> float:
     try:
         import yfinance as yf
 
         raw = yf.download("HKD=X", period="5d", progress=False, timeout=20)
         if raw is None or raw.empty:
+            print(f"WARNING: FX refresh empty; keeping {default}", flush=True)
             return default
-        close = raw["Close"].dropna()
+        close = _normalize_fx_close(raw["Close"])
         if close.empty:
+            print(f"WARNING: FX Close empty after normalize; keeping {default}", flush=True)
             return default
         px = float(close.iloc[-1])
         # Yahoo HKD=X is USD per HKD (~0.13) or HKD per USD depending on symbol.
@@ -341,7 +392,12 @@ def _refresh_fx(default: float) -> float:
             return px
         if 0.10 <= px <= 0.16:
             return 1.0 / px
-    except Exception:
+        print(
+            f"WARNING: FX rate {px} out of expected range; keeping {default}",
+            flush=True,
+        )
+    except Exception as exc:
+        print(f"WARNING: FX refresh failed ({type(exc).__name__}: {exc}); keeping {default}", flush=True)
         return default
     return default
 
@@ -643,11 +699,30 @@ def realize_once(
     if asof_s in ledger.get("realized_asofs", []):
         return ledger
 
-    # Need at least one ticker's next bar
-    sample = _next_bar(ohlcv, (shared_cards.get("cards") or [{}])[0].get("ticker", ""), asof)
-    if sample is None:
+    # Family cards must share the same asof (one exchange decision date).
+    for fam, path in FAMILY_PATHS.items():
+        payload = _read_cards(path)
+        if not payload:
+            continue
+        fam_asof = str(pd.Timestamp(payload.get("asof")).date()) if payload.get("asof") else None
+        if fam_asof and fam_asof != asof_s:
+            print(
+                f"WARNING: cards_{fam} asof={fam_asof} != shared asof={asof_s}; "
+                "skip realize until families align",
+                flush=True,
+            )
+            return ledger
+
+    probe_tickers: list[str] = []
+    for card in shared_cards.get("cards") or []:
+        t = card.get("ticker")
+        if t:
+            probe_tickers.append(t)
+        if len(probe_tickers) >= 25:
+            break
+    session = _resolve_exchange_session(ohlcv, asof, probe_tickers)
+    if session is None:
         return ledger
-    session = str(pd.Timestamp(sample["date"]).date())
 
     fx = _refresh_fx(float(ledger["account"].get("fx_hkd_per_usd") or PAPER_FX_HKD_PER_USD))
     ledger["account"]["fx_hkd_per_usd"] = fx
@@ -694,7 +769,7 @@ def realize_once(
         book_pnl = 0.0
         book_fills = 0
         for i, card in enumerate(payload.get("cards") or []):
-            bar = _next_bar(ohlcv, card["ticker"], asof)
+            bar = _bar_on_session(ohlcv, card["ticker"], session)
             if bar is None:
                 continue
             bars = (bars_by_ticker or {}).get(card["ticker"])

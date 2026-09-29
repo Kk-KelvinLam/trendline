@@ -337,32 +337,85 @@ def build_scoreboard(oos: pd.DataFrame, fold_logs: list[dict]) -> dict:
     }
 
 
+def _expanding_beats_range(
+    hist: pd.DataFrame,
+    family: str,
+    *,
+    min_overall: int = 40,
+    min_ticker: int = 5,
+) -> tuple[dict[str, bool], bool]:
+    """Ticker / overall High+Low-vs-ATR gate from *already labeled* rows only.
+
+    ``hist`` must exclude the decision date and later — otherwise the gate
+    peeks at outcomes realized in the same OOS window being traded.
+    """
+    if hist is None or hist.empty or len(hist) < min_overall:
+        return {}, False
+    q50_high = pred_col("high", 0.50, family)
+    q50_low = pred_col("low", 0.50, family)
+    if q50_high not in hist.columns:
+        q50_high = pred_col("high", 0.50)
+    if q50_low not in hist.columns:
+        q50_low = pred_col("low", 0.50)
+    need = ["y_high", "y_low", q50_high, q50_low, "base_high_q50", "base_low_q50"]
+    if any(c not in hist.columns for c in need):
+        return {}, False
+    h = hist.dropna(subset=need)
+    if len(h) < min_overall:
+        return {}, False
+    model_h = float(np.mean(np.abs(h["y_high"] - h[q50_high])))
+    base_h = float(np.mean(np.abs(h["y_high"] - h["base_high_q50"])))
+    model_l = float(np.mean(np.abs(h["y_low"] - h[q50_low])))
+    base_l = float(np.mean(np.abs(h["y_low"] - h["base_low_q50"])))
+    overall = bool(model_h < base_h and model_l < base_l)
+    beat: dict[str, bool] = {}
+    for ticker, g in h.groupby("ticker"):
+        if len(g) < min_ticker:
+            continue
+        mh = float(np.mean(np.abs(g["y_high"] - g[q50_high])))
+        bh = float(np.mean(np.abs(g["y_high"] - g["base_high_q50"])))
+        ml = float(np.mean(np.abs(g["y_low"] - g[q50_low])))
+        bl = float(np.mean(np.abs(g["y_low"] - g["base_low_q50"])))
+        beat[str(ticker)] = bool(mh < bh and ml < bl)
+    return beat, overall
+
+
 def simulate_trades(
     oos: pd.DataFrame,
-    per_ticker: pd.DataFrame,
-    overall_beats: bool,
+    per_ticker: pd.DataFrame | None = None,
+    overall_beats: bool | None = None,
     family: str = "shared",
 ) -> tuple[pd.DataFrame, pd.DataFrame]:
     """Fade: touch predicted High/Low, TP at prior close. Conservative OHLC fill.
 
     Gate on High/Low beating ATR (beats_range), not Close direction.
+
+    Eligibility for each decision date uses only *previously* labeled OOS
+    predictions (expanding window). The static ``per_ticker`` /
+    ``overall_beats`` args are ignored for gating (kept for call-site compat).
     """
     from trendline.range_touch import choose_setup, fill_fade
 
-    beat_col = "beats_range" if "beats_range" in per_ticker.columns else "beats_baseline"
-    beat = dict(zip(per_ticker["ticker"], per_ticker[beat_col], strict=False))
-    recs: list[dict] = []
+    _ = per_ticker, overall_beats  # gating is point-in-time; see _expanding_beats_range
 
     def _col(target: str, q: float) -> str:
         c = pred_col(target, q, family)
         return c if c in oos.columns else pred_col(target, q)
 
     work = oos.dropna(subset=["next_open", "next_high", "next_low", "next_close", "atr"]).copy()
-    for date, day in work.groupby("date"):
+    if work.empty:
+        return pd.DataFrame(), pd.DataFrame(columns=["date", "ret"])
+    work["date"] = pd.to_datetime(work["date"])
+    work = work.sort_values(["date", "ticker"]).reset_index(drop=True)
+    recs: list[dict] = []
+
+    for date, day in work.groupby("date", sort=True):
+        hist = work[work["date"] < date]
+        beat, overall = _expanding_beats_range(hist, family)
         scored = []
         for row in day.itertuples(index=False):
             ticker = row.ticker
-            allowed = bool(beat.get(ticker, False) or overall_beats)
+            allowed = bool(beat.get(ticker, False) or overall)
             q50h = float(getattr(row, _col("high", 0.50)))
             q50l = float(getattr(row, _col("low", 0.50)))
             q10l = float(getattr(row, _col("low", 0.10)))
@@ -418,6 +471,7 @@ def simulate_trades(
     daily = trades.groupby("date", as_index=False)["ret"].mean()
     daily = daily.sort_values("date")
     return trades, daily
+
 
 
 def _fill_long(entry: float, high: float, low: float, close: float, tp: float, sl: float) -> tuple[float, float, str]:
