@@ -1246,7 +1246,33 @@ def _render_ledger() -> None:
         day_cols = ["session", "asof"] + [
             f"{fam}_{kind}" for fam in fam_order for kind in ("equity", "pnl")
         ]
-        _st_dataframe(pd.DataFrame(flat)[day_cols], hide_index=True, use_container_width=True)
+        # Newest first; same “latest 10 + expand” UX as 成交流水.
+        _DAY_TABLE_DEFAULT = 10
+        _DAY_TABLE_HEIGHT = 38 + _DAY_TABLE_DEFAULT * 35
+        day_rows = list(reversed(flat))
+        n_days = len(day_rows)
+        show_all_days = False
+        if n_days > _DAY_TABLE_DEFAULT:
+            show_all_days = st.toggle(
+                "顯示更多 / Show all days",
+                value=False,
+                key="daily_equity_show_all",
+            )
+        visible_days = day_rows if show_all_days else day_rows[:_DAY_TABLE_DEFAULT]
+        if n_days > _DAY_TABLE_DEFAULT and not show_all_days:
+            st.caption(
+                f"Showing {_DAY_TABLE_DEFAULT} of {n_days} · newest first"
+            )
+        day_df_kwargs = dict(
+            hide_index=True,
+            use_container_width=True,
+        )
+        # New Streamlit rejects height=None; only pin height when truncated.
+        if n_days > _DAY_TABLE_DEFAULT and not show_all_days:
+            day_df_kwargs["height"] = _DAY_TABLE_HEIGHT
+        _st_dataframe(
+            pd.DataFrame(visible_days)[day_cols], **day_df_kwargs
+        )
 
 
 
