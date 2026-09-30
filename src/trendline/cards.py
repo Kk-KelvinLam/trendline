@@ -214,6 +214,21 @@ def compute_recent_close_errors(
     return out
 
 
+def _oos_leg_mae(g: pd.DataFrame, target: str, family: str) -> tuple[float, float] | None:
+    """Return (mae_ret, mae_px) for one target from an OOS window, or None if columns missing."""
+    y_col = f"y_{target}"
+    if y_col not in g.columns or "close" not in g.columns:
+        return None
+    col = pred_col(target, 0.50, family)
+    if col not in g.columns:
+        col = pred_col(target, 0.50)
+    if col not in g.columns:
+        return None
+    err = (g[y_col] - g[col]).abs()
+    px_err = (g["close"] * err).abs()
+    return float(err.mean()), float(px_err.mean())
+
+
 def _recent_error(
     oos: pd.DataFrame | None,
     ticker: str,
@@ -224,31 +239,39 @@ def _recent_error(
     prior_close: float | None = None,
     recent_lookup: dict | None = None,
 ) -> dict:
-    """Resolve Close MAE for a card: live recent → artifact → OOS parquet → walk-forward."""
+    """Resolve MAE for a card: live recent → artifact → OOS parquet → walk-forward.
+
+    Live recent / artifact rows may include High / Low / Close. OOS includes H/L when
+    those columns exist; walk-forward stays Close-only. Missing legs are omitted (UI shows —).
+    """
     if recent_lookup and ticker in recent_lookup:
         row = dict(recent_lookup[ticker])
         row.setdefault("scope", "recent")
         return row
-    if oos is not None and not getattr(oos, "empty", True):
-        g = oos.loc[oos["ticker"] == ticker].sort_values("date").tail(n)
-        if not g.empty:
-            col = pred_col("close", 0.50, family)
-            if col not in g.columns:
-                col = pred_col("close", 0.50)
-            if col in g.columns:
-                err = (g["y_close"] - g[col]).abs()
-                px_err = (g["close"] * err).abs()
-                return {
-                    "n": int(len(g)),
-                    "mae_close_ret": float(err.mean()),
-                    "mae_close_px": float(px_err.mean()),
-                    "scope": "recent",
-                }
     artifact = _load_recent_error_artifact(family).get(ticker)
     if artifact and artifact.get("mae_close_ret") is not None:
         out = dict(artifact)
         out.setdefault("scope", "recent")
         return out
+    if oos is not None and not getattr(oos, "empty", True):
+        g = oos.loc[oos["ticker"] == ticker].sort_values("date").tail(n)
+        if not g.empty:
+            close_mae = _oos_leg_mae(g, "close", family)
+            if close_mae is not None:
+                mae_close_ret, mae_close_px = close_mae
+                out = {
+                    "n": int(len(g)),
+                    "mae_close_ret": mae_close_ret,
+                    "mae_close_px": mae_close_px,
+                    "scope": "recent",
+                }
+                high_mae = _oos_leg_mae(g, "high", family)
+                if high_mae is not None:
+                    out["mae_high_ret"], out["mae_high_px"] = high_mae
+                low_mae = _oos_leg_mae(g, "low", family)
+                if low_mae is not None:
+                    out["mae_low_ret"], out["mae_low_px"] = low_mae
+                return out
     row = per_ticker_row or {}
     mae_ret = row.get("model_mae_close")
     if mae_ret is None:
