@@ -208,6 +208,20 @@ def _card_index_by_ticker(payload: dict | None) -> dict[str, dict]:
     return out
 
 
+def _fmt_error_leg(px, ret) -> str:
+    """One MAE leg as ``px（pct）``; missing values render as —."""
+    return f"{_fmt_px(px)}（{_fmt_pct(ret)}）"
+
+
+def _recent_error_legs(err: dict) -> str:
+    """Compact 高／低／收市 legs; missing H/L keys show — (legacy Close-only cards)."""
+    return (
+        f"高 {_fmt_error_leg(err.get('mae_high_px'), err.get('mae_high_ret'))}／"
+        f"低 {_fmt_error_leg(err.get('mae_low_px'), err.get('mae_low_ret'))}／"
+        f"收 {_fmt_error_leg(err.get('mae_close_px'), err.get('mae_close_ret'))}"
+    )
+
+
 def _recent_error_summary(card: dict | None) -> str:
     if not card:
         return "—"
@@ -216,7 +230,7 @@ def _recent_error_summary(card: dict | None) -> str:
         return "暫無"
     scope = err.get("scope") or "recent"
     scope_zh = {"walk_forward": "WF", "recent": "近期"}.get(scope, scope)
-    return f"{scope_zh} {_fmt_px(err.get('mae_close_px'))}（{_fmt_pct(err.get('mae_close_ret'))}，n={err.get('n', 0)}）"
+    return f"{scope_zh} {_recent_error_legs(err)}（n={err.get('n', 0)}）"
 
 
 def _find_ticker_in_payloads(ticker: str, payloads: dict[str, dict | None]) -> bool:
@@ -1369,14 +1383,16 @@ def _render_card(card: dict, *, family: str = "shared") -> None:
     err = card.get("recent_error") or {}
     scope = err.get("scope") or ("recent" if err.get("n") else "none")
     if scope == "walk_forward":
-        label = f"樣本外收市誤差（walk-forward 全段 {err.get('n', 0)} 日）"
+        label = f"樣本外誤差（walk-forward 全段 {err.get('n', 0)} 日）"
     elif scope == "recent":
-        label = f"近期樣本外收市誤差（{err.get('n', 0)} 日）"
+        label = f"近期樣本外誤差（{err.get('n', 0)} 日）"
     else:
-        label = "樣本外收市誤差（暫無 OOS 檔）"
+        label = "樣本外誤差（暫無 OOS 檔）"
     st.caption(
         f"{label}："
-        f"{_fmt_px(err.get('mae_close_px'))}　（{_fmt_pct(err.get('mae_close_ret'))}）"
+        f"高誤差 {_fmt_error_leg(err.get('mae_high_px'), err.get('mae_high_ret'))}　"
+        f"低誤差 {_fmt_error_leg(err.get('mae_low_px'), err.get('mae_low_ret'))}　"
+        f"收市誤差 {_fmt_error_leg(err.get('mae_close_px'), err.get('mae_close_ret'))}"
     )
     st.markdown("---")
 
