@@ -1,5 +1,5 @@
 {
-  "generated_at_utc": "2026-10-09T00:29:06Z",
+  "generated_at_utc": "2026-10-09T11:22:39Z",
   "asof": "2026-10-08",
   "next_session": "下一常規交易時段",
   "model_family": "shared",
@@ -19,8 +19,8 @@
       "model_family": "shared",
       "dvol_rank": 1,
       "mae_rank": 467,
-      "mae_score": 0.018879717809785448,
-      "dollar_volume": 31055525255.039997,
+      "mae_score": 0.01889696491666032,
+      "dollar_volume": 31055516968.319996,
       "action": "做空",
       "side": -1,
       "reason": "fade_to_prior_close",
@@ -28,16 +28,16 @@
       "last_bar_date": "2026-10-08",
       "prior_close": 1035.84,
       "entry": "盤中觸價",
-      "entry_px": 1055.0441281721503,
+      "entry_px": 1054.5317742689588,
       "tp": 1035.84,
-      "sl": 1099.8394710292932,
+      "sl": 1099.3271171261017,
       "pred": {
         "high": {
           "q10": 1033.0560449844638,
-          "q50": 1055.0441281721503,
+          "q50": 1054.5317742689588,
           "q90": 1087.968304013067,
           "q10_ret": -0.002687630344006987,
-          "q50_ret": 0.01853966652393248,
+          "q50_ret": 0.018045040034135356,
           "q90_ret": 0.050324667914993494
         },
         "low": {
@@ -72,11 +72,11 @@
         "mae_close_ret": 0.02334573626022859,
         "mae_close_px": 24.02597883754749,
         "scope": "recent",
-        "mae_high_ret": 0.017330574621038725,
-        "mae_high_px": 17.63444730334344,
-        "mae_low_ret": 0.018195851773310595,
-        "mae_low_px": 18.646656980076294,
-        "mae_score": 0.018879717809785448
+        "mae_high_ret": 0.01738027490000017,
+        "mae_high_px": 17.68852120685349,
+        "mae_low_ret": 0.01818926926153633,
+        "mae_low_px": 18.63949520726589,
+        "mae_score": 0.01889696491666032
       },
       "data_source": "alpaca",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
@@ -88,8 +88,8 @@
       "model_family": "shared",
       "dvol_rank": 2,
       "mae_rank": 365,
-      "mae_score": 0.012201131624641828,
-      "dollar_volume": 27527461772.8,
+      "mae_score": 0.012205518507419199,
+      "dollar_volume": 27510469173.84,
       "action": "做空",
       "side": -1,
       "reason": "fade_to_prior_close",
@@ -141,11 +141,11 @@
         "mae_close_ret": 0.012312987681528841,
         "mae_close_px": 2.775255595051477,
         "scope": "recent",
-        "mae_high_ret": 0.011831182275197274,
-        "mae_high_px": 2.6658756366779297,
+        "mae_high_ret": 0.0118421494821407,
+        "mae_high_px": 2.668480019310785,
         "mae_low_ret": 0.012515152945642875,
         "mae_low_px": 2.813950956209191,
-        "mae_score": 0.012201131624641828
+        "mae_score": 0.012205518507419199
       },
       "data_source": "alpaca",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
@@ -157,8 +157,8 @@
       "model_family": "shared",
       "dvol_rank": 3,
       "mae_rank": 493,
-      "mae_score": 0.02480191981492629,
-      "dollar_volume": 15149158131.12,
+      "mae_score": 0.024811725673714414,
+      "dollar_volume": 15149074439.2,
       "action": "做空",
       "side": -1,
       "reason": "fade_to_prior_close",
@@ -173,10 +173,10 @@
         "high": {
           "q10": 1605.1343664665346,
           "q50": 1642.9221959593353,
-          "q90": 1699.4259808658385,
+          "q90": 1698.8262807705971,
           "q10_ret": -0.002687630344006987,
           "q50_ret": 0.02079094600632232,
-          "q90_ret": 0.05589823969892915
+          "q90_ret": 0.055525630193106496
         },
         "low": {
           "q10": 1520.7776496746078,
@@ -210,11 +210,11 @@
         "mae_close_ret": 0.03343498561815507,
         "mae_close_px": 56.69476927234041,
         "scope": "recent",
-        "mae_high_ret": 0.02384970139825547,
-        "mae_high_px": 40.28601216232115,
-        "mae_low_ret": 0.021437605329982717,
-        "mae_low_px": 36.51698387566422,
-        "mae_score": 0.02480191981492629
+        "mae_high_ret": 0.02387874286798069,
+        "mae_high_px": 40.33516252651351,
+        "mae_low_ret": 0.021433078507227806,
+        "mae_low_px": 36.50932259029735,
+        "mae_score": 0.024811725673714414
       },
       "data_source": "alpaca",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
@@ -226,8 +226,8 @@
       "model_family": "shared",
       "dvol_rank": 4,
       "mae_rank": 485,
-      "mae_score": 0.022051747181577853,
-      "dollar_volume": 14606356924.4,
+      "mae_score": 0.02205133554239383,
+      "dollar_volume": 14606355683.039999,
       "action": "做空",
       "side": -1,
       "reason": "fade_to_prior_close",
@@ -281,9 +281,9 @@
         "scope": "recent",
         "mae_high_ret": 0.022798434227522698,
         "mae_high_px": 12.905946050904467,
-        "mae_low_ret": 0.01975401482228927,
-        "mae_low_px": 11.336758593880042,
-        "mae_score": 0.022051747181577853
+        "mae_low_ret": 0.019752985724329215,
+        "mae_low_px": 11.33609394067156,
+        "mae_score": 0.02205133554239383
       },
       "data_source": "alpaca",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
@@ -296,7 +296,7 @@
       "dvol_rank": 6,
       "mae_rank": 107,
       "mae_score": 0.006974087389909512,
-      "dollar_volume": 12079335622.5,
+      "dollar_volume": 12079319282.34,
       "action": "做空",
       "side": -1,
       "reason": "fade_to_prior_close",
@@ -311,10 +311,10 @@
         "high": {
           "q10": 340.1950706912242,
           "q50": 343.07111662040313,
-          "q90": 346.980985043102,
+          "q90": 346.96747654582214,
           "q10_ret": -0.00066074058156343,
           "q50_ret": 0.007787781623885579,
-          "q90_ret": 0.019273206753721885
+          "q90_ret": 0.019233524898132223
         },
         "low": {
           "q10": 333.04968410600037,
@@ -365,7 +365,7 @@
       "dvol_rank": 7,
       "mae_rank": 453,
       "mae_score": 0.017069027445550774,
-      "dollar_volume": 11609994725.65,
+      "dollar_volume": 11594887754.81,
       "action": "做多",
       "side": 1,
       "reason": "fade_to_prior_close",
@@ -434,7 +434,7 @@
       "dvol_rank": 8,
       "mae_rank": 352,
       "mae_score": 0.01180631195845126,
-      "dollar_volume": 10744284375.0,
+      "dollar_volume": 10744275750.0,
       "action": "做多",
       "side": 1,
       "reason": "fade_to_prior_close",
@@ -503,7 +503,7 @@
       "dvol_rank": 9,
       "mae_rank": 306,
       "mae_score": 0.010389519608852621,
-      "dollar_volume": 10616861345.75,
+      "dollar_volume": 10616858210.09,
       "action": "做空",
       "side": -1,
       "reason": "fade_to_prior_close",
@@ -534,10 +534,10 @@
         "close": {
           "q10": 512.1955052349537,
           "q50": 522.9329065085299,
-          "q90": 531.5783459252089,
+          "q90": 531.5392245958462,
           "q10_ret": -0.019927852059942037,
           "q50_ret": 0.0006178728086524643,
-          "q90_ret": 0.01716068564552691
+          "q90_ret": 0.01708582804738965
         }
       },
       "baseline": {
@@ -570,9 +570,9 @@
       "sector": "Consumer Discretionary",
       "model_family": "shared",
       "dvol_rank": 10,
-      "mae_rank": 291,
-      "mae_score": 0.010177328780722524,
-      "dollar_volume": 9831944920.18,
+      "mae_rank": 290,
+      "mae_score": 0.010180346878716119,
+      "dollar_volume": 9831942125.52,
       "action": "做空",
       "side": -1,
       "reason": "fade_to_prior_close",
@@ -601,10 +601,10 @@
           "q90_ret": 0.0009178156189957587
         },
         "close": {
-          "q10": 248.88900068254424,
+          "q10": 248.9276553317751,
           "q50": 254.21697676576628,
           "q90": 258.4610630140107,
-          "q10_ret": -0.02035345712609529,
+          "q10_ret": -0.02020130940811187,
           "q50_ret": 0.0006178728086524643,
           "q90_ret": 0.017322927710031744
         }
@@ -624,11 +624,11 @@
         "mae_close_ret": 0.012424833163663485,
         "mae_close_px": 3.14053313971698,
         "scope": "recent",
-        "mae_high_ret": 0.00910776568428658,
-        "mae_high_px": 2.291498202904958,
-        "mae_low_ret": 0.010123139685687985,
-        "mae_low_px": 2.55314045945679,
-        "mae_score": 0.010177328780722524
+        "mae_high_ret": 0.009113893757670702,
+        "mae_high_px": 2.2930910117389587,
+        "mae_low_ret": 0.010124556857287852,
+        "mae_low_px": 2.5535088106990274,
+        "mae_score": 0.010180346878716119
       },
       "data_source": "alpaca",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
@@ -640,8 +640,8 @@
       "model_family": "shared",
       "dvol_rank": 11,
       "mae_rank": 432,
-      "mae_score": 0.015476876845356285,
-      "dollar_volume": 9792084512.539999,
+      "mae_score": 0.015477874721359721,
+      "dollar_volume": 9792083792.26,
       "action": "做空",
       "side": -1,
       "reason": "fade_to_prior_close",
@@ -693,11 +693,11 @@
         "mae_close_ret": 0.018844887894695583,
         "mae_close_px": 6.720005909825896,
         "scope": "recent",
-        "mae_high_ret": 0.014599840756296709,
-        "mae_high_px": 5.190993720826059,
+        "mae_high_ret": 0.014602335446305296,
+        "mae_high_px": 5.191932996561193,
         "mae_low_ret": 0.01466990740974621,
         "mae_low_px": 5.235740385589419,
-        "mae_score": 0.015476876845356285
+        "mae_score": 0.015477874721359721
       },
       "data_source": "alpaca",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
@@ -710,7 +710,7 @@
       "dvol_rank": 12,
       "mae_rank": 151,
       "mae_score": 0.007649191620941721,
-      "dollar_volume": 9280989139.5,
+      "dollar_volume": 9272214051.75,
       "action": "做空",
       "side": -1,
       "reason": "fade_to_prior_close",
@@ -777,9 +777,9 @@
       "sector": "Information Technology",
       "model_family": "shared",
       "dvol_rank": 13,
-      "mae_rank": 290,
-      "mae_score": 0.010174189295470516,
-      "dollar_volume": 8330557715.4,
+      "mae_rank": 289,
+      "mae_score": 0.010176215521372059,
+      "dollar_volume": 8330549962.9800005,
       "action": "做空",
       "side": -1,
       "reason": "fade_to_prior_close",
@@ -831,11 +831,11 @@
         "mae_close_ret": 0.012928113819356584,
         "mae_close_px": 2.3550165865717583,
         "scope": "recent",
-        "mae_high_ret": 0.011499140049406796,
-        "mae_high_px": 2.1213123130053324,
+        "mae_high_ret": 0.011504205614160651,
+        "mae_high_px": 2.1222956404353504,
         "mae_low_ret": 0.0074722762795912,
         "mae_low_px": 1.3644952558879508,
-        "mae_score": 0.010174189295470516
+        "mae_score": 0.010176215521372059
       },
       "data_source": "alpaca",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
@@ -848,7 +848,7 @@
       "dvol_rank": 14,
       "mae_rank": 331,
       "mae_score": 0.011015300316764693,
-      "dollar_volume": 8241526364.120001,
+      "dollar_volume": 8240631607.110001,
       "action": "做多",
       "side": 1,
       "reason": "fade_to_prior_close",
@@ -917,7 +917,7 @@
       "dvol_rank": 17,
       "mae_rank": 489,
       "mae_score": 0.023643578219441786,
-      "dollar_volume": 5757162786.48,
+      "dollar_volume": 5757162515.099999,
       "action": "做空",
       "side": -1,
       "reason": "fade_to_prior_close",
@@ -985,8 +985,8 @@
       "model_family": "shared",
       "dvol_rank": 19,
       "mae_rank": 326,
-      "mae_score": 0.010891553884422643,
-      "dollar_volume": 4829859481.360001,
+      "mae_score": 0.01089081367043429,
+      "dollar_volume": 4829858791.64,
       "action": "做多",
       "side": 1,
       "reason": "fade_to_prior_close",
@@ -1038,11 +1038,11 @@
         "mae_close_ret": 0.012041890260673736,
         "mae_close_px": 4.105086489671876,
         "scope": "recent",
-        "mae_high_ret": 0.011937093826126777,
-        "mae_high_px": 4.068148009498707,
+        "mae_high_ret": 0.011935243291155896,
+        "mae_high_px": 4.067505189165871,
         "mae_low_ret": 0.009270845754592959,
         "mae_low_px": 3.1589635837790153,
-        "mae_score": 0.010891553884422643
+        "mae_score": 0.01089081367043429
       },
       "data_source": "alpaca",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
@@ -1053,9 +1053,9 @@
       "sector": "Health Care",
       "model_family": "shared",
       "dvol_rank": 23,
-      "mae_rank": 281,
-      "mae_score": 0.010035251060724466,
-      "dollar_volume": 3647936785.6,
+      "mae_rank": 280,
+      "mae_score": 0.010042305765899004,
+      "dollar_volume": 3647932107.2,
       "action": "做空",
       "side": -1,
       "reason": "fade_to_prior_close",
@@ -1107,11 +1107,11 @@
         "mae_close_ret": 0.009711475713106637,
         "mae_close_px": 11.223611627609106,
         "scope": "recent",
-        "mae_high_ret": 0.010706840564853166,
-        "mae_high_px": 12.335123330112005,
+        "mae_high_ret": 0.010724477327789512,
+        "mae_high_px": 12.356088502949698,
         "mae_low_ret": 0.009525549230404677,
         "mae_low_px": 11.057810702818154,
-        "mae_score": 0.010035251060724466
+        "mae_score": 0.010042305765899004
       },
       "data_source": "alpaca",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
@@ -1124,7 +1124,7 @@
       "dvol_rank": 24,
       "mae_rank": 472,
       "mae_score": 0.019204114499237136,
-      "dollar_volume": 3451214167.29,
+      "dollar_volume": 3451213148.15,
       "action": "做空",
       "side": -1,
       "reason": "fade_to_prior_close",
@@ -1192,8 +1192,8 @@
       "model_family": "shared",
       "dvol_rank": 25,
       "mae_rank": 418,
-      "mae_score": 0.01442609501490465,
-      "dollar_volume": 3303051475.37,
+      "mae_score": 0.014425122626743756,
+      "dollar_volume": 3303049614.5499997,
       "action": "做多",
       "side": 1,
       "reason": "fade_to_prior_close",
@@ -1245,11 +1245,11 @@
         "mae_close_ret": 0.019243120549828414,
         "mae_close_px": 1.409138801371108,
         "scope": "recent",
-        "mae_high_ret": 0.013176816735482332,
-        "mae_high_px": 0.9698450151513889,
+        "mae_high_ret": 0.013174385765080098,
+        "mae_high_px": 0.969675576514353,
         "mae_low_ret": 0.013266860526865085,
         "mae_low_px": 0.9770923134412952,
-        "mae_score": 0.01442609501490465
+        "mae_score": 0.014425122626743756
       },
       "data_source": "alpaca",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
@@ -1261,8 +1261,8 @@
       "model_family": "shared",
       "dvol_rank": 26,
       "mae_rank": 252,
-      "mae_score": 0.009397303441665497,
-      "dollar_volume": 3206631059.67,
+      "mae_score": 0.009399160174040789,
+      "dollar_volume": 3206630952.45,
       "action": "做多",
       "side": 1,
       "reason": "fade_to_prior_close",
@@ -1314,11 +1314,11 @@
         "mae_close_ret": 0.010900345349489788,
         "mae_close_px": 0.6351948387342934,
         "scope": "recent",
-        "mae_high_ret": 0.0067093038408169966,
-        "mae_high_px": 0.38511119514292613,
+        "mae_high_ret": 0.0067139456717552285,
+        "mae_high_px": 0.3853596259347404,
         "mae_low_ret": 0.01133378208860185,
         "mae_low_px": 0.6566461181110705,
-        "mae_score": 0.009397303441665497
+        "mae_score": 0.009399160174040789
       },
       "data_source": "alpaca",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
@@ -1330,8 +1330,8 @@
       "model_family": "shared",
       "dvol_rank": 27,
       "mae_rank": 128,
-      "mae_score": 0.007331849835602784,
-      "dollar_volume": 3081120239.88,
+      "mae_score": 0.0073295147129407885,
+      "dollar_volume": 3081119854.86,
       "action": "做空",
       "side": -1,
       "reason": "fade_to_prior_close",
@@ -1383,11 +1383,11 @@
         "mae_close_ret": 0.00910309857619162,
         "mae_close_px": 1.1774747518070225,
         "scope": "recent",
-        "mae_high_ret": 0.006991664695641607,
-        "mae_high_px": 0.905324486394805,
+        "mae_high_ret": 0.006985826888986619,
+        "mae_high_px": 0.9046021745773833,
         "mae_low_ret": 0.006786410605269541,
         "mae_low_px": 0.8827785009200309,
-        "mae_score": 0.007331849835602784
+        "mae_score": 0.0073295147129407885
       },
       "data_source": "alpaca",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
@@ -1400,7 +1400,7 @@
       "dvol_rank": 29,
       "mae_rank": 480,
       "mae_score": 0.02098177950220035,
-      "dollar_volume": 2888906058.0299997,
+      "dollar_volume": 2888905416.85,
       "action": "做空",
       "side": -1,
       "reason": "fade_to_prior_close",
@@ -1408,16 +1408,16 @@
       "last_bar_date": "2026-10-08",
       "prior_close": 320.59,
       "entry": "盤中觸價",
-      "entry_px": 324.70292158602496,
+      "entry_px": 324.6484626210711,
       "tp": 320.59,
-      "sl": 337.2741930145964,
+      "sl": 337.2197340496425,
       "pred": {
         "high": {
           "q10": 319.78520766544796,
-          "q50": 324.70292158602496,
+          "q50": 324.6484626210711,
           "q90": 333.0738237988258,
           "q10_ret": -0.0025103475921020657,
-          "q50_ret": 0.012829226070760116,
+          "q50_ret": 0.01265935500505657,
           "q90_ret": 0.038940153463382574
         },
         "low": {
@@ -1468,8 +1468,8 @@
       "model_family": "shared",
       "dvol_rank": 30,
       "mae_rank": 156,
-      "mae_score": 0.007757582107314755,
-      "dollar_volume": 2826167373.5099998,
+      "mae_score": 0.007759793194398427,
+      "dollar_volume": 2826167187.0899997,
       "action": "做空",
       "side": -1,
       "reason": "fade_to_prior_close",
@@ -1521,11 +1521,11 @@
         "mae_close_ret": 0.009174112736963409,
         "mae_close_px": 0.8805093722884625,
         "scope": "recent",
-        "mae_high_ret": 0.005181527759920335,
-        "mae_high_px": 0.4958618494169319,
-        "mae_low_ret": 0.009625371139884847,
-        "mae_low_px": 0.9175609222440613,
-        "mae_score": 0.007757582107314755
+        "mae_high_ret": 0.00519057738987038,
+        "mae_high_px": 0.49670871378765724,
+        "mae_low_ret": 0.009621849227643984,
+        "mae_low_px": 0.9172313416965612,
+        "mae_score": 0.007759793194398427
       },
       "data_source": "alpaca",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
@@ -1537,8 +1537,8 @@
       "model_family": "shared",
       "dvol_rank": 32,
       "mae_rank": 111,
-      "mae_score": 0.007073222051656279,
-      "dollar_volume": 2708854585.0499997,
+      "mae_score": 0.007069387882860866,
+      "dollar_volume": 2708853843.15,
       "action": "做空",
       "side": -1,
       "reason": "fade_to_prior_close",
@@ -1559,18 +1559,18 @@
           "q90_ret": 0.026286912080820655
         },
         "low": {
-          "q10": 360.3414310761908,
+          "q10": 360.48367535268966,
           "q50": 367.72106022604055,
           "q90": 371.36674584349123,
-          "q10_ret": -0.028598379630163515,
+          "q10_ret": -0.028214920197628657,
           "q50_ret": -0.008704514823990959,
           "q90_ret": 0.0011234555694601938
         },
         "close": {
-          "q10": 363.1403824681257,
+          "q10": 363.22438745264355,
           "q50": 371.17919991836965,
           "q90": 378.2962145937073,
-          "q10_ret": -0.021053019360760858,
+          "q10_ret": -0.02082656031097568,
           "q50_ret": 0.0006178728086524643,
           "q90_ret": 0.01980378647717293
         }
@@ -1590,11 +1590,11 @@
         "mae_close_ret": 0.009492234651244321,
         "mae_close_px": 3.5759741797784876,
         "scope": "recent",
-        "mae_high_ret": 0.006344169753149639,
-        "mae_high_px": 2.379147684624947,
-        "mae_low_ret": 0.006592768050368897,
-        "mae_low_px": 2.4917634933608617,
-        "mae_score": 0.007073222051656279
+        "mae_high_ret": 0.006344903574381912,
+        "mae_high_px": 2.3794235867318565,
+        "mae_low_ret": 0.0065824488071480934,
+        "mae_low_px": 2.4878836642947038,
+        "mae_score": 0.007069387882860866
       },
       "data_source": "alpaca",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
@@ -1606,8 +1606,8 @@
       "model_family": "shared",
       "dvol_rank": 33,
       "mae_rank": 131,
-      "mae_score": 0.007364859287341111,
-      "dollar_volume": 2694854528.6,
+      "mae_score": 0.007363703665755766,
+      "dollar_volume": 2694854054.8,
       "action": "做空",
       "side": -1,
       "reason": "fade_to_prior_close",
@@ -1659,11 +1659,11 @@
         "mae_close_ret": 0.010041256211578429,
         "mae_close_px": 2.4554370171885314,
         "scope": "recent",
-        "mae_high_ret": 0.005528767199739546,
-        "mae_high_px": 1.3390790386594815,
+        "mae_high_ret": 0.005525878145776186,
+        "mae_high_px": 1.338412013880421,
         "mae_low_ret": 0.007862752912824015,
         "mae_low_px": 1.9438588398783263,
-        "mae_score": 0.007364859287341111
+        "mae_score": 0.007363703665755766
       },
       "data_source": "alpaca",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
@@ -1675,8 +1675,8 @@
       "model_family": "shared",
       "dvol_rank": 34,
       "mae_rank": 120,
-      "mae_score": 0.007226915321291705,
-      "dollar_volume": 2676789856.6,
+      "mae_score": 0.007226161539498374,
+      "dollar_volume": 2676788199.5,
       "action": "做多",
       "side": 1,
       "reason": "fade_to_prior_close",
@@ -1728,11 +1728,11 @@
         "mae_close_ret": 0.008453719753068648,
         "mae_close_px": 2.9143821794670193,
         "scope": "recent",
-        "mae_high_ret": 0.0054884167174334645,
-        "mae_high_px": 1.8855176688962296,
+        "mae_high_ret": 0.005486532262950139,
+        "mae_high_px": 1.8848965903876151,
         "mae_low_ret": 0.008352011709261472,
         "mae_low_px": 2.8927289020010813,
-        "mae_score": 0.007226915321291705
+        "mae_score": 0.007226161539498374
       },
       "data_source": "alpaca",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
@@ -1744,8 +1744,8 @@
       "model_family": "shared",
       "dvol_rank": 35,
       "mae_rank": 246,
-      "mae_score": 0.009296812478083642,
-      "dollar_volume": 2634655169.1600003,
+      "mae_score": 0.009293573805722379,
+      "dollar_volume": 2634654578.2200003,
       "action": "做空",
       "side": -1,
       "reason": "fade_to_prior_close",
@@ -1797,11 +1797,11 @@
         "mae_close_ret": 0.012056506379959132,
         "mae_close_px": 3.564374970496587,
         "scope": "recent",
-        "mae_high_ret": 0.00914330809129671,
-        "mae_high_px": 2.6879860259236885,
-        "mae_low_ret": 0.008070469913932827,
-        "mae_low_px": 2.395653428096722,
-        "mae_score": 0.009296812478083642
+        "mae_high_ret": 0.009133665854534265,
+        "mae_high_px": 2.6852305639240845,
+        "mae_low_ret": 0.008072015469792115,
+        "mae_low_px": 2.3960951015946303,
+        "mae_score": 0.009293573805722379
       },
       "data_source": "alpaca",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
@@ -1813,8 +1813,8 @@
       "model_family": "shared",
       "dvol_rank": 36,
       "mae_rank": 164,
-      "mae_score": 0.007891404152838292,
-      "dollar_volume": 2629391762.7200003,
+      "mae_score": 0.007889879992290457,
+      "dollar_volume": 2629391541.6,
       "action": "做空",
       "side": -1,
       "reason": "fade_to_prior_close",
@@ -1866,11 +1866,11 @@
         "mae_close_ret": 0.011516776250218557,
         "mae_close_px": 1.2385327588683563,
         "scope": "recent",
-        "mae_high_ret": 0.006969417301101946,
-        "mae_high_px": 0.7484906642560735,
+        "mae_high_ret": 0.00696560689973236,
+        "mae_high_px": 0.7480785312439393,
         "mae_low_ret": 0.007000704955884503,
         "mae_low_px": 0.753991161875326,
-        "mae_score": 0.007891404152838292
+        "mae_score": 0.007889879992290457
       },
       "data_source": "alpaca",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
@@ -1882,8 +1882,8 @@
       "model_family": "shared",
       "dvol_rank": 38,
       "mae_rank": 473,
-      "mae_score": 0.0194521111624799,
-      "dollar_volume": 2472456540.18,
+      "mae_score": 0.019451699523295878,
+      "dollar_volume": 2472451016.97,
       "action": "做空",
       "side": -1,
       "reason": "fade_to_prior_close",
@@ -1937,9 +1937,9 @@
         "scope": "recent",
         "mae_high_ret": 0.02111153286939445,
         "mae_high_px": 5.061298500980156,
-        "mae_low_ret": 0.014240470783032982,
-        "mae_low_px": 3.523844709996593,
-        "mae_score": 0.0194521111624799
+        "mae_low_ret": 0.014239441685072926,
+        "mae_low_px": 3.5235715462340758,
+        "mae_score": 0.019451699523295878
       },
       "data_source": "alpaca",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
@@ -1951,8 +1951,8 @@
       "model_family": "shared",
       "dvol_rank": 39,
       "mae_rank": 482,
-      "mae_score": 0.0213053405536693,
-      "dollar_volume": 2427666527.52,
+      "mae_score": 0.021308921931460275,
+      "dollar_volume": 2427666313.5,
       "action": "做空",
       "side": -1,
       "reason": "fade_to_prior_close",
@@ -1960,16 +1960,16 @@
       "last_bar_date": "2026-10-08",
       "prior_close": 107.01,
       "entry": "盤中觸價",
-      "entry_px": 108.70787900940921,
+      "entry_px": 108.69153800550566,
       "tp": 107.01,
-      "sl": 113.79348615226635,
+      "sl": 113.7771451483628,
       "pred": {
         "high": {
           "q10": 106.73258549337439,
-          "q50": 108.70787900940921,
+          "q50": 108.69153800550566,
           "q90": 112.02897568835176,
           "q10_ret": -0.0025924166584956844,
-          "q50_ret": 0.015866545270621393,
+          "q50_ret": 0.01571383987950328,
           "q90_ret": 0.04690193148632624
         },
         "low": {
@@ -2004,11 +2004,11 @@
         "mae_close_ret": 0.024688872891169892,
         "mae_close_px": 2.7897946720473294,
         "scope": "recent",
-        "mae_high_ret": 0.0207898998001269,
-        "mae_high_px": 2.344247159657087,
+        "mae_high_ret": 0.020798853244604336,
+        "mae_high_px": 2.345227651361811,
         "mae_low_ret": 0.020129015138461402,
         "mae_low_px": 2.2783008696883145,
-        "mae_score": 0.0213053405536693
+        "mae_score": 0.021308921931460275
       },
       "data_source": "alpaca",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
@@ -2021,7 +2021,7 @@
       "dvol_rank": 40,
       "mae_rank": 59,
       "mae_score": 0.006091589183788687,
-      "dollar_volume": 2406645726.1000004,
+      "dollar_volume": 2406644975.9,
       "action": "做多",
       "side": 1,
       "reason": "fade_to_prior_close",
@@ -2090,7 +2090,7 @@
       "dvol_rank": 41,
       "mae_rank": 2,
       "mae_score": 0.00421525413071771,
-      "dollar_volume": 2399614321.9500003,
+      "dollar_volume": 2399613299.85,
       "action": "做空",
       "side": -1,
       "reason": "fade_to_prior_close",
@@ -2152,83 +2152,14 @@
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
     },
     {
-      "ticker": "GEV",
-      "name": "Industrials",
-      "sector": "Industrials",
-      "model_family": "shared",
-      "dvol_rank": 42,
-      "mae_rank": 458,
-      "mae_score": 0.018039336779771216,
-      "dollar_volume": 2357330738.4,
-      "action": "做空",
-      "side": -1,
-      "reason": "fade_to_prior_close",
-      "asof": "2026-10-08",
-      "last_bar_date": "2026-10-08",
-      "prior_close": 999.35,
-      "entry": "盤中觸價",
-      "entry_px": 1011.8984598284151,
-      "tp": 999.35,
-      "sl": 1047.2758598284152,
-      "pred": {
-        "high": {
-          "q10": 997.0285020261041,
-          "q50": 1011.8984598284151,
-          "q90": 1037.6443119734201,
-          "q10_ret": -0.0023230079290498446,
-          "q50_ret": 0.01255662163247607,
-          "q90_ret": 0.038319219466073175
-        },
-        "low": {
-          "q10": 963.0927830721565,
-          "q50": 987.1465267382466,
-          "q90": 1002.4842137897011,
-          "q10_ret": -0.03628079944748438,
-          "q50_ret": -0.01221141067869459,
-          "q90_ret": 0.003136252353731065
-        },
-        "close": {
-          "q10": 971.9300197773327,
-          "q50": 999.9674711913269,
-          "q90": 1027.9186633247634,
-          "q10_ret": -0.02743781480228881,
-          "q50_ret": 0.0006178728086524643,
-          "q90_ret": 0.028587245034035442
-        }
-      },
-      "baseline": {
-        "high_q50": 1034.7274,
-        "low_q50": 963.9726,
-        "close_q50": 999.35
-      },
-      "atr": 35.37739999999997,
-      "high_confidence": false,
-      "beats_baseline": true,
-      "beats_range": true,
-      "strategy": "fade_to_prior_close",
-      "recent_error": {
-        "n": 20,
-        "mae_close_ret": 0.017846239478931915,
-        "mae_close_px": 16.94762545719901,
-        "scope": "recent",
-        "mae_high_ret": 0.019679026657465966,
-        "mae_high_px": 18.71754555770715,
-        "mae_low_ret": 0.016496195552496113,
-        "mae_low_px": 15.722944367143217,
-        "mae_score": 0.018039336779771216
-      },
-      "data_source": "alpaca",
-      "universe_source": "S&P 500 · Wikipedia 2026-09-12"
-    },
-    {
       "ticker": "CMG",
       "name": "Consumer Discretionary",
       "sector": "Consumer Discretionary",
       "model_family": "shared",
-      "dvol_rank": 43,
+      "dvol_rank": 42,
       "mae_rank": 396,
       "mae_score": 0.013296556398084504,
-      "dollar_volume": 2354196382.44,
+      "dollar_volume": 2354196349.7599998,
       "action": "做空",
       "side": -1,
       "reason": "fade_to_prior_close",
@@ -2290,14 +2221,83 @@
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
     },
     {
+      "ticker": "GEV",
+      "name": "Industrials",
+      "sector": "Industrials",
+      "model_family": "shared",
+      "dvol_rank": 43,
+      "mae_rank": 458,
+      "mae_score": 0.01803473163763324,
+      "dollar_volume": 2353431274.7000003,
+      "action": "做空",
+      "side": -1,
+      "reason": "fade_to_prior_close",
+      "asof": "2026-10-08",
+      "last_bar_date": "2026-10-08",
+      "prior_close": 999.35,
+      "entry": "盤中觸價",
+      "entry_px": 1011.8984598284151,
+      "tp": 999.35,
+      "sl": 1047.2758598284152,
+      "pred": {
+        "high": {
+          "q10": 997.0285020261041,
+          "q50": 1011.8984598284151,
+          "q90": 1037.6443119734201,
+          "q10_ret": -0.0023230079290498446,
+          "q50_ret": 0.01255662163247607,
+          "q90_ret": 0.038319219466073175
+        },
+        "low": {
+          "q10": 963.0927830721565,
+          "q50": 987.1465267382466,
+          "q90": 1002.4842137897011,
+          "q10_ret": -0.03628079944748438,
+          "q50_ret": -0.01221141067869459,
+          "q90_ret": 0.003136252353731065
+        },
+        "close": {
+          "q10": 971.9300197773327,
+          "q50": 999.9674711913269,
+          "q90": 1027.9186633247634,
+          "q10_ret": -0.02743781480228881,
+          "q50_ret": 0.0006178728086524643,
+          "q90_ret": 0.028587245034035442
+        }
+      },
+      "baseline": {
+        "high_q50": 1034.7274,
+        "low_q50": 963.9726,
+        "close_q50": 999.35
+      },
+      "atr": 35.37739999999997,
+      "high_confidence": false,
+      "beats_baseline": true,
+      "beats_range": true,
+      "strategy": "fade_to_prior_close",
+      "recent_error": {
+        "n": 20,
+        "mae_close_ret": 0.017846239478931915,
+        "mae_close_px": 16.94762545719901,
+        "scope": "recent",
+        "mae_high_ret": 0.019668542900081083,
+        "mae_high_px": 18.707092308056257,
+        "mae_low_ret": 0.016495166454536057,
+        "mae_low_px": 15.721918263858225,
+        "mae_score": 0.01803473163763324
+      },
+      "data_source": "alpaca",
+      "universe_source": "S&P 500 · Wikipedia 2026-09-12"
+    },
+    {
       "ticker": "XOM",
       "name": "Energy",
       "sector": "Energy",
       "model_family": "shared",
       "dvol_rank": 44,
       "mae_rank": 276,
-      "mae_score": 0.009801577731151562,
-      "dollar_volume": 2241671596.5,
+      "mae_score": 0.009800422109566217,
+      "dollar_volume": 2241671259.5,
       "action": "做空",
       "side": -1,
       "reason": "fade_to_prior_close",
@@ -2349,11 +2349,11 @@
         "mae_close_ret": 0.010237994708445565,
         "mae_close_px": 1.6799817337924126,
         "scope": "recent",
-        "mae_high_ret": 0.009940491052756422,
-        "mae_high_px": 1.627201585789539,
+        "mae_high_ret": 0.009937601998793063,
+        "mae_high_px": 1.6267276364868497,
         "mae_low_ret": 0.009444455920899698,
         "mae_low_px": 1.5466309503165303,
-        "mae_score": 0.009801577731151562
+        "mae_score": 0.009800422109566217
       },
       "data_source": "alpaca",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
@@ -2365,8 +2365,8 @@
       "model_family": "shared",
       "dvol_rank": 45,
       "mae_rank": 420,
-      "mae_score": 0.014572284787835022,
-      "dollar_volume": 2228927406.8599997,
+      "mae_score": 0.014574164150514875,
+      "dollar_volume": 2228925814.5,
       "action": "做空",
       "side": -1,
       "reason": "fade_to_prior_close",
@@ -2397,10 +2397,10 @@
         "close": {
           "q10": 776.1479557408618,
           "q50": 796.671937972793,
-          "q90": 815.0225957956267,
+          "q90": 814.8463846418564,
           "q10_ret": -0.025160195256271348,
           "q50_ret": 0.0006178728086524643,
-          "q90_ret": 0.023666251093504738
+          "q90_ret": 0.02344493034471661
         }
       },
       "baseline": {
@@ -2418,11 +2418,11 @@
         "mae_close_ret": 0.015901596446226008,
         "mae_close_px": 13.094269723325164,
         "scope": "recent",
-        "mae_high_ret": 0.013255900330143483,
-        "mae_high_px": 10.863154092903905,
+        "mae_high_ret": 0.013260598736843116,
+        "mae_high_px": 10.866977797228268,
         "mae_low_ret": 0.015224013416331067,
         "mae_low_px": 12.550657253982104,
-        "mae_score": 0.014572284787835022
+        "mae_score": 0.014574164150514875
       },
       "data_source": "alpaca",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
@@ -2434,8 +2434,8 @@
       "model_family": "shared",
       "dvol_rank": 46,
       "mae_rank": 39,
-      "mae_score": 0.005578898464970345,
-      "dollar_volume": 2163897557.2,
+      "mae_score": 0.00557851382505025,
+      "dollar_volume": 2163884286.3199997,
       "action": "做空",
       "side": -1,
       "reason": "fade_to_prior_close",
@@ -2445,39 +2445,39 @@
       "entry": "盤中觸價",
       "entry_px": 954.9102295553884,
       "tp": 947.92,
-      "sl": 970.839615269674,
+      "sl": 970.8531866982455,
       "pred": {
         "high": {
           "q10": 947.2936707879244,
           "q50": 954.9102295553884,
-          "q90": 966.285572588456,
+          "q90": 966.1126973171952,
           "q10_ret": -0.00066074058156343,
           "q50_ret": 0.007374282170845919,
-          "q90_ret": 0.01937460185295812
+          "q90_ret": 0.019192228581731755
         },
         "low": {
           "q10": 928.7073177115841,
-          "q50": 941.1109984605316,
+          "q50": 941.0989811417304,
           "q90": 948.4714824133328,
           "q10_ret": -0.020268252899417447,
-          "q50_ret": -0.007183097243932296,
+          "q50_ret": -0.007195774810394932,
           "q90_ret": 0.0005817815990092454
         },
         "close": {
           "q10": 931.9183275754293,
           "q50": 948.5056939927779,
-          "q90": 961.5864359688518,
+          "q90": 961.4280273823573,
           "q10_ret": -0.01688082583400559,
           "q50_ret": 0.0006178728086524643,
-          "q90_ret": 0.014417288345906562
+          "q90_ret": 0.014250176578569265
         }
       },
       "baseline": {
-        "high_q50": 963.8493857142856,
-        "low_q50": 931.9906142857143,
+        "high_q50": 963.862957142857,
+        "low_q50": 931.9770428571428,
         "close_q50": 947.92
       },
-      "atr": 15.92938571428572,
+      "atr": 15.942957142857145,
       "high_confidence": false,
       "beats_baseline": true,
       "beats_range": true,
@@ -2487,11 +2487,11 @@
         "mae_close_ret": 0.007408738865532008,
         "mae_close_px": 6.755167426772064,
         "scope": "recent",
-        "mae_high_ret": 0.005710310600459538,
-        "mae_high_px": 5.197582100225661,
+        "mae_high_ret": 0.0057093490006593,
+        "mae_high_px": 5.196609327316282,
         "mae_low_ret": 0.004532566129200319,
         "mae_low_px": 4.142902375043998,
-        "mae_score": 0.005578898464970345
+        "mae_score": 0.00557851382505025
       },
       "data_source": "alpaca",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
@@ -2504,7 +2504,7 @@
       "dvol_rank": 47,
       "mae_rank": 404,
       "mae_score": 0.013766446918305081,
-      "dollar_volume": 2137624808.75,
+      "dollar_volume": 2135183683.25,
       "action": "做空",
       "side": -1,
       "reason": "fade_to_prior_close",
@@ -2573,7 +2573,7 @@
       "dvol_rank": 48,
       "mae_rank": 395,
       "mae_score": 0.013271133524694757,
-      "dollar_volume": 2024957274.0900002,
+      "dollar_volume": 2024945490.3700001,
       "action": "做空",
       "side": -1,
       "reason": "fade_to_prior_close",
@@ -2641,8 +2641,8 @@
       "model_family": "shared",
       "dvol_rank": 49,
       "mae_rank": 462,
-      "mae_score": 0.018414168876037612,
-      "dollar_volume": 1996898818.4,
+      "mae_score": 0.018412347402746037,
+      "dollar_volume": 1996898424.96,
       "action": "做空",
       "side": -1,
       "reason": "fade_to_prior_close",
@@ -2694,11 +2694,11 @@
         "mae_close_ret": 0.019406887774344257,
         "mae_close_px": 3.60516249060858,
         "scope": "recent",
-        "mae_high_ret": 0.017629999921631296,
-        "mae_high_px": 3.2681578586440367,
+        "mae_high_ret": 0.01762544623840236,
+        "mae_high_px": 3.267261557174085,
         "mae_low_ret": 0.0187019783812906,
         "mae_low_px": 3.5363768296464406,
-        "mae_score": 0.018414168876037612
+        "mae_score": 0.018412347402746037
       },
       "data_source": "alpaca",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
@@ -2709,9 +2709,9 @@
       "sector": "Industrials",
       "model_family": "shared",
       "dvol_rank": 50,
-      "mae_rank": 293,
+      "mae_rank": 292,
       "mae_score": 0.010196904026447828,
-      "dollar_volume": 1954566732.3,
+      "dollar_volume": 1954540754.6000001,
       "action": "做多",
       "side": 1,
       "reason": "fade_to_prior_close",
@@ -2780,7 +2780,7 @@
       "dvol_rank": 51,
       "mae_rank": 51,
       "mae_score": 0.005914815950602755,
-      "dollar_volume": 1951636663.68,
+      "dollar_volume": 1951635514.16,
       "action": "做空",
       "side": -1,
       "reason": "fade_to_prior_close",
@@ -2848,8 +2848,8 @@
       "model_family": "shared",
       "dvol_rank": 53,
       "mae_rank": 491,
-      "mae_score": 0.02379028002565163,
-      "dollar_volume": 1857833687.98,
+      "mae_score": 0.02378952684393597,
+      "dollar_volume": 1857832262.6299999,
       "action": "做空",
       "side": -1,
       "reason": "fade_to_prior_close",
@@ -2901,11 +2901,11 @@
         "mae_close_ret": 0.02472568846116715,
         "mae_close_px": 6.678529124530094,
         "scope": "recent",
-        "mae_high_ret": 0.023978139436436077,
-        "mae_high_px": 6.388220027116489,
+        "mae_high_ret": 0.02397625648214693,
+        "mae_high_px": 6.387655912841004,
         "mae_low_ret": 0.023134716397109418,
         "mae_low_px": 6.306837199113889,
-        "mae_score": 0.02379028002565163
+        "mae_score": 0.02378952684393597
       },
       "data_source": "alpaca",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
@@ -2917,8 +2917,8 @@
       "model_family": "shared",
       "dvol_rank": 54,
       "mae_rank": 110,
-      "mae_score": 0.007051034637707401,
-      "dollar_volume": 1818748164.97,
+      "mae_score": 0.007050658836330468,
+      "dollar_volume": 1818740183.7,
       "action": "做空",
       "side": -1,
       "reason": "fade_to_prior_close",
@@ -2970,11 +2970,11 @@
         "mae_close_ret": 0.009090372588326956,
         "mae_close_px": 1.3314828513734436,
         "scope": "recent",
-        "mae_high_ret": 0.0067882258899351205,
-        "mae_high_px": 0.9934865032746508,
-        "mae_low_ret": 0.006294174410169903,
-        "mae_low_px": 0.9202106564032471,
-        "mae_score": 0.007051034637707401
+        "mae_high_ret": 0.006785671463617883,
+        "mae_high_px": 0.9931089079764368,
+        "mae_low_ret": 0.00629578933304481,
+        "mae_low_px": 0.9204493743026159,
+        "mae_score": 0.007050658836330468
       },
       "data_source": "alpaca",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
@@ -2986,8 +2986,8 @@
       "model_family": "shared",
       "dvol_rank": 55,
       "mae_rank": 465,
-      "mae_score": 0.018755830296168695,
-      "dollar_volume": 1769862513.9999998,
+      "mae_score": 0.01876310200470382,
+      "dollar_volume": 1769862201.7199998,
       "action": "做空",
       "side": -1,
       "reason": "fade_to_prior_close",
@@ -3002,10 +3002,10 @@
         "high": {
           "q10": 155.72973345112726,
           "q50": 158.96459996868012,
-          "q90": 164.12315387323028,
+          "q90": 164.0958027578753,
           "q10_ret": -0.002627555712006683,
           "q50_ret": 0.018090175282952033,
-          "q90_ret": 0.05112817902670862
+          "q90_ret": 0.05095300856843412
         },
         "low": {
           "q10": 148.28302498028904,
@@ -3039,11 +3039,11 @@
         "mae_close_ret": 0.02195490104994352,
         "mae_close_px": 3.2523829161253004,
         "scope": "recent",
-        "mae_high_ret": 0.01741643255937255,
-        "mae_high_px": 2.513801445313229,
+        "mae_high_ret": 0.01743461183071036,
+        "mae_high_px": 2.5168322934306686,
         "mae_low_ret": 0.01849569265607743,
         "mae_low_px": 2.7273497229429866,
-        "mae_score": 0.018755830296168695
+        "mae_score": 0.01876310200470382
       },
       "data_source": "alpaca",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
@@ -3056,7 +3056,7 @@
       "dvol_rank": 56,
       "mae_rank": 478,
       "mae_score": 0.02013668931600068,
-      "dollar_volume": 1764523330.5,
+      "dollar_volume": 1764519345.5,
       "action": "做空",
       "side": -1,
       "reason": "fade_to_prior_close",
@@ -3125,7 +3125,7 @@
       "dvol_rank": 57,
       "mae_rank": 477,
       "mae_score": 0.01995445503472483,
-      "dollar_volume": 1718780184.52,
+      "dollar_volume": 1718778223.68,
       "action": "做空",
       "side": -1,
       "reason": "fade_to_prior_close",
@@ -3193,8 +3193,8 @@
       "model_family": "shared",
       "dvol_rank": 58,
       "mae_rank": 394,
-      "mae_score": 0.013237822705935556,
-      "dollar_volume": 1714245013.8,
+      "mae_score": 0.01324016047141642,
+      "dollar_volume": 1714244437.3999999,
       "action": "做多",
       "side": 1,
       "reason": "fade_to_prior_close",
@@ -3204,7 +3204,7 @@
       "entry": "盤中觸價",
       "entry_px": 285.31376100814396,
       "tp": 288.2,
-      "sl": 277.96338957957255,
+      "sl": 277.959461008144,
       "pred": {
         "high": {
           "q10": 287.7255074676523,
@@ -3232,11 +3232,11 @@
         }
       },
       "baseline": {
-        "high_q50": 295.5503714285714,
-        "low_q50": 280.8496285714286,
+        "high_q50": 295.55429999999996,
+        "low_q50": 280.84569999999997,
         "close_q50": 288.2
       },
-      "atr": 7.350371428571419,
+      "atr": 7.3542999999999905,
       "high_confidence": false,
       "beats_baseline": true,
       "beats_range": true,
@@ -3246,11 +3246,11 @@
         "mae_close_ret": 0.013746285934627378,
         "mae_close_px": 3.750975720581544,
         "scope": "recent",
-        "mae_high_ret": 0.013933399560156368,
-        "mae_high_px": 3.803861261736089,
-        "mae_low_ret": 0.012288014237368833,
-        "mae_low_px": 3.3940057499239122,
-        "mae_score": 0.013237822705935556
+        "mae_high_ret": 0.013938530504938925,
+        "mae_high_px": 3.8053440021593525,
+        "mae_low_ret": 0.012288727706288435,
+        "mae_low_px": 3.3942882579505858,
+        "mae_score": 0.01324016047141642
       },
       "data_source": "alpaca",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
@@ -3262,8 +3262,8 @@
       "model_family": "shared",
       "dvol_rank": 59,
       "mae_rank": 464,
-      "mae_score": 0.018573547341947487,
-      "dollar_volume": 1711512328.24,
+      "mae_score": 0.01856894219980951,
+      "dollar_volume": 1711512024.36,
       "action": "做空",
       "side": -1,
       "reason": "fade_to_prior_close",
@@ -3315,11 +3315,11 @@
         "mae_close_ret": 0.023056935884466268,
         "mae_close_px": 6.950581686963271,
         "scope": "recent",
-        "mae_high_ret": 0.01791578286835562,
-        "mae_high_px": 5.318225078032752,
-        "mae_low_ret": 0.01698961754427996,
-        "mae_low_px": 5.0823330151723045,
-        "mae_score": 0.018573547341947487
+        "mae_high_ret": 0.01790529911097074,
+        "mae_high_px": 5.3151088859876685,
+        "mae_low_ret": 0.016988588446319904,
+        "mae_low_px": 5.082027126094658,
+        "mae_score": 0.01856894219980951
       },
       "data_source": "alpaca",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
@@ -3332,7 +3332,7 @@
       "dvol_rank": 60,
       "mae_rank": 474,
       "mae_score": 0.019665049357412492,
-      "dollar_volume": 1704384101.75,
+      "dollar_volume": 1704383106.25,
       "action": "做空",
       "side": -1,
       "reason": "fade_to_prior_close",
@@ -3353,10 +3353,10 @@
           "q90_ret": 0.04699198447104661
         },
         "low": {
-          "q10": 475.88908483841703,
+          "q10": 475.96714149787425,
           "q50": 491.05955480850116,
           "q90": 499.7924125431162,
-          "q10_ret": -0.04391946792884577,
+          "q10_ret": -0.04376264892441134,
           "q50_ret": -0.01344137657759682,
           "q90_ret": 0.0041032898907408105
         },
@@ -3399,9 +3399,9 @@
       "sector": "Health Care",
       "model_family": "shared",
       "dvol_rank": 61,
-      "mae_rank": 305,
+      "mae_rank": 304,
       "mae_score": 0.010374914944843074,
-      "dollar_volume": 1686694427.32,
+      "dollar_volume": 1686692471.38,
       "action": "做空",
       "side": -1,
       "reason": "fade_to_prior_close",
@@ -3470,7 +3470,7 @@
       "dvol_rank": 62,
       "mae_rank": 481,
       "mae_score": 0.021071029429301814,
-      "dollar_volume": 1685912489.04,
+      "dollar_volume": 1685912137.02,
       "action": "做空",
       "side": -1,
       "reason": "fade_to_prior_close",
@@ -3539,7 +3539,7 @@
       "dvol_rank": 64,
       "mae_rank": 448,
       "mae_score": 0.016929850133558827,
-      "dollar_volume": 1654346525.0,
+      "dollar_volume": 1654344289.0,
       "action": "做空",
       "side": -1,
       "reason": "fade_to_prior_close",
@@ -3607,8 +3607,8 @@
       "model_family": "shared",
       "dvol_rank": 65,
       "mae_rank": 124,
-      "mae_score": 0.007251199316004472,
-      "dollar_volume": 1638053703.0000002,
+      "mae_score": 0.007252000829377261,
+      "dollar_volume": 1638051546.3000002,
       "action": "做空",
       "side": -1,
       "reason": "fade_to_prior_close",
@@ -3660,11 +3660,11 @@
         "mae_close_ret": 0.009224778344245847,
         "mae_close_px": 2.895053248488604,
         "scope": "recent",
-        "mae_high_ret": 0.005661862615932744,
-        "mae_high_px": 1.7674884331498109,
+        "mae_high_ret": 0.005663866399364717,
+        "mae_high_px": 1.7680980842589882,
         "mae_low_ret": 0.007853746501955514,
         "mae_low_px": 2.4700761624443976,
-        "mae_score": 0.007251199316004472
+        "mae_score": 0.007252000829377261
       },
       "data_source": "alpaca",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
@@ -3677,7 +3677,7 @@
       "dvol_rank": 66,
       "mae_rank": 271,
       "mae_score": 0.009710317299255014,
-      "dollar_volume": 1615074032.45,
+      "dollar_volume": 1615073186.25,
       "action": "做空",
       "side": -1,
       "reason": "fade_to_prior_close",
@@ -3745,8 +3745,8 @@
       "model_family": "shared",
       "dvol_rank": 67,
       "mae_rank": 100,
-      "mae_score": 0.006879107520205595,
-      "dollar_volume": 1594336362.0800002,
+      "mae_score": 0.006879861301998926,
+      "dollar_volume": 1594335592.64,
       "action": "做多",
       "side": 1,
       "reason": "fade_to_prior_close",
@@ -3798,11 +3798,11 @@
         "mae_close_ret": 0.006880286467407281,
         "mae_close_px": 1.8126806334538876,
         "scope": "recent",
-        "mae_high_ret": 0.0066279659251652105,
-        "mae_high_px": 1.7526340439002333,
+        "mae_high_ret": 0.006629850379648537,
+        "mae_high_px": 1.7531210811614486,
         "mae_low_ret": 0.007129659641645136,
         "mae_low_px": 1.8877210132019235,
-        "mae_score": 0.006879107520205595
+        "mae_score": 0.006879861301998926
       },
       "data_source": "alpaca",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
@@ -3814,8 +3814,8 @@
       "model_family": "shared",
       "dvol_rank": 69,
       "mae_rank": 351,
-      "mae_score": 0.01169027024505018,
-      "dollar_volume": 1553935613.8600001,
+      "mae_score": 0.011696651561977339,
+      "dollar_volume": 1553932083.5,
       "action": "做多",
       "side": 1,
       "reason": "fade_to_prior_close",
@@ -3829,10 +3829,10 @@
       "pred": {
         "high": {
           "q10": 881.5229320660457,
-          "q50": 888.942259573755,
+          "q50": 888.9019470625548,
           "q90": 903.0434247375413,
           "q10_ret": -0.0012090188354210785,
-          "q50_ret": 0.007197293843976066,
+          "q50_ret": 0.0071516186026973115,
           "q90_ret": 0.023174321868071612
         },
         "low": {
@@ -3867,11 +3867,11 @@
         "mae_close_ret": 0.013951402687805137,
         "mae_close_px": 13.326315167332925,
         "scope": "recent",
-        "mae_high_ret": 0.009334562632075785,
-        "mae_high_px": 8.835401414049503,
-        "mae_low_ret": 0.012915411636647094,
-        "mae_low_px": 12.335480747280295,
-        "mae_score": 0.01169027024505018
+        "mae_high_ret": 0.009346573295820648,
+        "mae_high_px": 8.846057395030583,
+        "mae_low_ret": 0.012919354265220128,
+        "mae_low_px": 12.338978686776574,
+        "mae_score": 0.011696651561977339
       },
       "data_source": "alpaca",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
@@ -3883,8 +3883,8 @@
       "model_family": "shared",
       "dvol_rank": 70,
       "mae_rank": 192,
-      "mae_score": 0.008406242539387517,
-      "dollar_volume": 1528245814.04,
+      "mae_score": 0.0084072409023171,
+      "dollar_volume": 1528245600.0,
       "action": "做空",
       "side": -1,
       "reason": "fade_to_prior_close",
@@ -3936,11 +3936,11 @@
         "mae_close_ret": 0.012013866233980637,
         "mae_close_px": 1.2619472970206613,
         "scope": "recent",
-        "mae_high_ret": 0.006961023551674196,
-        "mae_high_px": 0.7320549652140477,
-        "mae_low_ret": 0.008047649679804276,
-        "mae_low_px": 0.8462655739920064,
-        "mae_score": 0.008406242539387517
+        "mae_high_ret": 0.006960719331140947,
+        "mae_high_px": 0.7320230981131898,
+        "mae_low_ret": 0.008050449807661484,
+        "mae_low_px": 0.8465588873850491,
+        "mae_score": 0.0084072409023171
       },
       "data_source": "alpaca",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
@@ -3952,8 +3952,8 @@
       "model_family": "shared",
       "dvol_rank": 71,
       "mae_rank": 332,
-      "mae_score": 0.011032006204928184,
-      "dollar_volume": 1521961553.88,
+      "mae_score": 0.011030814888920439,
+      "dollar_volume": 1521961484.4,
       "action": "做多",
       "side": 1,
       "reason": "fade_to_prior_close",
@@ -3967,10 +3967,10 @@
       "pred": {
         "high": {
           "q10": 34.667282569337516,
-          "q50": 35.096632833409835,
+          "q50": 35.09557775228602,
           "q90": 35.91928692057493,
           "q10_ret": -0.0020931902896514356,
-          "q50_ret": 0.010265769528204651,
+          "q50_ret": 0.01023539874168141,
           "q90_ret": 0.03394608291810403
         },
         "low": {
@@ -4007,9 +4007,9 @@
         "scope": "recent",
         "mae_high_ret": 0.010372960688042944,
         "mae_high_px": 0.3690399877085758,
-        "mae_low_ret": 0.011119518293884082,
-        "mae_low_px": 0.39463207989333593,
-        "mae_score": 0.011032006204928184
+        "mae_low_ret": 0.011116540003864719,
+        "mae_low_px": 0.3945297458482706,
+        "mae_score": 0.011030814888920439
       },
       "data_source": "alpaca",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
@@ -4021,8 +4021,8 @@
       "model_family": "shared",
       "dvol_rank": 72,
       "mae_rank": 419,
-      "mae_score": 0.01452817444897964,
-      "dollar_volume": 1504217049.51,
+      "mae_score": 0.014528871716741507,
+      "dollar_volume": 1504216643.58,
       "action": "做多",
       "side": 1,
       "reason": "fade_to_prior_close",
@@ -4074,11 +4074,11 @@
         "mae_close_ret": 0.0163941996556708,
         "mae_close_px": 6.306768162460805,
         "scope": "recent",
-        "mae_high_ret": 0.01585475963227972,
-        "mae_high_px": 6.0966284249647,
+        "mae_high_ret": 0.015856502801684387,
+        "mae_high_px": 6.097343263874166,
         "mae_low_ret": 0.012268576662333976,
         "mae_low_px": 4.799762163175968,
-        "mae_score": 0.01452817444897964
+        "mae_score": 0.014528871716741507
       },
       "data_source": "alpaca",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
@@ -4090,8 +4090,8 @@
       "model_family": "shared",
       "dvol_rank": 73,
       "mae_rank": 31,
-      "mae_score": 0.005297746751832427,
-      "dollar_volume": 1497895376.76,
+      "mae_score": 0.00529629875985726,
+      "dollar_volume": 1497894831.92,
       "action": "做多",
       "side": 1,
       "reason": "fade_to_prior_close",
@@ -4106,26 +4106,26 @@
         "high": {
           "q10": 272.2207216793111,
           "q50": 274.6578604522094,
-          "q90": 278.8935739624469,
+          "q90": 278.83701604822164,
           "q10_ret": -0.0007315113453084019,
           "q50_ret": 0.00821474360255989,
-          "q90_ret": 0.023763211080122342
+          "q90_ret": 0.02355559815072924
         },
         "low": {
-          "q10": 265.4648005424755,
+          "q10": 265.50925499222393,
           "q50": 270.161404094653,
           "q90": 272.66075469551794,
-          "q10_ret": -0.025531163121373487,
+          "q10_ret": -0.025367979618882902,
           "q50_ret": -0.008290859354478474,
           "q90_ret": 0.0008837629231257322
         },
         "close": {
           "q10": 266.88021388189,
           "q50": 272.5883209105331,
-          "q90": 277.03033093271944,
+          "q90": 276.9851381344236,
           "q10_ret": -0.020335460385104174,
           "q50_ret": 0.0006178728086524643,
-          "q90_ret": 0.016923614025106146
+          "q90_ret": 0.01675772019096831
         }
       },
       "baseline": {
@@ -4145,9 +4145,9 @@
         "scope": "recent",
         "mae_high_ret": 0.005689236438136667,
         "mae_high_px": 1.4942935942068682,
-        "mae_low_ret": 0.004470723101988508,
-        "mae_low_px": 1.1794450261161171,
-        "mae_score": 0.005297746751832427
+        "mae_low_ret": 0.004467103122050592,
+        "mae_low_px": 1.1784627083601644,
+        "mae_score": 0.00529629875985726
       },
       "data_source": "alpaca",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
@@ -4159,8 +4159,8 @@
       "model_family": "shared",
       "dvol_rank": 74,
       "mae_rank": 358,
-      "mae_score": 0.01192569214192935,
-      "dollar_volume": 1491407080.86,
+      "mae_score": 0.011925460817541788,
+      "dollar_volume": 1491406851.08,
       "action": "做多",
       "side": 1,
       "reason": "fade_to_prior_close",
@@ -4212,11 +4212,11 @@
         "mae_close_ret": 0.015553888730560456,
         "mae_close_px": 1.7194262204003739,
         "scope": "recent",
-        "mae_high_ret": 0.011191524819138859,
-        "mae_high_px": 1.231543474374214,
-        "mae_low_ret": 0.010845761170404287,
-        "mae_low_px": 1.197064378318484,
-        "mae_score": 0.01192569214192935
+        "mae_high_ret": 0.01119304335846502,
+        "mae_high_px": 1.2317217357057122,
+        "mae_low_ret": 0.010843664320109223,
+        "mae_low_px": 1.1968182290623466,
+        "mae_score": 0.011925460817541788
       },
       "data_source": "alpaca",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
@@ -4228,8 +4228,8 @@
       "model_family": "shared",
       "dvol_rank": 75,
       "mae_rank": 479,
-      "mae_score": 0.020929760729049705,
-      "dollar_volume": 1433014434.6799998,
+      "mae_score": 0.020912272667383422,
+      "dollar_volume": 1433013947.22,
       "action": "做空",
       "side": -1,
       "reason": "fade_to_prior_close",
@@ -4244,10 +4244,10 @@
         "high": {
           "q10": 243.14834345439337,
           "q50": 246.93583892471676,
-          "q90": 253.8106697343979,
+          "q90": 253.62780185008873,
           "q10_ret": -0.0023864790776950673,
           "q50_ret": 0.013153238931263198,
-          "q90_ret": 0.04135998742213884
+          "q90_ret": 0.04060969864230397
         },
         "low": {
           "q10": 234.29129917371358,
@@ -4281,11 +4281,11 @@
         "mae_close_ret": 0.021906090616824647,
         "mae_close_px": 5.4435919993128055,
         "scope": "recent",
-        "mae_high_ret": 0.019026218542614638,
-        "mae_high_px": 4.7167705827174675,
+        "mae_high_ret": 0.018982498388448933,
+        "mae_high_px": 4.705994001917164,
         "mae_low_ret": 0.022345137971597297,
         "mae_low_px": 5.561412329878444,
-        "mae_score": 0.020929760729049705
+        "mae_score": 0.020912272667383422
       },
       "data_source": "alpaca",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
@@ -4298,7 +4298,7 @@
       "dvol_rank": 76,
       "mae_rank": 413,
       "mae_score": 0.014272181068905668,
-      "dollar_volume": 1410199089.2,
+      "dollar_volume": 1410198633.6000001,
       "action": "做多",
       "side": 1,
       "reason": "fade_to_prior_close",
@@ -4365,9 +4365,9 @@
       "sector": "Consumer Staples",
       "model_family": "shared",
       "dvol_rank": 77,
-      "mae_rank": 53,
-      "mae_score": 0.005953293243986772,
-      "dollar_volume": 1403823221.8,
+      "mae_rank": 52,
+      "mae_score": 0.005953241441190469,
+      "dollar_volume": 1403823046.26,
       "action": "做空",
       "side": -1,
       "reason": "fade_to_prior_close",
@@ -4382,10 +4382,10 @@
         "high": {
           "q10": 87.71200679915617,
           "q50": 88.38063066826138,
-          "q90": 89.22800760020534,
+          "q90": 89.21479477955972,
           "q10_ret": -0.00066074058156343,
           "q50_ret": 0.006957168374858951,
-          "q90_ret": 0.016611685088359876
+          "q90_ret": 0.016461145944624885
         },
         "low": {
           "q10": 86.20151169348934,
@@ -4398,10 +4398,10 @@
         "close": {
           "q10": 86.40590105299759,
           "q50": 87.82423069641543,
-          "q90": 88.88152323872362,
+          "q90": 88.86685583890443,
           "q10_ret": -0.015541744867294068,
           "q50_ret": 0.0006178728086524643,
-          "q90_ret": 0.012664045103379564
+          "q90_ret": 0.012496933336042267
         }
       },
       "baseline": {
@@ -4419,11 +4419,11 @@
         "mae_close_ret": 0.007292705578163025,
         "mae_close_px": 0.6367403697043992,
         "scope": "recent",
-        "mae_high_ret": 0.006511806595823379,
-        "mae_high_px": 0.570330337582073,
+        "mae_high_ret": 0.006511677088832622,
+        "mae_high_px": 0.5703192232921264,
         "mae_low_ret": 0.004725073725062039,
         "mae_low_px": 0.41455595843240456,
-        "mae_score": 0.005953293243986772
+        "mae_score": 0.005953241441190469
       },
       "data_source": "alpaca",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
@@ -4435,8 +4435,8 @@
       "model_family": "shared",
       "dvol_rank": 78,
       "mae_rank": 408,
-      "mae_score": 0.013945336194959652,
-      "dollar_volume": 1400302356.9,
+      "mae_score": 0.013938227976672886,
+      "dollar_volume": 1400301874.8,
       "action": "做空",
       "side": -1,
       "reason": "fade_to_prior_close",
@@ -4488,11 +4488,11 @@
         "mae_close_ret": 0.018534577458256853,
         "mae_close_px": 4.552912475218586,
         "scope": "recent",
-        "mae_high_ret": 0.012473807505037347,
-        "mae_high_px": 3.057610336185662,
+        "mae_high_ret": 0.012456036959320436,
+        "mae_high_px": 3.0534738862591366,
         "mae_low_ret": 0.013122244253233353,
         "mae_low_px": 3.229408480112761,
-        "mae_score": 0.013945336194959652
+        "mae_score": 0.013938227976672886
       },
       "data_source": "alpaca",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
@@ -4504,8 +4504,8 @@
       "model_family": "shared",
       "dvol_rank": 80,
       "mae_rank": 300,
-      "mae_score": 0.010280658835253326,
-      "dollar_volume": 1372805682.3,
+      "mae_score": 0.010282733824674692,
+      "dollar_volume": 1371944285.27,
       "action": "做多",
       "side": 1,
       "reason": "fade_to_prior_close",
@@ -4519,10 +4519,10 @@
       "pred": {
         "high": {
           "q10": 81.9439982597533,
-          "q50": 82.73800375448118,
+          "q50": 82.73543416579287,
           "q90": 84.14260357892707,
           "q10_ret": -0.0010484181427125282,
-          "q50_ret": 0.008631034432295357,
+          "q50_ret": 0.008599709445238002,
           "q90_ret": 0.025754036071279678
         },
         "low": {
@@ -4557,11 +4557,11 @@
         "mae_close_ret": 0.012121556979050933,
         "mae_close_px": 1.0311321241223357,
         "scope": "recent",
-        "mae_high_ret": 0.008526306616343193,
-        "mae_high_px": 0.7210615843310308,
-        "mae_low_ret": 0.011114561982264655,
-        "mae_low_px": 0.9477068435397535,
-        "mae_score": 0.010280658835253326
+        "mae_high_ret": 0.008519977174459127,
+        "mae_high_px": 0.7205535833254156,
+        "mae_low_ret": 0.011126078897702136,
+        "mae_low_px": 0.9486311911727657,
+        "mae_score": 0.010282733824674692
       },
       "data_source": "alpaca",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
@@ -4573,8 +4573,8 @@
       "model_family": "shared",
       "dvol_rank": 81,
       "mae_rank": 113,
-      "mae_score": 0.007097081056983281,
-      "dollar_volume": 1370090647.3799999,
+      "mae_score": 0.00709775103619562,
+      "dollar_volume": 1370090450.3999999,
       "action": "做空",
       "side": -1,
       "reason": "fade_to_prior_close",
@@ -4595,10 +4595,10 @@
           "q90_ret": 0.024906285846381795
         },
         "low": {
-          "q10": 95.82856225210894,
+          "q10": 95.87364755234411,
           "q50": 97.64959543006728,
           "q90": 98.58482323934074,
-          "q10_ret": -0.02702241595990512,
+          "q10_ret": -0.026564650702161567,
           "q50_ret": -0.00853289237417716,
           "q90_ret": 0.0009627702237867212
         },
@@ -4626,11 +4626,11 @@
         "mae_close_ret": 0.009532466058183586,
         "mae_close_px": 0.9600914054377234,
         "scope": "recent",
-        "mae_high_ret": 0.00554350781604203,
-        "mae_high_px": 0.5590237382618829,
-        "mae_low_ret": 0.007432961797324377,
-        "mae_low_px": 0.750657529829032,
-        "mae_score": 0.007097081056983281
+        "mae_high_ret": 0.005541135088093321,
+        "mae_high_px": 0.5587894788315069,
+        "mae_low_ret": 0.007437009473303935,
+        "mae_low_px": 0.7510571568784938,
+        "mae_score": 0.00709775103619562
       },
       "data_source": "alpaca",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
@@ -4640,10 +4640,10 @@
       "name": "Communication Services",
       "sector": "Communication Services",
       "model_family": "shared",
-      "dvol_rank": 82,
+      "dvol_rank": 83,
       "mae_rank": 157,
-      "mae_score": 0.007764517428789007,
-      "dollar_volume": 1358771430.3300002,
+      "mae_score": 0.00776306637923381,
+      "dollar_volume": 1324677097.5900002,
       "action": "做多",
       "side": 1,
       "reason": "fade_to_prior_close",
@@ -4658,10 +4658,10 @@
         "high": {
           "q10": 24.853567381736518,
           "q50": 25.070420429908616,
-          "q90": 25.449827124232172,
+          "q90": 25.44530160287908,
           "q10_ret": -0.00066074058156343,
           "q50_ret": 0.008058722553623592,
-          "q90_ret": 0.0233143194303244
+          "q90_ret": 0.023132352347369493
         },
         "low": {
           "q10": 24.242509856358375,
@@ -4695,11 +4695,11 @@
         "mae_close_ret": 0.010007930650819143,
         "mae_close_px": 0.25552172664994177,
         "scope": "recent",
-        "mae_high_ret": 0.006295532725293667,
-        "mae_high_px": 0.15949091942830024,
+        "mae_high_ret": 0.006291905101405673,
+        "mae_high_px": 0.159402151471761,
         "mae_low_ret": 0.00811179552126928,
         "mae_low_px": 0.20678313814147398,
-        "mae_score": 0.007764517428789007
+        "mae_score": 0.00776306637923381
       },
       "data_source": "alpaca",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
@@ -4711,8 +4711,8 @@
       "model_family": "shared",
       "dvol_rank": 84,
       "mae_rank": 431,
-      "mae_score": 0.015396083303706504,
-      "dollar_volume": 1276205162.3999999,
+      "mae_score": 0.015389981685723341,
+      "dollar_volume": 1276204235.72,
       "action": "做空",
       "side": -1,
       "reason": "fade_to_prior_close",
@@ -4764,11 +4764,11 @@
         "mae_close_ret": 0.018381341334469708,
         "mae_close_px": 7.578738192977968,
         "scope": "recent",
-        "mae_high_ret": 0.01511773178654704,
-        "mae_high_px": 6.166127858707204,
+        "mae_high_ret": 0.015102477741589132,
+        "mae_high_px": 6.1593816047841194,
         "mae_low_ret": 0.014181805805484365,
         "mae_low_px": 5.821489142713992,
-        "mae_score": 0.015396083303706504
+        "mae_score": 0.015389981685723341
       },
       "data_source": "alpaca",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
@@ -4780,8 +4780,8 @@
       "model_family": "shared",
       "dvol_rank": 85,
       "mae_rank": 343,
-      "mae_score": 0.011435086328241133,
-      "dollar_volume": 1244838549.0,
+      "mae_score": 0.011442699092308887,
+      "dollar_volume": 1244837909.12,
       "action": "做多",
       "side": 1,
       "reason": "fade_to_prior_close",
@@ -4791,7 +4791,7 @@
       "entry": "盤中觸價",
       "entry_px": 158.07479216477955,
       "tp": 159.97,
-      "sl": 152.42254216477954,
+      "sl": 152.41825645049383,
       "pred": {
         "high": {
           "q10": 159.5983884215899,
@@ -4819,11 +4819,11 @@
         }
       },
       "baseline": {
-        "high_q50": 165.62225,
-        "low_q50": 154.31775,
+        "high_q50": 165.6265357142857,
+        "low_q50": 154.3134642857143,
         "close_q50": 159.97
       },
-      "atr": 5.652250000000003,
+      "atr": 5.6565357142857176,
       "high_confidence": false,
       "beats_baseline": true,
       "beats_range": true,
@@ -4835,9 +4835,9 @@
         "scope": "recent",
         "mae_high_ret": 0.010841410047302732,
         "mae_high_px": 1.7863297687941877,
-        "mae_low_ret": 0.01091610532346189,
-        "mae_low_px": 1.8075056592588319,
-        "mae_score": 0.011435086328241133
+        "mae_low_ret": 0.010935137233631277,
+        "mae_low_px": 1.8105056592588322,
+        "mae_score": 0.011442699092308887
       },
       "data_source": "alpaca",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
@@ -4849,8 +4849,8 @@
       "model_family": "shared",
       "dvol_rank": 86,
       "mae_rank": 63,
-      "mae_score": 0.006226309135128151,
-      "dollar_volume": 1236344335.72,
+      "mae_score": 0.006225897495944128,
+      "dollar_volume": 1236342610.88,
       "action": "做空",
       "side": -1,
       "reason": "fade_to_prior_close",
@@ -4904,9 +4904,9 @@
         "scope": "recent",
         "mae_high_ret": 0.006024846730728117,
         "mae_high_px": 0.16796050036624466,
-        "mae_low_ret": 0.006281389165966716,
-        "mae_low_px": 0.1755409095082941,
-        "mae_score": 0.006226309135128151
+        "mae_low_ret": 0.00628036006800666,
+        "mae_low_px": 0.17551209476541252,
+        "mae_score": 0.006225897495944128
       },
       "data_source": "alpaca",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
@@ -4917,9 +4917,9 @@
       "sector": "Health Care",
       "model_family": "shared",
       "dvol_rank": 87,
-      "mae_rank": 227,
+      "mae_rank": 228,
       "mae_score": 0.009021638587648258,
-      "dollar_volume": 1198060069.5,
+      "dollar_volume": 1198059784.74,
       "action": "做多",
       "side": 1,
       "reason": "fade_to_prior_close",
@@ -4988,7 +4988,7 @@
       "dvol_rank": 89,
       "mae_rank": 487,
       "mae_score": 0.022951803488453576,
-      "dollar_volume": 1163454697.8,
+      "dollar_volume": 1163453328.0,
       "action": "做空",
       "side": -1,
       "reason": "fade_to_prior_close",
@@ -5055,9 +5055,9 @@
       "sector": "Health Care",
       "model_family": "shared",
       "dvol_rank": 90,
-      "mae_rank": 292,
-      "mae_score": 0.010184743103778428,
-      "dollar_volume": 1151205622.58,
+      "mae_rank": 291,
+      "mae_score": 0.010180833605365303,
+      "dollar_volume": 1151205187.66,
       "action": "做空",
       "side": -1,
       "reason": "fade_to_prior_close",
@@ -5109,11 +5109,11 @@
         "mae_close_ret": 0.01508293449763512,
         "mae_close_px": 3.2488927243360863,
         "scope": "recent",
-        "mae_high_ret": 0.010070172649157404,
-        "mae_high_px": 2.1702243655768654,
-        "mae_low_ret": 0.007850217861471106,
-        "mae_low_px": 1.7153971062119755,
-        "mae_score": 0.010184743103778428
+        "mae_high_ret": 0.010071915818562071,
+        "mae_high_px": 2.170605230660091,
+        "mae_low_ret": 0.007838700946033625,
+        "mae_low_px": 1.7128807753580404,
+        "mae_score": 0.010180833605365303
       },
       "data_source": "alpaca",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
@@ -5126,7 +5126,7 @@
       "dvol_rank": 92,
       "mae_rank": 435,
       "mae_score": 0.015823366266260654,
-      "dollar_volume": 1144984029.0,
+      "dollar_volume": 1144983141.4,
       "action": "做空",
       "side": -1,
       "reason": "fade_to_prior_close",
@@ -5194,8 +5194,8 @@
       "model_family": "shared",
       "dvol_rank": 93,
       "mae_rank": 180,
-      "mae_score": 0.008102607756278836,
-      "dollar_volume": 1121283566.25,
+      "mae_score": 0.008099515420162011,
+      "dollar_volume": 1121283427.5,
       "action": "做多",
       "side": 1,
       "reason": "fade_to_prior_close",
@@ -5209,10 +5209,10 @@
       "pred": {
         "high": {
           "q10": 138.64850280083846,
-          "q50": 139.81761468327275,
+          "q50": 139.7890261324444,
           "q90": 141.9948470565558,
           "q10_ret": -0.0007315113453084019,
-          "q50_ret": 0.007694520239803625,
+          "q50_ret": 0.007488476630229942,
           "q90_ret": 0.023386285092294058
         },
         "low": {
@@ -5247,11 +5247,11 @@
         "mae_close_ret": 0.010731769262507188,
         "mae_close_px": 1.3894688705551537,
         "scope": "recent",
-        "mae_high_ret": 0.008613586101205462,
-        "mae_high_px": 1.118894768526721,
-        "mae_low_ret": 0.006277048658238034,
-        "mae_low_px": 0.8186193053468085,
-        "mae_score": 0.008102607756278836
+        "mae_high_ret": 0.008616749428792026,
+        "mae_high_px": 1.119333838395736,
+        "mae_low_ret": 0.006266154490359407,
+        "mae_low_px": 0.817107194845255,
+        "mae_score": 0.008099515420162011
       },
       "data_source": "alpaca",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
@@ -5264,7 +5264,7 @@
       "dvol_rank": 94,
       "mae_rank": 427,
       "mae_score": 0.014988440119116375,
-      "dollar_volume": 1111142666.1599998,
+      "dollar_volume": 1111142495.52,
       "action": "做空",
       "side": -1,
       "reason": "fade_to_prior_close",
@@ -5332,8 +5332,8 @@
       "model_family": "shared",
       "dvol_rank": 95,
       "mae_rank": 238,
-      "mae_score": 0.00913769325050804,
-      "dollar_volume": 1107577238.0,
+      "mae_score": 0.009136720862347146,
+      "dollar_volume": 1107576837.0,
       "action": "做空",
       "side": -1,
       "reason": "fade_to_prior_close",
@@ -5385,11 +5385,11 @@
         "mae_close_ret": 0.010511377078053082,
         "mae_close_px": 2.0090758099848705,
         "scope": "recent",
-        "mae_high_ret": 0.009162354759543658,
-        "mae_high_px": 1.7503396294416358,
+        "mae_high_ret": 0.009159923789141423,
+        "mae_high_px": 1.7498712057548294,
         "mae_low_ret": 0.008426189827699899,
         "mae_low_px": 1.6102958504603688,
-        "mae_score": 0.00913769325050804
+        "mae_score": 0.009136720862347146
       },
       "data_source": "alpaca",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
@@ -5401,8 +5401,8 @@
       "model_family": "shared",
       "dvol_rank": 96,
       "mae_rank": 316,
-      "mae_score": 0.010647982568729392,
-      "dollar_volume": 1098817515.84,
+      "mae_score": 0.010649156927846095,
+      "dollar_volume": 1098684995.76,
       "action": "做多",
       "side": 1,
       "reason": "fade_to_prior_close",
@@ -5454,11 +5454,11 @@
         "mae_close_ret": 0.011300672099550328,
         "mae_close_px": 2.27713176055508,
         "scope": "recent",
-        "mae_high_ret": 0.008921517313451784,
-        "mae_high_px": 1.7753038193219937,
+        "mae_high_ret": 0.00892445321124354,
+        "mae_high_px": 1.7758607884920679,
         "mae_low_ret": 0.012048103058596531,
         "mae_low_px": 2.4103321752690574,
-        "mae_score": 0.010647982568729392
+        "mae_score": 0.010649156927846095
       },
       "data_source": "alpaca",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
@@ -5470,8 +5470,8 @@
       "model_family": "shared",
       "dvol_rank": 97,
       "mae_rank": 450,
-      "mae_score": 0.016968568484520226,
-      "dollar_volume": 1077545194.77,
+      "mae_score": 0.016966679900750615,
+      "dollar_volume": 1077544345.75,
       "action": "做空",
       "side": -1,
       "reason": "fade_to_prior_close",
@@ -5523,11 +5523,11 @@
         "mae_close_ret": 0.019315912637356485,
         "mae_close_px": 8.183016904069124,
         "scope": "recent",
-        "mae_high_ret": 0.01648450593386555,
-        "mae_high_px": 6.9609530967671445,
-        "mae_low_ret": 0.01627895895875677,
-        "mae_low_px": 6.901857429635827,
-        "mae_score": 0.016968568484520226
+        "mae_high_ret": 0.01648276276446088,
+        "mae_high_px": 6.960201215507828,
+        "mae_low_ret": 0.016275980668737408,
+        "mae_low_px": 6.900572803801775,
+        "mae_score": 0.016966679900750615
       },
       "data_source": "alpaca",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
@@ -5540,7 +5540,7 @@
       "dvol_rank": 99,
       "mae_rank": 191,
       "mae_score": 0.008389923167577047,
-      "dollar_volume": 1058767256.25,
+      "dollar_volume": 1056106534.5,
       "action": "做空",
       "side": -1,
       "reason": "fade_to_prior_close",
@@ -5607,9 +5607,9 @@
       "sector": "Health Care",
       "model_family": "shared",
       "dvol_rank": 100,
-      "mae_rank": 298,
-      "mae_score": 0.010230928683809233,
-      "dollar_volume": 1053513408.21,
+      "mae_rank": 296,
+      "mae_score": 0.010230709755962382,
+      "dollar_volume": 1053512577.3900001,
       "action": "做多",
       "side": 1,
       "reason": "fade_to_prior_close",
@@ -5661,11 +5661,11 @@
         "mae_close_ret": 0.014222291794899885,
         "mae_close_px": 5.579801467512217,
         "scope": "recent",
-        "mae_high_ret": 0.01116123722936135,
-        "mae_high_px": 4.368114685183301,
-        "mae_low_ret": 0.007304938582711791,
-        "mae_low_px": 2.8435867172702425,
-        "mae_score": 0.010230928683809233
+        "mae_high_ret": 0.011163668199763586,
+        "mae_high_px": 4.369122371034435,
+        "mae_low_ret": 0.007301960292692427,
+        "mae_low_px": 2.8423521564914163,
+        "mae_score": 0.010230709755962382
       },
       "data_source": "alpaca",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
@@ -5677,8 +5677,8 @@
       "model_family": "shared",
       "dvol_rank": 5,
       "mae_rank": 504,
-      "mae_score": 0.028491991897064653,
-      "dollar_volume": 12885562818.0,
+      "mae_score": 0.028493979295771257,
+      "dollar_volume": 12873987255.84,
       "action": "觀望",
       "side": 0,
       "reason": "recent_mae_too_high",
@@ -5699,12 +5699,12 @@
           "q90_ret": 0.05347352166929354
         },
         "low": {
-          "q10": 101.39905741126954,
+          "q10": 101.40688832129165,
           "q50": 105.4627548184009,
-          "q90": 107.71375852629008,
-          "q10_ret": -0.053053255404655046,
+          "q90": 107.71235882114293,
+          "q10_ret": -0.05298012400736226,
           "q50_ret": -0.015103148875598642,
-          "q90_ret": 0.0059185517957610016
+          "q90_ret": 0.005905480212391859
         },
         "close": {
           "q10": 103.37411520743244,
@@ -5730,11 +5730,11 @@
         "mae_close_ret": 0.03227811539294355,
         "mae_close_px": 3.605755270603961,
         "scope": "recent",
-        "mae_high_ret": 0.029965739307230833,
-        "mae_high_px": 3.2847738779158733,
+        "mae_high_ret": 0.029970707803997347,
+        "mae_high_px": 3.2853359142701017,
         "mae_low_ret": 0.02512518273895902,
         "mae_low_px": 2.77883899827292,
-        "mae_score": 0.028491991897064653
+        "mae_score": 0.028493979295771257
       },
       "data_source": "alpaca",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
@@ -5745,9 +5745,9 @@
       "sector": "Information Technology",
       "model_family": "shared",
       "dvol_rank": 15,
-      "mae_rank": 497,
-      "mae_score": 0.02629709662545016,
-      "dollar_volume": 8024658547.340001,
+      "mae_rank": 496,
+      "mae_score": 0.026295189691683245,
+      "dollar_volume": 8024649208.900001,
       "action": "觀望",
       "side": 0,
       "reason": "recent_mae_too_high",
@@ -5801,9 +5801,9 @@
         "scope": "recent",
         "mae_high_ret": 0.027974043801614955,
         "mae_high_px": 7.0106718224159135,
-        "mae_low_ret": 0.02422062368776961,
-        "mae_low_px": 6.034296134819405,
-        "mae_score": 0.02629709662545016
+        "mae_low_ret": 0.02421585635335233,
+        "mae_low_px": 6.032938970057495,
+        "mae_score": 0.026295189691683245
       },
       "data_source": "alpaca",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
@@ -5815,8 +5815,8 @@
       "model_family": "shared",
       "dvol_rank": 16,
       "mae_rank": 511,
-      "mae_score": 0.030646912968337697,
-      "dollar_volume": 7371101129.0,
+      "mae_score": 0.030648756716223406,
+      "dollar_volume": 7369209535.0,
       "action": "觀望",
       "side": 0,
       "reason": "recent_mae_too_high",
@@ -5868,11 +5868,11 @@
         "mae_close_ret": 0.03996585669577761,
         "mae_close_px": 6.916897201079794,
         "scope": "recent",
-        "mae_high_ret": 0.035065616286598274,
-        "mae_high_px": 5.993408610040989,
-        "mae_low_ret": 0.02156873778635716,
-        "mae_low_px": 3.8346022731191147,
-        "mae_score": 0.030646912968337697
+        "mae_high_ret": 0.03506569883355763,
+        "mae_high_px": 5.993424828867564,
+        "mae_low_ret": 0.021573264609112075,
+        "mae_low_px": 3.8354917032539992,
+        "mae_score": 0.030648756716223406
       },
       "data_source": "alpaca",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
@@ -5884,8 +5884,8 @@
       "model_family": "shared",
       "dvol_rank": 18,
       "mae_rank": 500,
-      "mae_score": 0.027691424777362902,
-      "dollar_volume": 5125013625.2,
+      "mae_score": 0.02769559896994544,
+      "dollar_volume": 5122746552.0,
       "action": "觀望",
       "side": 0,
       "reason": "recent_mae_too_high",
@@ -5937,11 +5937,11 @@
         "mae_close_ret": 0.0329869820870131,
         "mae_close_px": 31.579770210334306,
         "scope": "recent",
-        "mae_high_ret": 0.0300872463245702,
-        "mae_high_px": 28.699205562079715,
+        "mae_high_ret": 0.03009768180602653,
+        "mae_high_px": 28.710800112461403,
         "mae_low_ret": 0.022647824575330502,
         "mae_low_px": 21.836044835534484,
-        "mae_score": 0.027691424777362902
+        "mae_score": 0.02769559896994544
       },
       "data_source": "alpaca",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
@@ -5954,7 +5954,7 @@
       "dvol_rank": 20,
       "mae_rank": 515,
       "mae_score": 0.036449631135165306,
-      "dollar_volume": 4301710902.78,
+      "dollar_volume": 4301710357.14,
       "action": "觀望",
       "side": 0,
       "reason": "recent_mae_too_high",
@@ -6022,8 +6022,8 @@
       "model_family": "shared",
       "dvol_rank": 21,
       "mae_rank": 512,
-      "mae_score": 0.030712832597029418,
-      "dollar_volume": 3938748504.3,
+      "mae_score": 0.030715590272088165,
+      "dollar_volume": 3938746954.65,
       "action": "觀望",
       "side": 0,
       "reason": "recent_mae_too_high",
@@ -6075,11 +6075,11 @@
         "mae_close_ret": 0.03261581483639304,
         "mae_close_px": 28.252344795783138,
         "scope": "recent",
-        "mae_high_ret": 0.027741415820859466,
-        "mae_high_px": 24.016414562345574,
-        "mae_low_ret": 0.032732758253517555,
-        "mae_low_px": 28.68650855207789,
-        "mae_score": 0.030712832597029418
+        "mae_high_ret": 0.027749339106466393,
+        "mae_high_px": 24.02281317010316,
+        "mae_low_ret": 0.0327317291555575,
+        "mae_low_px": 28.685677483438287,
+        "mae_score": 0.030715590272088165
       },
       "data_source": "alpaca",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
@@ -6091,8 +6091,8 @@
       "model_family": "shared",
       "dvol_rank": 22,
       "mae_rank": 502,
-      "mae_score": 0.02787471107824053,
-      "dollar_volume": 3697102200.7,
+      "mae_score": 0.02787888527082306,
+      "dollar_volume": 3697101414.08,
       "action": "觀望",
       "side": 0,
       "reason": "recent_mae_too_high",
@@ -6106,10 +6106,10 @@
       "pred": {
         "high": {
           "q10": 392.2903766040471,
-          "q50": 402.32670631391625,
+          "q50": 402.28631284811894,
           "q90": 416.29542575666574,
           "q10_ret": -0.0025924166584956844,
-          "q50_ret": 0.02292518958052503,
+          "q50_ret": 0.02282248823604531,
           "q90_ret": 0.05844098994855378
         },
         "low": {
@@ -6144,11 +6144,11 @@
         "mae_close_ret": 0.031066980690873613,
         "mae_close_px": 13.749158265868754,
         "scope": "recent",
-        "mae_high_ret": 0.024758449654544976,
-        "mae_high_px": 10.893030582931313,
+        "mae_high_ret": 0.024768885136001312,
+        "mae_high_px": 10.897261335823341,
         "mae_low_ret": 0.02939483769561953,
         "mae_low_px": 13.064465280497192,
-        "mae_score": 0.02787471107824053
+        "mae_score": 0.02787888527082306
       },
       "data_source": "alpaca",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
@@ -6159,9 +6159,9 @@
       "sector": "Information Technology",
       "model_family": "shared",
       "dvol_rank": 28,
-      "mae_rank": 496,
+      "mae_rank": 495,
       "mae_score": 0.026197715508618553,
-      "dollar_volume": 2977920802.95,
+      "dollar_volume": 2977262368.6499996,
       "action": "觀望",
       "side": 0,
       "reason": "recent_mae_too_high",
@@ -6176,10 +6176,10 @@
         "high": {
           "q10": 573.0058219858507,
           "q50": 583.8757922946596,
-          "q90": 601.8815657902787,
+          "q90": 601.841480465008,
           "q10_ret": -0.002687630344006987,
           "q50_ret": 0.01623147209931205,
-          "q90_ret": 0.04757038689457621
+          "q90_ret": 0.04750061868420161
         },
         "low": {
           "q10": 545.63769682247,
@@ -6229,8 +6229,8 @@
       "model_family": "shared",
       "dvol_rank": 31,
       "mae_rank": 514,
-      "mae_score": 0.035520883470141804,
-      "dollar_volume": 2808974813.9,
+      "mae_score": 0.03552505766272433,
+      "dollar_volume": 2808941555.4,
       "action": "觀望",
       "side": 0,
       "reason": "recent_mae_too_high",
@@ -6282,11 +6282,11 @@
         "mae_close_ret": 0.04347352183633081,
         "mae_close_px": 13.143409522529703,
         "scope": "recent",
-        "mae_high_ret": 0.034987111424324494,
-        "mae_high_px": 10.42484624281616,
+        "mae_high_ret": 0.03499754690578083,
+        "mae_high_px": 10.428337537492192,
         "mae_low_ret": 0.032078336332864596,
         "mae_low_px": 9.812477620008163,
-        "mae_score": 0.035520883470141804
+        "mae_score": 0.03552505766272433
       },
       "data_source": "alpaca",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
@@ -6299,7 +6299,7 @@
       "dvol_rank": 37,
       "mae_rank": 499,
       "mae_score": 0.026890800284888647,
-      "dollar_volume": 2525197142.2000003,
+      "dollar_volume": 2520696149.48,
       "action": "觀望",
       "side": 0,
       "reason": "recent_mae_too_high",
@@ -6368,7 +6368,7 @@
       "dvol_rank": 52,
       "mae_rank": 507,
       "mae_score": 0.02903829335816456,
-      "dollar_volume": 1906385908.0,
+      "dollar_volume": 1906385564.0,
       "action": "觀望",
       "side": 0,
       "reason": "recent_mae_too_high",
@@ -6436,8 +6436,8 @@
       "model_family": "shared",
       "dvol_rank": 63,
       "mae_rank": 498,
-      "mae_score": 0.026853939146931263,
-      "dollar_volume": 1661162634.95,
+      "mae_score": 0.026874237444056308,
+      "dollar_volume": 1661162549.41,
       "action": "觀望",
       "side": 0,
       "reason": "recent_mae_too_high",
@@ -6489,11 +6489,11 @@
         "mae_close_ret": 0.03349113273809461,
         "mae_close_px": 1.3389848841285097,
         "scope": "recent",
-        "mae_high_ret": 0.028593330563649422,
-        "mae_high_px": 1.1492795137099463,
+        "mae_high_ret": 0.02864407630646204,
+        "mae_high_px": 1.1515600273919453,
         "mae_low_ret": 0.02179595093463142,
         "mae_low_px": 0.8870949549929332,
-        "mae_score": 0.026853939146931263
+        "mae_score": 0.026874237444056308
       },
       "data_source": "alpaca",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
@@ -6505,7 +6505,7 @@
       "model_family": "shared",
       "dvol_rank": 68,
       "mae_rank": 509,
-      "mae_score": 0.029334805600862334,
+      "mae_score": 0.029334079529919538,
       "dollar_volume": 1576854193.92,
       "action": "觀望",
       "side": 0,
@@ -6560,9 +6560,9 @@
         "scope": "recent",
         "mae_high_ret": 0.03390965588233881,
         "mae_high_px": 12.168134068283592,
-        "mae_low_ret": 0.021988939048699335,
-        "mae_low_px": 8.075181872957764,
-        "mae_score": 0.029334805600862334
+        "mae_low_ret": 0.021987123871342343,
+        "mae_low_px": 8.074371487026735,
+        "mae_score": 0.029334079529919538
       },
       "data_source": "alpaca",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
@@ -6575,7 +6575,7 @@
       "dvol_rank": 79,
       "mae_rank": 505,
       "mae_score": 0.02874717429155881,
-      "dollar_volume": 1384082123.3300002,
+      "dollar_volume": 1384081817.67,
       "action": "觀望",
       "side": 0,
       "reason": "recent_mae_too_high",
@@ -6641,10 +6641,10 @@
       "name": "Information Technology",
       "sector": "Information Technology",
       "model_family": "shared",
-      "dvol_rank": 83,
+      "dvol_rank": 82,
       "mae_rank": 508,
-      "mae_score": 0.029241433910208694,
-      "dollar_volume": 1354387646.0800002,
+      "mae_score": 0.02925613933744618,
+      "dollar_volume": 1354386848.64,
       "action": "觀望",
       "side": 0,
       "reason": "recent_mae_too_high",
@@ -6696,11 +6696,11 @@
         "mae_close_ret": 0.03286986464445044,
         "mae_close_px": 12.784510567573715,
         "scope": "recent",
-        "mae_high_ret": 0.027687481198151686,
-        "mae_high_px": 10.793988140266935,
-        "mae_low_ret": 0.028981171255144822,
-        "mae_low_px": 11.29341269403343,
-        "mae_score": 0.029241433910208694
+        "mae_high_ret": 0.027728771589000313,
+        "mae_high_px": 10.810990697410581,
+        "mae_low_ret": 0.028976644432389908,
+        "mae_low_px": 11.291548638959412,
+        "mae_score": 0.02925613933744618
       },
       "data_source": "alpaca",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
@@ -6712,8 +6712,8 @@
       "model_family": "shared",
       "dvol_rank": 88,
       "mae_rank": 510,
-      "mae_score": 0.029956827348777238,
-      "dollar_volume": 1179878468.52,
+      "mae_score": 0.02996459813451041,
+      "dollar_volume": 1179878274.79,
       "action": "觀望",
       "side": 0,
       "reason": "recent_mae_too_high",
@@ -6765,11 +6765,11 @@
         "mae_close_ret": 0.032503870935521165,
         "mae_close_px": 4.574465127273695,
         "scope": "recent",
-        "mae_high_ret": 0.02983013956948124,
-        "mae_high_px": 4.284383830741609,
+        "mae_high_ret": 0.029849566533814164,
+        "mae_high_px": 4.288144891036462,
         "mae_low_ret": 0.028809993334701273,
         "mae_low_px": 4.189674913529672,
-        "mae_score": 0.029956827348777238
+        "mae_score": 0.02996459813451041
       },
       "data_source": "alpaca",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
@@ -6781,8 +6781,8 @@
       "model_family": "shared",
       "dvol_rank": 91,
       "mae_rank": 503,
-      "mae_score": 0.028048370852346877,
-      "dollar_volume": 1145651811.0,
+      "mae_score": 0.02804696208745053,
+      "dollar_volume": 1145651669.0,
       "action": "觀望",
       "side": 0,
       "reason": "recent_mae_too_high",
@@ -6836,9 +6836,9 @@
         "scope": "recent",
         "mae_high_ret": 0.03271573202916327,
         "mae_high_px": 2.007728599786738,
-        "mae_low_ret": 0.02137103807467204,
-        "mae_low_px": 1.3256029027458465,
-        "mae_score": 0.028048370852346877
+        "mae_low_ret": 0.021367516162431176,
+        "mae_low_px": 1.3253490080924024,
+        "mae_score": 0.02804696208745053
       },
       "data_source": "alpaca",
       "universe_source": "S&P 500 · Wikipedia 2026-09-12"
@@ -6851,7 +6851,7 @@
       "dvol_rank": 98,
       "mae_rank": 513,
       "mae_score": 0.031489313577751074,
-      "dollar_volume": 1064671538.55,
+      "dollar_volume": 1064670123.6899999,
       "action": "觀望",
       "side": 0,
       "reason": "recent_mae_too_high",
@@ -6866,10 +6866,10 @@
         "high": {
           "q10": 705.5802453389256,
           "q50": 724.8382019501131,
-          "q90": 756.7989690783666,
+          "q90": 756.3689482798442,
           "q10_ret": -0.00261475292406928,
           "q50_ret": 0.024607667119168213,
-          "q90_ret": 0.06978636625300963
+          "q90_ret": 0.06917850286225385
         },
         "low": {
           "q10": 662.864939791192,
