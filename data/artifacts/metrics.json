@@ -181,10 +181,10 @@
   "primary_family": "shared",
   "data": {
     "tickers": 517,
-    "rows": 481691,
+    "rows": 484272,
     "min_date": "2023-01-03",
-    "max_date": "2026-10-02",
-    "days_median": 941
+    "max_date": "2026-10-09",
+    "days_median": 946
   },
   "scoreboard_headline": {
     "shared": {
