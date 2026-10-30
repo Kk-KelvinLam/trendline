@@ -1,0 +1,10 @@
+.venv
+.git
+.pytest_cache
+__pycache__
+*.pyc
+data/parquet
+data/artifacts/*.parquet
+data/artifacts/models
+tests
+scripts
