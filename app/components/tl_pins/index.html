@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <style>html, body { margin: 0; padding: 0; background: transparent; height: 0; }</style>
+</head>
+<body>
+<script>
+  const KEY = "trendline_pinned";
+  let lastNonce = null;
+  function sendMessage(type, data) {
+    parent.postMessage(Object.assign({ isStreamlitMessage: true, type: type }, data || {}), "*");
+  }
+  function setValue(v) { sendMessage("streamlit:setComponentValue", { value: v }); }
+  function readPins() {
+    try {
+      const raw = window.parent.localStorage.getItem(KEY);
+      if (!raw) return [];
+      const data = JSON.parse(raw);
+      if (!Array.isArray(data)) return [];
+      const seen = new Set();
+      const out = [];
+      data.forEach(function (x) {
+        const t = String(x || "").trim().toUpperCase();
+        if (t && !seen.has(t)) { seen.add(t); out.push(t); }
+      });
+      return out;
+    } catch (e) {
+      return [];
+    }
+  }
+  function writePins(pins) {
+    try {
+      window.parent.localStorage.setItem(KEY, JSON.stringify(pins || []));
+    } catch (e) {}
+  }
+  function onRender(event) {
+    const msg = event.data;
+    if (!msg || msg.type !== "streamlit:render") return;
+    const d = msg.args || {};
+    const nonce = d.nonce == null ? 0 : d.nonce;
+    if (lastNonce === null || nonce !== lastNonce) {
+      lastNonce = nonce;
+      setValue({ source: "ls", pins: readPins(), nonce: nonce });
+      return;
+    }
+    if (d.write && Array.isArray(d.pins)) writePins(d.pins);
+  }
+  window.addEventListener("message", onRender);
+  sendMessage("streamlit:componentReady", { apiVersion: 1 });
+  sendMessage("streamlit:setFrameHeight", { height: 0 });
+</script>
+</body>
+</html>
